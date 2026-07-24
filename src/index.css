@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@media print {
+  header, nav, button, .no-print {
+    display: none !important;
+  }
+  
+  body, .bg-gray-50, .dark\:bg-zinc-950, .bg-white, .dark\:bg-zinc-900, .bg-gray-50\/50, .dark\:bg-zinc-800\/50 {
+    background: white !important;
+    color: black !important;
+  }
+  
+  #invoice-print-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .text-gray-400, .dark\:text-zinc-500, .text-gray-500, .text-gray-700, .dark\:text-zinc-300, .text-gray-800, .dark\:text-zinc-200 {
+    color: black !important;
+  }
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  th, td {
+    border-bottom: 1px solid #ccc !important;
+  }
+}
