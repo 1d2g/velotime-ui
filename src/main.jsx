@@ -4,6 +4,15 @@ import App from './App.jsx';
 import './index.css';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { ToastProvider } from './contexts/ToastContext.jsx';
+import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
+
+if (typeof window !== 'undefined' && import.meta.env.VITE_POSTHOG_KEY) {
+  posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+    api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
+    person_profiles: 'identified_only',
+  });
+}
 
 // You will get this key from your Clerk Dashboard
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -25,9 +34,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         }
       }}
     >
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <PostHogProvider client={posthog}>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </PostHogProvider>
     </ClerkProvider>
   </React.StrictMode>,
 );

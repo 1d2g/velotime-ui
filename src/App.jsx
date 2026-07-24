@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SignedIn, SignedOut, SignIn, UserButton, useUser, useAuth, useOrganization } from "@clerk/clerk-react";
+import { usePostHog } from 'posthog-js/react';
 import TimesheetMatrix from './components/TimesheetMatrix';
 import ProjectsTab from './components/ProjectsTab';
 import ReportsTab from './components/ReportsTab';
@@ -10,9 +11,19 @@ import TrialLockoutOverlay from './components/TrialLockoutOverlay';
 import { useToast } from './contexts/ToastContext';
 
 export default function App() {
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { getToken, isSignedIn } = useAuth();
   const { organization, membership, isLoaded: isOrgLoaded } = useOrganization();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    if (user && posthog) {
+      posthog.identify(user.id, {
+        email: user.primaryEmailAddress?.emailAddress,
+        name: user.fullName
+      });
+    }
+  }, [user, posthog]);
 
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('velotime_activeTab') || 'Timesheets';
