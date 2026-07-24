@@ -401,7 +401,7 @@ export default function App() {
         <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 py-3 flex items-center justify-between shrink-0 z-50 shadow-sm transition-colors">
           <div className="flex items-center gap-8">
             <div className="font-black text-xl text-blue-600 dark:text-blue-500 tracking-tighter cursor-pointer">
-              TIME<span className="text-gray-800 dark:text-zinc-200">MATRIX</span>
+              VELO<span className="text-gray-800 dark:text-zinc-200">TIME</span>
             </div>
             <nav className="hidden md:flex space-x-1">
               {navTabs.map(tab => (
