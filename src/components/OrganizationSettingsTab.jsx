@@ -144,7 +144,7 @@ export default function OrganizationSettingsTab({ dbUser, orgUsers, apiCall, for
                     }}
                     className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
                   >
-                    Upgrade to Pro ($9/mo)
+                    Upgrade to Pro ($5/mo)
                   </button>
                 ) : (
                   <p className="text-xs text-blue-600 font-semibold italic">Only organization admins can upgrade the subscription.</p>
