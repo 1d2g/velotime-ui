@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_Y2hhcm1pbmctZGFuZS03LmNsZXJrLmFjY291bnRzLmRldiQ
+          VITE_API_URL: https://time-production-b6d9.up.railway.app
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
