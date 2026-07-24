@@ -249,15 +249,12 @@ export default function ProjectsTab({
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      if (detailProjName.trim() && detailProjName.trim() !== project.name) {
-                        onRenameProject(project.id, detailProjName.trim());
-                      }
-                      setDetailProjEditing(false);
+                      e.target.blur();
                     } else if (e.key === 'Escape') {
                       setDetailProjEditing(false);
                     }
                   }}
-                  className="px-3 py-1 border border-blue-400 rounded-lg text-2xl font-black text-gray-850 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 shadow-inner"
+                  className="px-3 py-1 border border-blue-400 rounded-lg text-2xl font-black text-gray-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 shadow-inner"
                   autoFocus
                 />
               </div>
@@ -296,7 +293,7 @@ export default function ProjectsTab({
                     placeholder="New task name..."
                     value={newTaskName}
                     onChange={(e) => setNewTaskName(e.target.value)}
-                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 shadow-sm"
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-sm"
                   />
                   <button
                     type="submit"
@@ -514,7 +511,7 @@ export default function ProjectsTab({
                         setIsCreatingProj(false);
                       }
                     }}
-                    className="w-full px-3 py-1.5 border border-blue-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-805"
+                    className="w-full px-3 py-1.5 border border-blue-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
                     autoFocus
                   />
                 </div>
@@ -608,7 +605,7 @@ export default function ProjectsTab({
                           setEditingProjectId(null);
                         }
                       }}
-                      className="w-full px-2 py-1.5 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 text-sm shadow-sm"
+                      className="w-full px-2 py-1.5 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm shadow-sm"
                       autoFocus
                     />
                   </div>
