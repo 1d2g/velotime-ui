@@ -14,7 +14,17 @@ if (!PUBLISHABLE_KEY) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      appearance={{
+        elements: {
+          logoImage: "https://dg.tools/velotime/favicon.svg"
+        },
+        variables: {
+          colorPrimary: "#2563eb"
+        }
+      }}
+    >
       <ToastProvider>
         <App />
       </ToastProvider>
