@@ -7,6 +7,8 @@ import { ToastProvider } from './contexts/ToastContext.jsx';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 
+import LegalPages from './components/LegalPages.jsx';
+
 if (typeof window !== 'undefined' && import.meta.env.VITE_POSTHOG_KEY) {
   posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
     api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com',
@@ -21,24 +23,31 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
+const path = window.location.pathname;
+const isLegalPage = ['/privacy', '/contact', '/cookies', '/tos', '/data-removal'].includes(path);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ClerkProvider 
-      publishableKey={PUBLISHABLE_KEY}
-      appearance={{
-        elements: {
-          logoImage: "https://dg.tools/velotime/favicon.svg"
-        },
-        variables: {
-          colorPrimary: "#2563eb"
-        }
-      }}
-    >
-      <PostHogProvider client={posthog}>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </PostHogProvider>
-    </ClerkProvider>
+    {isLegalPage ? (
+      <LegalPages path={path} />
+    ) : (
+      <ClerkProvider 
+        publishableKey={PUBLISHABLE_KEY}
+        appearance={{
+          elements: {
+            logoImage: "https://dg.tools/velotime/favicon.svg"
+          },
+          variables: {
+            colorPrimary: "#2563eb"
+          }
+        }}
+      >
+        <PostHogProvider client={posthog}>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </PostHogProvider>
+      </ClerkProvider>
+    )}
   </React.StrictMode>,
 );
