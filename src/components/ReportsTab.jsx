@@ -65,18 +65,24 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   // Enrich entries with user, project, and task information
   const enrichedEntries = useMemo(() => {
-    return parsedEntries.map(e => {
-      const userObj = orgUsers.find(u => u.id === e.userId) || { firstName: 'Unknown', lastName: 'Member' };
-      
-      let projectObj = null;
-      let taskObj = null;
-      projects.forEach(p => {
-        const t = p.tasks.find(tk => tk.id === e.taskId);
-        if (t) {
-          projectObj = p;
-          taskObj = t;
-        }
+    // Build lookup maps for O(1) access
+    const taskMap = {};
+    projects.forEach(p => {
+      p.tasks.forEach(t => {
+        taskMap[t.id] = { project: p, task: t };
       });
+    });
+
+    const userMap = {};
+    orgUsers.forEach(u => {
+      userMap[u.id] = u;
+    });
+
+    return parsedEntries.map(e => {
+      const userObj = userMap[e.userId] || { firstName: 'Unknown', lastName: 'Member' };
+      const mapObj = taskMap[e.taskId];
+      const projectObj = mapObj ? mapObj.project : null;
+      const taskObj = mapObj ? mapObj.task : null;
 
       return {
         ...e,

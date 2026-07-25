@@ -132,6 +132,22 @@ export default function OrganizationSettingsTab({ dbUser, orgUsers, apiCall, for
                     return ` You have ${remaining} day${remaining === 1 ? '' : 's'} remaining in your trial.`;
                   })()}
                 </p>
+                
+                <div className="bg-blue-100/50 dark:bg-blue-900/20 rounded p-3 mb-4 border border-blue-200 dark:border-blue-800">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">Seats Used</span>
+                    <span className="text-sm font-bold text-blue-900 dark:text-blue-300">{orgUsers.length} / 5</span>
+                  </div>
+                  <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                    <div className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min((orgUsers.length / 5) * 100, 100)}%` }}></div>
+                  </div>
+                  {orgUsers.length >= 5 && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-semibold">
+                      You have reached the maximum seat limit for the demo tier. Upgrade to Pro to add more team members.
+                    </p>
+                  )}
+                </div>
+
                 {isAdmin ? (
                   <button 
                     onClick={async () => {

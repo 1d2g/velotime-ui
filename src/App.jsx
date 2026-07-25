@@ -38,6 +38,7 @@ export default function App() {
   });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [lockout, setLockout] = useState(null);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -216,8 +217,40 @@ export default function App() {
         if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
 
+        if (data.lockedOut) {
+          setLockout(data.lockoutReason);
+          setIsSyncing(false);
+          return;
+        }
+
         setDbUser(data.user);
-        setProjects(data.projects);
+        
+        // STRESS TEST SEEDING:
+        const fakeProjects = [];
+        const fakeEntries = {};
+        for (let i = 0; i < 20; i++) {
+          const proj = {
+            id: `fake_proj_${i}`,
+            name: `Stress Test Project ${i}`,
+            isCollapsed: false,
+            tasks: []
+          };
+          for (let j = 0; j < 5; j++) {
+            const taskId = `fake_task_${i}_${j}`;
+            proj.tasks.push({
+              id: taskId,
+              name: `Stress Test Task ${j}`
+            });
+            // 5 random entries per task for the current month
+            for (let k = 1; k <= 5; k++) {
+              const day = String(k * 5).padStart(2, '0');
+              fakeEntries[`${data.user.id}_2026-07-${day}_${taskId}`] = Math.random() * 8;
+            }
+          }
+          fakeProjects.push(proj);
+        }
+        setProjects([...data.projects, ...fakeProjects]);
+
         setOrgUsers(data.orgUsers || []);
         setTaskRates(data.taskRates || []);
 
@@ -227,7 +260,7 @@ export default function App() {
           dbEntries[`${entry.userId}_${entry.dateId}_${entry.taskId}`] = entry.hours;
           if (entry.note) dbNotes[`${entry.userId}_${entry.dateId}_${entry.taskId}`] = entry.note;
         });
-        setEntries(dbEntries);
+        setEntries({...dbEntries, ...fakeEntries});
         setNotes(dbNotes);
         setRawEntries(data.entries);
       } catch (error) {
@@ -398,7 +431,28 @@ export default function App() {
       </SignedOut>
 
       <SignedIn>
-        <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 py-3 flex items-center justify-between shrink-0 z-50 shadow-sm transition-colors">
+        {lockout === 'seat_limit_reached' ? (
+          <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-zinc-950 text-center">
+            <div className="max-w-md w-full bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-900/50">
+              <div className="w-16 h-16 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-zinc-100 mb-2">Seat Limit Reached</h2>
+              <p className="text-gray-600 dark:text-zinc-400 mb-8 leading-relaxed text-sm">
+                The organization you are trying to join has reached its maximum seat limit for the demo tier. 
+                An administrator must upgrade the workspace to Pro to allow more members.
+              </p>
+              <div className="space-y-3">
+                <UserButton afterSignOutUrl="/" />
+                <p className="text-xs text-gray-500 dark:text-zinc-500">Sign out or switch accounts</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 py-3 flex items-center justify-between shrink-0 z-50 shadow-sm transition-colors">
           <div className="flex items-center gap-8">
             <div className="font-black text-xl text-blue-600 dark:text-blue-500 tracking-tighter cursor-pointer">
               VELO<span className="text-gray-800 dark:text-zinc-200">TIME</span>
@@ -646,6 +700,8 @@ export default function App() {
             </div>
           )}
         </main>
+        </>
+        )}
       </SignedIn>
     </div>
   );

@@ -291,8 +291,8 @@ export default function InvoicesTab({ dbUser, projects, rawEntries, orgUsers, ap
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Notes</label>
-                    <textarea value={headerForm.notes || ''} onChange={e => setHeaderForm({...headerForm, notes: e.target.value})} className="w-full border border-gray-300 rounded-md p-2 bg-white text-gray-900" rows="2"></textarea>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Notes & Terms (Legal / Disclaimer)</label>
+                    <textarea value={headerForm.notes || ''} onChange={e => setHeaderForm({...headerForm, notes: e.target.value})} className="w-full border border-gray-300 rounded-md p-2 bg-white text-gray-900" rows="3" placeholder="Thank you for your business! Payment is due within 15 days..."></textarea>
                   </div>
                   <div className="md:col-span-2 flex justify-end gap-2 mt-2">
                     <button type="button" onClick={() => setIsEditingHeader(false)} className="px-4 py-2 font-medium text-gray-500">Cancel</button>
@@ -337,7 +337,7 @@ export default function InvoicesTab({ dbUser, projects, rawEntries, orgUsers, ap
                   <tr key={li.id} className="hover:bg-gray-50">
                     <td className="py-4 px-2 font-medium text-gray-800">{li.description}</td>
                     <td className="py-4 px-2 text-center text-gray-600">
-                      {li.isHourly ? `${li.hours} hrs` : 'Flat'}
+                      {li.isHourly ? `${li.hours} hrs` : 'Custom'}
                     </td>
                     <td className="py-4 px-2 text-right text-gray-600">{li.isHourly ? formatMoney(li.rate) : '-'}</td>
                     <td className="py-4 px-2 text-right font-bold text-gray-900">{formatMoney(li.amount)}</td>
@@ -358,12 +358,14 @@ export default function InvoicesTab({ dbUser, projects, rawEntries, orgUsers, ap
 
             {/* Totals & Notes */}
             <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-8">
-              <div className="flex-1 max-w-sm">
-                {activeInvoice.notes && (
-                  <div>
-                    <span className="block text-xs font-bold text-gray-400 uppercase mb-1">Notes</span>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{activeInvoice.notes}</p>
+              <div className="flex-1 max-w-lg mt-8 md:mt-0">
+                {activeInvoice.notes ? (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Notes & Terms</span>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{activeInvoice.notes}</p>
                   </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">No notes or legal terms added.</div>
                 )}
               </div>
               <div className="w-full md:w-64 border-t-2 border-gray-800 pt-4">
@@ -382,7 +384,7 @@ export default function InvoicesTab({ dbUser, projects, rawEntries, orgUsers, ap
                   className="text-gray-600 hover:text-gray-900 font-bold text-sm flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
-                  Add Line Item
+                  Add Custom Line Item (Tax, Discount, Fee...)
                 </button>
               ) : (
                 <form onSubmit={handleAddLineItem} className="bg-gray-50 p-6 rounded border border-gray-200">
