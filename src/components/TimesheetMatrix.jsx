@@ -486,7 +486,7 @@ export default function TimesheetMatrix({
                   className={`sticky top-0 border-b border-gray-300 dark:border-zinc-800 px-2 h-16 bg-blue-100 dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? 'w-24 min-w-[6rem] max-w-[6rem]' : ''}`} 
                   colSpan={p.isCollapsed ? 1 : p.tasks.length}
                 >
-                  <div className="flex items-center justify-start px-2 h-full w-full gap-2 overflow-hidden">
+                  <div className="sticky left-[18rem] flex items-center justify-start px-2 h-full w-max max-w-full gap-2">
                     <button 
                        onClick={() => onToggleCollapse(p.id)}
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-white/40 dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 rounded p-1 transition-all duration-200 flex-shrink-0 shadow-sm"
@@ -681,7 +681,7 @@ export default function TimesheetMatrix({
             }
 
             return (
-              <tr key={gridRow.id} className={`h-12 transition-colors ${rowBg}`}>
+              <tr key={gridRow.id} className={`group h-12 transition-colors ${rowBg}`}>
                 <td className={`${stickyLeft1} ${labelGlow} p-2 text-center h-12 align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}>{dateObj.label}</td>
                 <td className={`${stickyLeft2} ${dateGlow} p-2 text-center h-12 align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}>{dateObj.dateStr}</td>
                 <td className={`${stickyLeft3} p-2 text-center font-bold h-12 align-middle w-20 min-w-[5rem] max-w-[5rem] ${totalColor}`}>
@@ -703,7 +703,7 @@ export default function TimesheetMatrix({
                           id={`cell_${gridRow.id}_${cellKey}`}
                           tabIndex={-1}
                           onClick={() => { setSelectedCell({ r: rIndex, c: cIndex }); setIsEditing(false); }}
-                          className={`border-b border-x border-gray-300 p-0 h-12 align-middle text-center font-bold text-gray-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50 relative z-10' : dateObj.isToday ? 'bg-blue-50/20' : dateObj.isCurrentWeek ? 'bg-blue-50/10' : 'bg-gray-50/30'}`}
+                          className={`border-b border-x border-gray-300 p-0 h-12 align-middle text-center font-bold text-gray-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden group-hover:bg-blue-50/40 dark:group-hover:bg-blue-900/30 ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50 relative z-10' : dateObj.isToday ? 'bg-blue-50/20' : dateObj.isCurrentWeek ? 'bg-blue-50/10' : 'bg-gray-50/30'}`}
                         >
                           <div className="w-full h-full flex items-center justify-center p-2">
                             {getProjectTotal(dateObj.id, p).toFixed(2)}
@@ -751,7 +751,7 @@ export default function TimesheetMatrix({
                               id={`cell_${gridRow.id}_${addTaskKey}`}
                               tabIndex={-1}
                               onClick={() => { setSelectedCell({ r: rIndex, c: cIndex }); setIsEditing(false); setActiveTaskPopover(p.id); setIsAddingProject(false); }}
-                              className={`border-b border-r border-gray-300 dark:border-zinc-800 hover:bg-blue-50/30 dark:hover:bg-blue-900/30 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? 'border-l' : ''} ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50 z-10' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-zinc-900'}`}
+                              className={`border-b border-r border-gray-300 dark:border-zinc-800 hover:bg-blue-50/30 dark:hover:bg-blue-900/30 group-hover:bg-blue-50/20 dark:group-hover:bg-blue-900/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? 'border-l' : ''} ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50 z-10' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-zinc-900'}`}
                             >
                               <div className={`absolute inset-0 flex items-center justify-center font-bold transition-opacity ${isSelected ? 'text-blue-500 opacity-100' : 'text-gray-300 opacity-0 hover:opacity-100'}`}>
                                 <span className="text-xl">+</span>
@@ -775,7 +775,7 @@ export default function TimesheetMatrix({
                       id={`cell_${gridRow.id}_add_project`}
                       tabIndex={-1}
                       onClick={() => { setSelectedCell({ r: rIndex, c: cIndex }); setIsEditing(false); setIsAddingProject(true); setActiveTaskPopover(null); }}
-                      className={`${stickyRight} hover:bg-blue-50/30 dark:hover:bg-blue-900/30 border-b border-l border-gray-300 dark:border-zinc-800 w-14 min-w-[3.5rem] max-w-[3.5rem] z-20 cursor-pointer transition-colors relative ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-white dark:bg-zinc-950'}`}
+                      className={`${stickyRight} group-hover:bg-blue-50/20 dark:group-hover:bg-blue-900/20 hover:bg-blue-50/30 dark:hover:bg-blue-900/30 border-b border-l border-gray-300 dark:border-zinc-800 w-14 min-w-[3.5rem] max-w-[3.5rem] z-20 cursor-pointer transition-colors relative ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-white dark:bg-zinc-950'}`}
                     >
                       <div className={`absolute inset-0 flex items-center justify-center font-light transition-opacity ${isSelected ? 'text-blue-500 opacity-100' : 'text-gray-300 opacity-0 hover:opacity-100'}`}>
                         <span className="text-2xl">+</span>

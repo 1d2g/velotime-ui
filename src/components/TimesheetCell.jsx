@@ -93,7 +93,7 @@ export default function TimesheetCell({
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`border-b border-r border-gray-300 dark:border-zinc-800 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
+      className={`border-b border-r border-gray-300 dark:border-zinc-800 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-blue-50/40 dark:group-hover:bg-blue-900/20
         ${isFirstInProject ? 'border-l dark:border-l-zinc-800' : ''}
         ${isSelected && !isNoteOpen ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50 dark:bg-zinc-900 z-10' : isToday ? 'bg-blue-50/15' : isCurrentWeek ? 'bg-blue-50/5' : 'bg-transparent'}
         ${displayAuditRed && !isSelected ? 'ring-2 ring-inset ring-red-400 dark:ring-red-500 bg-red-50/80 dark:bg-red-950/20' : ''}
