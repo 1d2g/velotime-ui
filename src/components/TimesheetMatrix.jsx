@@ -6,7 +6,7 @@ import AddProjectPopover from './AddProjectPopover';
 export default function TimesheetMatrix({ 
   dates, projects, entries, notes = {}, dbUser, orgUsers, viewUserId, timeframe = 'month',
   onCellChange, onNoteChange, 
-  onAddTask, onRemoveTask, onAddProject, onToggleCollapse 
+  onAddTask, onRemoveTask, onAddProject, onToggleCollapse, searchQuery = '', onReorderProject
 }) {
   const [selectedCell, setSelectedCell] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -124,8 +124,14 @@ export default function TimesheetMatrix({
 
   const rowKeys = gridRows.map(r => r.id);
   
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery) return projects;
+    const lowerQ = searchQuery.toLowerCase();
+    return projects.filter(p => p.name.toLowerCase().includes(lowerQ));
+  }, [projects, searchQuery]);
+
   const visibleColKeys = [
-    ...projects.flatMap(p => p.isCollapsed ? [`proj_${p.id}`] : [...p.tasks.map(t => t.id), `add_task_${p.id}`]),
+    ...filteredProjects.flatMap(p => p.isCollapsed ? [`proj_${p.id}`] : [...p.tasks.map(t => t.id), `add_task_${p.id}`]),
     'add_project'
   ];
 
@@ -480,7 +486,7 @@ export default function TimesheetMatrix({
             </th>
             <th className="sticky top-0 bg-white dark:bg-zinc-950 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
 
-            {projects.map(p => (
+            {filteredProjects.map((p, pIndex) => (
               <React.Fragment key={`tier1_${p.id}`}>
                 <th 
                   className={`sticky top-0 border-b border-gray-300 dark:border-zinc-800 px-2 h-16 bg-blue-100 dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? 'w-24 min-w-[6rem] max-w-[6rem]' : ''}`} 
@@ -495,6 +501,24 @@ export default function TimesheetMatrix({
                       <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${p.isCollapsed ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
                     </button>
                     <span className="truncate flex-1 text-left text-sm" title={p.name}>{p.name}</span>
+                    {onReorderProject && (
+                      <div className="flex gap-0.5 ml-1 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity absolute right-2 bg-blue-100 dark:bg-zinc-900 shadow-sm rounded">
+                        <button 
+                          onClick={() => onReorderProject(p.id, 'left')} 
+                          disabled={pIndex === 0}
+                          className="p-1 hover:bg-white dark:hover:bg-zinc-800 rounded text-blue-600 dark:text-blue-400 disabled:opacity-30 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button 
+                          onClick={() => onReorderProject(p.id, 'right')} 
+                          disabled={pIndex === filteredProjects.length - 1}
+                          className="p-1 hover:bg-white dark:hover:bg-zinc-800 rounded text-blue-600 dark:text-blue-400 disabled:opacity-30 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </th>
                 {!p.isCollapsed && <th className="sticky top-0 bg-white dark:bg-zinc-950 w-20 h-16 z-30 border-0 border-b border-gray-300 dark:border-zinc-800 animate-task-btn overflow-hidden"></th>}
@@ -527,7 +551,7 @@ export default function TimesheetMatrix({
             <th className={`${stickyLeft3} bg-blue-50 dark:bg-zinc-900 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-blue-800 dark:text-blue-300`}>Total</th>
             <th className="sticky top-16 bg-white dark:bg-zinc-950 w-4 min-w-[1rem] max-w-[1rem] border-none z-30"></th>
 
-            {projects.map(p => (
+            {filteredProjects.map(p => (
               <React.Fragment key={`tier2_${p.id}`}>
                 {p.isCollapsed ? (
                   <th className="sticky top-16 border-b border-x border-gray-300 dark:border-zinc-800 px-1 py-4 bg-gray-50 dark:bg-zinc-900 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider z-30 w-24 min-w-[6rem] max-w-[6rem] animate-collapse overflow-hidden">
@@ -609,7 +633,7 @@ export default function TimesheetMatrix({
                   <td className={`${stickyLeft3} ${notesTotalGlow} transition-all duration-200 ${isActive ? 'border-b border-r border-gray-300' : 'border-b border-r border-transparent'}`} />
                   <td className="w-4 bg-transparent border-none" />
 
-                  {projects.map(p => (
+                  {filteredProjects.map(p => (
                     <React.Fragment key={`row_notes_${p.id}_${dateObj.id}`}>
                       {p.isCollapsed ? (
                         <td className={`p-0 w-24 min-w-[6rem] max-w-[6rem] transition-all duration-200 ${isActive ? 'border-b border-x border-gray-300 dark:border-zinc-700' : 'border-b border-x border-transparent'} ${dateObj.isToday ? 'bg-blue-50/20 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/10 dark:bg-blue-900/10' : 'bg-gray-50/50 dark:bg-zinc-800/30'}`} />
@@ -692,7 +716,7 @@ export default function TimesheetMatrix({
                 
                 <td className="w-4 bg-transparent border-none h-12"></td>
 
-                {projects.map(p => (
+                {filteredProjects.map(p => (
                   <React.Fragment key={`row_hours_${p.id}_${dateObj.id}`}>
                     {p.isCollapsed ? (() => {
                       const cellKey = `proj_${p.id}`;

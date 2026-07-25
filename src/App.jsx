@@ -53,6 +53,7 @@ export default function App() {
 
   const [dbUser, setDbUser] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [entries, setEntries] = useState({});
   const [rawEntries, setRawEntries] = useState([]);
   const [notes, setNotes] = useState({});
@@ -370,6 +371,27 @@ export default function App() {
     try { await apiCall(`/api/tasks/${taskId}`, 'DELETE'); } catch (e) { console.error("Failed to delete task"); }
   };
 
+  const handleReorderProject = async (projectId, direction) => {
+    setProjects(prev => {
+      const idx = prev.findIndex(p => p.id === projectId);
+      if (idx < 0) return prev;
+      if (direction === 'left' && idx === 0) return prev;
+      if (direction === 'right' && idx === prev.length - 1) return prev;
+
+      const newProjects = [...prev];
+      const swapIdx = direction === 'left' ? idx - 1 : idx + 1;
+      
+      const temp = newProjects[idx];
+      newProjects[idx] = newProjects[swapIdx];
+      newProjects[swapIdx] = temp;
+
+      const projectIds = newProjects.map(p => p.id);
+      apiCall('/api/projects/reorder', 'PUT', { projectIds }).catch(e => console.error("Failed to reorder projects", e));
+      
+      return newProjects;
+    });
+  };
+
   const handleEditTaskName = async (projectId, taskId, newName) => {
     // 1. Instantly update React state (Optimistic UI)
     setProjects(prev => prev.map(p => {
@@ -631,6 +653,20 @@ export default function App() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                   </button>
                 </div>
+                
+                {/* Search Bar */}
+                <div className="flex-1 flex justify-end">
+                  <div className="relative w-64 max-w-full">
+                    <svg className="absolute left-2 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <input 
+                      type="search" 
+                      placeholder="Search projects..." 
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-gray-700 dark:text-zinc-200"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="flex-1 flex flex-col overflow-hidden border-t border-gray-200">
                 {projects.length === 0 ? (
@@ -667,6 +703,8 @@ export default function App() {
                         onRemoveTask={handleRemoveTask}
                         onAddProject={handleAddProject}
                         onToggleCollapse={handleToggleCollapse}
+                        searchQuery={searchQuery}
+                        onReorderProject={handleReorderProject}
                       />
                     </div>
                   </TrialLockoutOverlay>
