@@ -69,7 +69,8 @@ export default function App() {
     'Settings'
   ];
 
-  const [timeframe, setTimeframe] = useState('month'); // 'day', 'week', 'month'
+  const [timeframe, setTimeframe] = useState('week'); // 'day', 'week', 'month'
+  const [zoomLevel, setZoomLevel] = useState(100);
   const [currentDate, setCurrentDate] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -613,6 +614,22 @@ export default function App() {
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                   </button>
+                  <div className="border-l border-gray-300 dark:border-zinc-700 h-4 mx-2"></div>
+                  <button
+                    onClick={() => setZoomLevel(prev => Math.max(50, prev - 10))}
+                    className="p-1 hover:bg-gray-200 rounded text-gray-650 transition-colors cursor-pointer"
+                    title="Zoom Out"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
+                  </button>
+                  <span className="text-[10px] font-bold tracking-wider text-gray-400 w-8 text-center">{zoomLevel}%</span>
+                  <button
+                    onClick={() => setZoomLevel(prev => Math.min(200, prev + 10))}
+                    className="p-1 hover:bg-gray-200 rounded text-gray-650 transition-colors cursor-pointer"
+                    title="Zoom In"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                  </button>
                 </div>
               </div>
               <div className="flex-1 flex flex-col overflow-hidden border-t border-gray-200">
@@ -634,22 +651,24 @@ export default function App() {
                   </div>
                 ) : (
                   <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                    <TimesheetMatrix
-                      dates={dates}
-                      projects={projects}
-                      entries={entries}
-                      notes={notes}
-                      dbUser={dbUser}
-                      orgUsers={orgUsers}
-                      viewUserId={viewUserId || dbUser?.id}
-                      timeframe={timeframe}
-                      onCellChange={handleCellChange}
-                      onNoteChange={handleNoteChange}
-                      onAddTask={handleAddTask}
-                      onRemoveTask={handleRemoveTask}
-                      onAddProject={handleAddProject}
-                      onToggleCollapse={handleToggleCollapse}
-                    />
+                    <div style={{ zoom: `${zoomLevel}%` }} className="h-full flex flex-col">
+                      <TimesheetMatrix
+                        dates={dates}
+                        projects={projects}
+                        entries={entries}
+                        notes={notes}
+                        dbUser={dbUser}
+                        orgUsers={orgUsers}
+                        viewUserId={viewUserId || dbUser?.id}
+                        timeframe={timeframe}
+                        onCellChange={handleCellChange}
+                        onNoteChange={handleNoteChange}
+                        onAddTask={handleAddTask}
+                        onRemoveTask={handleRemoveTask}
+                        onAddProject={handleAddProject}
+                        onToggleCollapse={handleToggleCollapse}
+                      />
+                    </div>
                   </TrialLockoutOverlay>
                 )}
               </div>
