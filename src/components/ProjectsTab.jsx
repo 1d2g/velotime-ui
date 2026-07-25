@@ -237,26 +237,37 @@ export default function ProjectsTab({
           <div className="p-6 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {detailProjEditing ? (
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <input
-                  type="text"
-                  value={detailProjName}
-                  onChange={(e) => setDetailProjName(e.target.value)}
-                  onBlur={() => {
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
                     if (detailProjName.trim() && detailProjName.trim() !== project.name) {
                       onRenameProject(project.id, detailProjName.trim());
                     }
                     setDetailProjEditing(false);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.target.blur();
-                    } else if (e.key === 'Escape') {
+                  className="flex w-full"
+                >
+                  <input
+                    type="text"
+                    value={detailProjName}
+                    onChange={(e) => setDetailProjName(e.target.value)}
+                    onBlur={(e) => {
+                      // Prevent onBlur if we are clicking a submit button inside the form (handled by onSubmit)
+                      if (detailProjName.trim() && detailProjName.trim() !== project.name) {
+                        onRenameProject(project.id, detailProjName.trim());
+                      }
                       setDetailProjEditing(false);
-                    }
-                  }}
-                  className="px-3 py-1 border border-blue-400 rounded-lg text-2xl font-black text-gray-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 shadow-inner"
-                  autoFocus
-                />
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setDetailProjEditing(false);
+                      }
+                      // Enter is handled by the form onSubmit
+                    }}
+                    className="px-3 py-1 border border-blue-400 rounded-lg text-2xl font-black text-gray-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 shadow-inner"
+                    autoFocus
+                  />
+                </form>
               </div>
             ) : (
               <div className="flex items-center gap-3 group">
@@ -589,45 +600,58 @@ export default function ProjectsTab({
                 </div>
               ) : isEditing ? (
                 <div className="flex flex-col h-full justify-between w-full" onClick={(e) => e.stopPropagation()}>
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 block mb-1">Rename Project</label>
-                    <input
-                      type="text"
-                      value={editProjName}
-                      onChange={(e) => setEditProjName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (editProjName.trim() && editProjName.trim() !== project.name) {
+                        onRenameProject(project.id, editProjName.trim());
+                      }
+                      setEditingProjectId(null);
+                    }}
+                    className="flex flex-col h-full justify-between w-full"
+                  >
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 block mb-1">Rename Project</label>
+                      <input
+                        type="text"
+                        value={editProjName}
+                        onChange={(e) => setEditProjName(e.target.value)}
+                        onBlur={(e) => {
+                          // Only save on blur if they click outside. If they click a button, onMouseDown will handle it first.
                           if (editProjName.trim() && editProjName.trim() !== project.name) {
                             onRenameProject(project.id, editProjName.trim());
                           }
                           setEditingProjectId(null);
-                        } else if (e.key === 'Escape') {
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setEditingProjectId(null);
+                          }
+                        }}
+                        className="w-full px-2 py-1.5 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm shadow-sm"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault(); // Prevents input onBlur
                           setEditingProjectId(null);
-                        }
-                      }}
-                      className="w-full px-2 py-1.5 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-sm shadow-sm"
-                      autoFocus
-                    />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      onClick={() => setEditingProjectId(null)}
-                      className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-md font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (editProjName.trim() && editProjName.trim() !== project.name) {
-                          onRenameProject(project.id, editProjName.trim());
-                        }
-                        setEditingProjectId(null);
-                      }}
-                      className="px-3 py-1 text-xs bg-blue-650 hover:bg-blue-700 text-white rounded-md font-bold shadow-sm"
-                    >
-                      Save
-                    </button>
-                  </div>
+                        }}
+                        className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-md font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        onMouseDown={(e) => e.preventDefault()} // Prevents input onBlur so submit fires
+                        className="px-3 py-1 text-xs bg-blue-650 hover:bg-blue-700 text-white rounded-md font-bold shadow-sm"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </form>
                 </div>
               ) : (
                 <>
