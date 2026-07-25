@@ -522,8 +522,8 @@ export default function TimesheetMatrix({
           </tr>
           
           <tr className="bg-gray-100 dark:bg-zinc-900">
-            <th className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-gray-700 dark:text-zinc-300`}>Day</th>
-            <th className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-gray-700 dark:text-zinc-300`}>Date</th>
+            <th className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-900`}>Day</th>
+            <th className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-900`}>Date</th>
             <th className={`${stickyLeft3} bg-blue-50 dark:bg-zinc-900 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-blue-800 dark:text-blue-300`}>Total</th>
             <th className="sticky top-16 bg-white dark:bg-zinc-950 w-4 min-w-[1rem] max-w-[1rem] border-none z-30"></th>
 
@@ -573,18 +573,18 @@ export default function TimesheetMatrix({
             if (isNotesRow) {
               const isActive = activeDateId === dateObj.id;
               let notesRowBg = 'text-gray-700';
-              let notesLeftGlow = 'bg-gray-50/20';
-              let notesLabelGlow = 'bg-gray-50/20 text-gray-405';
-              let notesTotalGlow = 'bg-gray-50/20';
+              let notesLeftGlow = 'bg-white dark:bg-zinc-950';
+              let notesLabelGlow = 'bg-white dark:bg-zinc-950 text-gray-400';
+              let notesTotalGlow = 'bg-white dark:bg-zinc-950';
 
               if (dateObj.isToday) {
-                notesLeftGlow = 'bg-blue-50/10 border-l-4 border-l-blue-500';
-                notesLabelGlow = 'bg-blue-50/10 text-blue-700 font-semibold';
-                notesTotalGlow = 'bg-blue-50/10';
+                notesLeftGlow = 'bg-blue-50 dark:bg-blue-900/80 border-l-4 border-l-blue-500';
+                notesLabelGlow = 'bg-blue-50 dark:bg-blue-900/80 text-blue-700 font-semibold';
+                notesTotalGlow = 'bg-blue-50 dark:bg-blue-900/80';
               } else if (dateObj.isCurrentWeek) {
-                notesLeftGlow = 'bg-blue-50/5 border-l-4 border-l-blue-400';
-                notesLabelGlow = 'bg-blue-50/5 text-blue-900 font-semibold';
-                notesTotalGlow = 'bg-blue-50/5';
+                notesLeftGlow = 'bg-blue-50 dark:bg-blue-900/60 border-l-4 border-l-blue-400';
+                notesLabelGlow = 'bg-blue-50 dark:bg-blue-900/60 text-blue-900 font-semibold';
+                notesTotalGlow = 'bg-blue-50 dark:bg-blue-900/60';
               }
 
               // To make height transition smooth on table rows, we transition the inner container's max-height and padding.
@@ -665,19 +665,21 @@ export default function TimesheetMatrix({
             if (dateObj.isFuture) totalColor = 'bg-gray-200 text-gray-400';
 
             let rowBg = 'hover:bg-gray-50 text-gray-700';
-            let labelGlow = '';
-            let dateGlow = '';
+            let labelGlow = 'bg-white dark:bg-zinc-950';
+            let dateGlow = 'bg-white dark:bg-zinc-950';
 
             if (dateObj.isToday) {
               rowBg = 'text-gray-700 font-bold';
-              labelGlow = 'border-l-4 border-l-blue-500 bg-blue-50/70 text-blue-700 font-bold';
-              dateGlow = 'bg-blue-50/70 text-blue-700 font-bold';
+              labelGlow = 'border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/80 text-blue-700 font-bold';
+              dateGlow = 'bg-blue-50 dark:bg-blue-900/80 text-blue-700 font-bold';
             } else if (dateObj.isCurrentWeek) {
               rowBg = 'text-gray-700 font-medium';
-              labelGlow = 'border-l-4 border-l-blue-400 bg-blue-50/40 text-blue-900 font-bold';
-              dateGlow = 'bg-blue-50/40 text-blue-900 font-bold';
+              labelGlow = 'border-l-4 border-l-blue-400 bg-blue-50 dark:bg-blue-900/60 text-blue-900 font-bold';
+              dateGlow = 'bg-blue-50 dark:bg-blue-900/60 text-blue-900 font-bold';
             } else if (dateObj.isFuture) {
               rowBg = 'bg-gray-50/80 text-gray-400';
+              labelGlow = 'bg-gray-50 dark:bg-zinc-900 text-gray-400';
+              dateGlow = 'bg-gray-50 dark:bg-zinc-900 text-gray-400';
             }
 
             return (
