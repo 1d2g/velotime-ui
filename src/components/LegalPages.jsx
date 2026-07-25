@@ -1,13 +1,18 @@
 import React from 'react';
+import { privacyPolicyHtml } from '../content/privacy.js';
+import { tosHtml } from '../content/tos.js';
+import { cookiesHtml } from '../content/cookies.js';
 
 const LegalPages = ({ path }) => {
   let title = '';
   let content = '';
+  let isHtml = false;
 
   switch (path) {
     case '/privacy':
       title = 'Privacy Policy';
-      content = 'This is a placeholder for the Privacy Policy. You can update this content with your generated policy.';
+      content = privacyPolicyHtml;
+      isHtml = true;
       break;
     case '/contact':
       title = 'Contact Us';
@@ -15,11 +20,13 @@ const LegalPages = ({ path }) => {
       break;
     case '/cookies':
       title = 'Cookie Policy';
-      content = 'This is a placeholder for the Cookie Policy. VeloTime uses strictly necessary cookies for authentication.';
+      content = cookiesHtml;
+      isHtml = true;
       break;
     case '/tos':
       title = 'Terms of Service';
-      content = 'This is a placeholder for the Terms of Service. You can update this content with your generated terms.';
+      content = tosHtml;
+      isHtml = true;
       break;
     case '/data-removal':
       title = 'Data Removal Request';
@@ -32,7 +39,7 @@ const LegalPages = ({ path }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl w-full bg-white shadow rounded-lg p-8">
+      <div className="max-w-4xl w-full bg-white shadow rounded-lg p-8">
         <div className="mb-8 flex justify-between items-center border-b pb-4">
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">{title}</h1>
           <a href="/" className="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-colors">
@@ -40,7 +47,11 @@ const LegalPages = ({ path }) => {
           </a>
         </div>
         <div className="prose prose-blue max-w-none text-gray-700">
-          <p className="text-lg leading-relaxed">{content}</p>
+          {isHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          ) : (
+            <p className="text-lg leading-relaxed">{content}</p>
+          )}
         </div>
       </div>
     </div>
