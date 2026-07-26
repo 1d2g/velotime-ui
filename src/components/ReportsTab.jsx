@@ -86,10 +86,16 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
       const taskRateOverride = taskRates.find(tr => tr.taskId === e.taskId && tr.userId === e.userId);
       const rate = taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
+      const fName = userObj.firstName && userObj.firstName !== 'null' ? userObj.firstName : '';
+      const lName = userObj.lastName && userObj.lastName !== 'null' ? userObj.lastName : '';
+      let derivedName = `${fName} ${lName}`.trim();
+      if (!derivedName) {
+        derivedName = userObj.emailAddress || userObj.email || 'Unnamed Employee';
+      }
 
       return {
         ...e,
-        userName: `${userObj.firstName} ${userObj.lastName}`,
+        userName: derivedName,
         projectName: projectObj ? projectObj.name : 'Unknown Project',
         projectId: projectObj ? projectObj.id : null,
         taskName: taskObj ? taskObj.name : 'Unknown Task',
