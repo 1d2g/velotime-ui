@@ -716,7 +716,7 @@ export default function TimesheetMatrix({
                 
                 <td className="w-4 bg-transparent border-none h-12"></td>
 
-                {filteredProjects.map(p => (
+                {filteredProjects.map((p, pIndex) => (
                   <React.Fragment key={`row_hours_${p.id}_${dateObj.id}`}>
                     {p.isCollapsed ? (() => {
                       const cellKey = `proj_${p.id}`;
