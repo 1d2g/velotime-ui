@@ -227,32 +227,7 @@ export default function App() {
         }
 
         setDbUser(data.user);
-        
-        // STRESS TEST SEEDING:
-        const fakeProjects = [];
-        const fakeEntries = {};
-        for (let i = 0; i < 20; i++) {
-          const proj = {
-            id: `fake_proj_${i}`,
-            name: `Stress Test Project ${i}`,
-            isCollapsed: false,
-            tasks: []
-          };
-          for (let j = 0; j < 5; j++) {
-            const taskId = `fake_task_${i}_${j}`;
-            proj.tasks.push({
-              id: taskId,
-              name: `Stress Test Task ${j}`
-            });
-            // 5 random entries per task for the current month
-            for (let k = 1; k <= 5; k++) {
-              const day = String(k * 5).padStart(2, '0');
-              fakeEntries[`${data.user.id}_2026-07-${day}_${taskId}`] = Math.random() * 8;
-            }
-          }
-          fakeProjects.push(proj);
-        }
-        setProjects([...data.projects, ...fakeProjects]);
+        setProjects(data.projects);
 
         setOrgUsers(data.orgUsers || []);
         setTaskRates(data.taskRates || []);
@@ -263,7 +238,7 @@ export default function App() {
           dbEntries[`${entry.userId}_${entry.dateId}_${entry.taskId}`] = entry.hours;
           if (entry.note) dbNotes[`${entry.userId}_${entry.dateId}_${entry.taskId}`] = entry.note;
         });
-        setEntries({...dbEntries, ...fakeEntries});
+        setEntries(dbEntries);
         setNotes(dbNotes);
         setRawEntries(data.entries);
       } catch (error) {
