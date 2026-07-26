@@ -758,7 +758,6 @@ export default function App() {
             </div>
           )}
         </main>
-        <ToastContainer />
         {dbUser && (
           <OnboardingTour
             hasCompletedOnboarding={dbUser.hasCompletedOnboarding}
