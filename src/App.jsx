@@ -595,29 +595,43 @@ export default function App() {
                     )}
                   </div>
 
-                  {isSaving ? (
-                    <button
-                      disabled
-                      className="bg-blue-50 text-blue-700 font-semibold py-1.5 px-4 rounded-lg border border-blue-200 shadow-sm transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
-                    >
-                      <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving to Cloud...
-                    </button>
-                  ) : (
-                    <button
-                      onClick={forceSync}
-                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1.5 px-4 rounded-lg border border-emerald-255 shadow-sm transition-colors text-sm flex items-center gap-1.5 cursor-pointer select-none"
-                      title="Click to force re-sync with database"
-                    >
-                      <svg className="h-4.5 w-4.5 text-emerald-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Saved to Cloud
-                    </button>
-                  )}
+                  <div className="flex items-center gap-4 flex-wrap justify-end">
+                    {/* Search Bar */}
+                    <div className="relative w-64 max-w-full">
+                      <svg className="absolute left-2 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                      <input 
+                        type="search" 
+                        placeholder="Search projects..." 
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-gray-700 dark:text-zinc-200"
+                      />
+                    </div>
+
+                    {isSaving ? (
+                      <button
+                        disabled
+                        className="bg-blue-50 text-blue-700 font-semibold py-1.5 px-4 rounded-lg border border-blue-200 shadow-sm transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
+                      >
+                        <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving to Cloud...
+                      </button>
+                    ) : (
+                      <button
+                        onClick={forceSync}
+                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1.5 px-4 rounded-lg border border-emerald-255 shadow-sm transition-colors text-sm flex items-center gap-1.5 cursor-pointer select-none"
+                        title="Click to force re-sync with database"
+                      >
+                        <svg className="h-4.5 w-4.5 text-emerald-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Saved to Cloud
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {/* Navigation Chevrons under "Timesheet for [Timeframe]" */}
                 <div className="flex items-center gap-3 text-gray-500 mt-1 select-none">
@@ -652,20 +666,6 @@ export default function App() {
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                   </button>
-                </div>
-                
-                {/* Search Bar */}
-                <div className="flex-1 flex justify-end">
-                  <div className="relative w-64 max-w-full">
-                    <svg className="absolute left-2 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    <input 
-                      type="search" 
-                      placeholder="Search projects..." 
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-gray-700 dark:text-zinc-200"
-                    />
-                  </div>
                 </div>
               </div>
               <div className="flex-1 flex flex-col overflow-hidden border-t border-gray-200">
