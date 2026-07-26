@@ -4,7 +4,7 @@ export default function TimesheetCell({
   rowId, dateId, taskId, value, note, isFuture, isSelected, isEditing,
   isFirstInProject, onCellChange, onNoteChange, onSelect,
   onEditStart, onEditEnd, showMissingNotes, timeframe = 'month',
-  isToday, isCurrentWeek
+  isToday, isCurrentWeek, className = ''
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -97,6 +97,7 @@ export default function TimesheetCell({
         ${isFirstInProject ? 'border-l dark:border-l-zinc-800' : ''}
         ${isSelected && !isNoteOpen ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50 dark:bg-zinc-900 z-10' : isToday ? 'bg-blue-50/15' : isCurrentWeek ? 'bg-blue-50/5' : 'bg-transparent'}
         ${displayAuditRed && !isSelected ? 'ring-2 ring-inset ring-red-400 dark:ring-red-500 bg-red-50/80 dark:bg-red-950/20' : ''}
+        ${className}
       `}
     >
       <input

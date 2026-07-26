@@ -489,7 +489,7 @@ export default function TimesheetMatrix({
             {filteredProjects.map((p, pIndex) => (
               <React.Fragment key={`tier1_${p.id}`}>
                 <th 
-                  className={`sticky top-0 border-b border-gray-300 dark:border-zinc-800 px-2 h-16 bg-blue-100 dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? 'w-24 min-w-[6rem] max-w-[6rem]' : ''}`} 
+                  className={`sticky top-0 border-b border-gray-300 dark:border-zinc-800 px-2 h-16 bg-blue-100 dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? 'w-24 min-w-[6rem] max-w-[6rem]' : ''} ${pIndex === 0 ? 'tour-project-header' : ''}`} 
                   colSpan={p.isCollapsed ? 1 : p.tasks.length}
                 >
                   <div className="sticky left-[18rem] flex items-center justify-start px-2 h-full w-max max-w-full gap-2">
@@ -747,6 +747,7 @@ export default function TimesheetMatrix({
                               rowId={gridRow.id}
                               dateId={dateObj.id}
                               taskId={t.id}
+                              className={pIndex === 0 && i === 0 && rIndex === 0 ? 'tour-time-cell' : ''}
                               value={entries[cellKey] || ''}
                               note={notes[cellKey] || ''}          
                               showMissingNotes={showMissingNotes}  
@@ -777,7 +778,7 @@ export default function TimesheetMatrix({
                               id={`cell_${gridRow.id}_${addTaskKey}`}
                               tabIndex={-1}
                               onClick={() => { setSelectedCell({ r: rIndex, c: cIndex }); setIsEditing(false); setActiveTaskPopover(p.id); setIsAddingProject(false); }}
-                              className={`border-b border-r border-gray-300 dark:border-zinc-800 hover:bg-blue-50/30 dark:hover:bg-blue-900/30 group-hover:bg-blue-50/20 dark:group-hover:bg-blue-900/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? 'border-l' : ''} ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50 z-10' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-zinc-900'}`}
+                              className={`border-b border-r border-gray-300 dark:border-zinc-800 hover:bg-blue-50/30 dark:hover:bg-blue-900/30 group-hover:bg-blue-50/20 dark:group-hover:bg-blue-900/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? 'border-l' : ''} ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100/50 dark:bg-blue-900/50 z-10' : dateObj.isToday ? 'bg-blue-50/15 dark:bg-blue-900/20' : dateObj.isCurrentWeek ? 'bg-blue-50/5 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-zinc-900'} ${pIndex === 0 && rIndex === 0 ? 'tour-add-task' : ''}`}
                             >
                               <div className={`absolute inset-0 flex items-center justify-center font-bold transition-opacity ${isSelected ? 'text-blue-500 opacity-100' : 'text-gray-300 opacity-0 hover:opacity-100'}`}>
                                 <span className="text-xl">+</span>

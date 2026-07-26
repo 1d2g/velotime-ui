@@ -8,6 +8,7 @@ import InvoicesTab from './components/InvoicesTab';
 import TeamTab from './components/TeamTab';
 import OrganizationSettingsTab from './components/OrganizationSettingsTab';
 import TrialLockoutOverlay from './components/TrialLockoutOverlay';
+import OnboardingTour from './components/OnboardingTour';
 import { useToast } from './contexts/ToastContext';
 
 export default function App() {
@@ -611,7 +612,7 @@ export default function App() {
                     {isSaving ? (
                       <button
                         disabled
-                        className="bg-blue-50 text-blue-700 font-semibold py-1.5 px-4 rounded-lg border border-blue-200 shadow-sm transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
+                        className="tour-save-indicator bg-blue-50 text-blue-700 font-semibold py-1.5 px-4 rounded-lg border border-blue-200 shadow-sm transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
                       >
                         <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -622,7 +623,7 @@ export default function App() {
                     ) : (
                       <button
                         onClick={forceSync}
-                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1.5 px-4 rounded-lg border border-emerald-255 shadow-sm transition-colors text-sm flex items-center gap-1.5 cursor-pointer select-none"
+                        className="tour-save-indicator bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1.5 px-4 rounded-lg border border-emerald-255 shadow-sm transition-colors text-sm flex items-center gap-1.5 cursor-pointer select-none"
                         title="Click to force re-sync with database"
                       >
                         <svg className="h-4.5 w-4.5 text-emerald-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -757,6 +758,21 @@ export default function App() {
             </div>
           )}
         </main>
+        <ToastContainer />
+        {dbUser && (
+          <OnboardingTour
+            hasCompletedOnboarding={dbUser.hasCompletedOnboarding}
+            projects={projects}
+            onComplete={async () => {
+              try {
+                await apiCall('/api/user/complete-onboarding', 'POST');
+                setDbUser(prev => ({ ...prev, hasCompletedOnboarding: true }));
+              } catch (e) {
+                console.error("Failed to complete onboarding", e);
+              }
+            }}
+          />
+        )}
         </>
         )}
       </SignedIn>
