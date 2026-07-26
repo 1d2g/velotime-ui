@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 
-export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEntries = [], orgUsers = [], notes = {} }) {
+export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEntries = [], orgUsers = [], notes = {}, taskRates = [] }) {
   const isPremium = dbUser?.organization?.tier === 'premium';
   
   // State: 'menu', 'configuring', 'viewing'
@@ -84,17 +84,20 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
       const projectObj = mapObj ? mapObj.project : null;
       const taskObj = mapObj ? mapObj.task : null;
 
+      const taskRateOverride = taskRates.find(tr => tr.taskId === e.taskId && tr.userId === e.userId);
+      const rate = taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
+
       return {
         ...e,
         userName: `${userObj.firstName} ${userObj.lastName}`,
         projectName: projectObj ? projectObj.name : 'Unknown Project',
         projectId: projectObj ? projectObj.id : null,
         taskName: taskObj ? taskObj.name : 'Unknown Task',
-        rate: 150, // Standard mock billing rate ($150/hr)
-        amount: e.hours * 150
+        rate: rate,
+        amount: e.hours * rate
       };
     });
-  }, [parsedEntries, orgUsers, projects]);
+  }, [parsedEntries, orgUsers, projects, taskRates]);
 
   // Date Range Filtering helpers
   const isThisMonth = (dateStr) => {
@@ -182,7 +185,9 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   // Project Budgets Aggregation
   const projectBudgets = useMemo(() => {
     let data = projects.map(p => {
-      const projHours = enrichedEntries.filter(e => e.projectId === p.id).reduce((sum, e) => sum + e.hours, 0);
+      const projEntries = enrichedEntries.filter(e => e.projectId === p.id);
+      const projHours = projEntries.reduce((sum, e) => sum + e.hours, 0);
+      const billableValue = projEntries.reduce((sum, e) => sum + e.amount, 0);
       const budgetLimit = p.name.toLowerCase().includes('design') ? 80 : 120;
       const remaining = Math.max(0, budgetLimit - projHours);
       const burnPercentage = (projHours / budgetLimit) * 100;
@@ -194,7 +199,7 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
         budgetLimit,
         remaining,
         burnPercentage,
-        billableValue: projHours * 150
+        billableValue
       };
     });
 
@@ -216,17 +221,66 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   // Uninvoiced Aggregation
   const uninvoicedProjectData = useMemo(() => {
     let data = projects.map(p => {
-      const unbilledHours = enrichedEntries.filter(e => e.projectId === p.id && !e.invoiceId).reduce((sum, e) => sum + e.hours, 0);
+      const unbilledEntries = enrichedEntries.filter(e => e.projectId === p.id && !e.invoiceId);
+      const unbilledHours = unbilledEntries.reduce((sum, e) => sum + e.hours, 0);
+      const billableValue = unbilledEntries.reduce((sum, e) => sum + e.amount, 0);
       
       return {
         id: p.id,
         name: p.name,
         hours: unbilledHours,
-        billableValue: unbilledHours * 150
+        billableValue
       };
     }).filter(p => p.hours > 0);
 
     if (sortConfig.key && reportType === 'uninvoiced') {
+      data.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return data;
+  }, [projects, enrichedEntries, sortConfig, reportType]);
+
+  // Project -> Team Aggregation
+  const projectTeamData = useMemo(() => {
+    let data = [];
+    projects.forEach(p => {
+      const projEntries = enrichedEntries.filter(e => e.projectId === p.id);
+      if (projEntries.length === 0) return;
+
+      const userMap = {};
+      projEntries.forEach(e => {
+        if (!userMap[e.userId]) {
+          userMap[e.userId] = {
+            userName: e.userName,
+            hours: 0,
+            amount: 0
+          };
+        }
+        userMap[e.userId].hours += e.hours;
+        userMap[e.userId].amount += e.amount;
+      });
+
+      const users = Object.values(userMap).sort((a,b) => b.hours - a.hours);
+      const totalProjHours = users.reduce((s, u) => s + u.hours, 0);
+      const totalProjAmount = users.reduce((s, u) => s + u.amount, 0);
+
+      data.push({
+        projectName: p.name,
+        hours: totalProjHours,
+        amount: totalProjAmount,
+        users
+      });
+    });
+
+    if (sortConfig.key && reportType === 'project-team') {
       data.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
@@ -386,6 +440,7 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
           )}
           <h1 className="text-xl font-bold text-gray-800 dark:text-zinc-100 tracking-tight">
             {reportPhase === 'menu' ? 'Reports' : 
+             reportType === 'project-team' ? 'Project & Team Summary' : 
              reportType === 'detailed' ? 'Detailed Log' : 
              reportType === 'budgets' ? 'Project Budgets' : 
              reportType === 'capacity' ? 'Team Capacity' : 'Uninvoiced Time'}
@@ -415,8 +470,9 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { id: 'detailed', title: 'Detailed Time Log', desc: 'A comprehensive, line-by-line spreadsheet of every time entry logged across all projects and team members. Includes notes and billable amounts.', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+                { id: 'project-team', title: 'Project & Team Summary', desc: 'A hierarchical view of hours and billable amounts grouped by project, and further broken down by each employee.', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
                 { id: 'budgets', title: 'Project Budgets', desc: 'Monitor project health by comparing logged hours against strict budget constraints. Instantly identify projects at risk of over-burning.', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-                { id: 'capacity', title: 'Team Capacity', desc: 'Ensure your workforce is balanced. Track employee logged hours against a standard 40-hour work week to identify overutilized team members.', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+                { id: 'capacity', title: 'Team Capacity', desc: 'Ensure your workforce is balanced. Track employee logged hours against a standard 40-hour work week to identify overutilized team members.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
                 { id: 'uninvoiced', title: 'Uninvoiced Time', desc: 'Keep track of your financial ledger. View billable project totals that have not yet been marked as invoiced, with outstanding amounts clearly highlighted.', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' }
               ].map(report => (
                 <div 
@@ -759,6 +815,53 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
             </tfoot>
           </table>
         )}
+
+        {reportPhase === 'viewing' && reportType === 'project-team' && (
+          <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto pb-16">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100">Project & Team Summary</h2>
+              <div className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
+                {projectTeamData.length} {projectTeamData.length === 1 ? 'Project' : 'Projects'} Found
+              </div>
+            </div>
+            
+            {projectTeamData.map((proj, idx) => (
+              <div key={idx} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+                 <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-zinc-100">{proj.projectName}</h3>
+                    <div className="flex gap-4">
+                      <span className="text-sm font-semibold text-gray-600 dark:text-zinc-400">Total Hours: {proj.hours.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">${proj.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    </div>
+                 </div>
+                 <table className="w-full text-left border-collapse">
+                   <thead className="bg-white dark:bg-zinc-900">
+                     <tr>
+                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800">Team Member</th>
+                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-100 dark:border-zinc-800 w-32">Hours Logged</th>
+                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-100 dark:border-zinc-800 w-40">Amount Billable</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {proj.users.map((u, i) => (
+                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 group">
+                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm font-semibold text-gray-700 dark:text-zinc-300">{u.userName}</td>
+                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm text-gray-900 dark:text-zinc-100 font-bold text-right">{u.hours.toFixed(2)}</td>
+                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm text-emerald-600 dark:text-emerald-400 font-medium text-right">${u.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        </tr>
+                     ))}
+                   </tbody>
+                 </table>
+              </div>
+            ))}
+            {projectTeamData.length === 0 && (
+              <div className="p-12 text-center border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-xl text-gray-500 bg-white dark:bg-zinc-900">
+                No matching data found for the selected criteria.
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

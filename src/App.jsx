@@ -744,7 +744,7 @@ export default function App() {
             </TrialLockoutOverlay>
           ) : activeTab === 'Reports' ? (
             <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-              <ReportsTab dbUser={dbUser} projects={projects} entries={entries} orgUsers={orgUsers} notes={notes} />
+              <ReportsTab dbUser={dbUser} projects={projects} entries={entries} orgUsers={orgUsers} notes={notes} taskRates={taskRates} rawEntries={rawEntries} />
             </TrialLockoutOverlay>
           ) : activeTab === 'Invoices' ? (
             <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>

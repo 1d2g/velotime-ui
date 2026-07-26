@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import AssignTeamModal from './AssignTeamModal';
 
 // Permission check helper - structured to support easy permission/role restriction in the future.
 const canPerformWriteActions = (dbUser) => {
@@ -146,6 +147,9 @@ export default function ProjectsTab({
 
   // Delete project confirmation state
   const [confirmDeleteProjectId, setConfirmDeleteProjectId] = useState(null);
+  
+  // Assign Team modal state
+  const [assignTeamProject, setAssignTeamProject] = useState(null);
 
   // Auto-focus the input when a user clicks a task name
   useEffect(() => {
@@ -288,6 +292,15 @@ export default function ProjectsTab({
             )}
 
             <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+              {isAdmin && (
+                <button
+                  onClick={() => setAssignTeamProject(project)}
+                  className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold py-1.5 px-4 rounded-lg text-sm transition-all shadow-sm active:scale-[0.98] flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  Assign Team
+                </button>
+              )}
               {writeAllowed && (
                 <form
                   onSubmit={(e) => {
@@ -710,6 +723,24 @@ export default function ProjectsTab({
           </div>
         )}
       </div>
+      
+      {/* Assign Team Modal */}
+      {assignTeamProject && (
+        <AssignTeamModal 
+          project={assignTeamProject}
+          orgUsers={orgUsers}
+          onClose={() => setAssignTeamProject(null)}
+          onSave={async (projectId, userIds) => {
+            try {
+              await apiCall(`/api/projects/${projectId}/assignments`, 'POST', { userIds });
+              forceSync();
+              setAssignTeamProject(null);
+            } catch (err) {
+              alert("Failed to update assignments");
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
