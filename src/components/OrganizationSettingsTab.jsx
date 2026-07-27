@@ -149,19 +149,37 @@ export default function OrganizationSettingsTab({ dbUser, orgUsers, apiCall, for
                 </div>
 
                 {isAdmin ? (
-                  <button 
-                    onClick={async () => {
-                      try {
-                        const { url } = await apiCall('/api/stripe/checkout', 'POST');
-                        window.location.href = url;
-                      } catch (e) {
-                        alert('Failed to initiate checkout.');
-                      }
-                    }}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
-                  >
-                    Upgrade to Pro ($5/mo)
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const { url } = await apiCall('/api/stripe/checkout', 'POST');
+                          window.location.href = url;
+                        } catch (e) {
+                          alert('Failed to initiate checkout.');
+                        }
+                      }}
+                      className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+                    >
+                      Upgrade to Pro ($5/mo)
+                    </button>
+                    {dbUser?.email === 'privacy@dg.tools' && (
+                      <button 
+                        onClick={async () => {
+                          try {
+                            await apiCall('/api/dev/upgrade', 'POST');
+                            forceSync();
+                            alert('Dev Override Successful: Upgraded to Pro!');
+                          } catch (e) {
+                            alert('Failed to force dev upgrade.');
+                          }
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+                      >
+                        Force Upgrade (Dev)
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-xs text-blue-600 font-semibold italic">Only organization admins can upgrade the subscription.</p>
                 )}
