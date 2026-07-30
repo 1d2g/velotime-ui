@@ -501,24 +501,6 @@ export default function TimesheetMatrix({
                       <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${p.isCollapsed ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
                     </button>
                     <span className="truncate flex-1 text-left text-sm" title={p.name}>{p.name}</span>
-                    {onReorderProject && (
-                      <div className="flex gap-0.5 ml-1 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity absolute right-2 bg-blue-100 dark:bg-zinc-900 shadow-sm rounded">
-                        <button 
-                          onClick={() => onReorderProject(p.id, 'left')} 
-                          disabled={pIndex === 0}
-                          className="p-1 hover:bg-white dark:hover:bg-zinc-800 rounded text-blue-600 dark:text-blue-400 disabled:opacity-30 transition-colors"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
-                        </button>
-                        <button 
-                          onClick={() => onReorderProject(p.id, 'right')} 
-                          disabled={pIndex === filteredProjects.length - 1}
-                          className="p-1 hover:bg-white dark:hover:bg-zinc-800 rounded text-blue-600 dark:text-blue-400 disabled:opacity-30 transition-colors"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </th>
                 {!p.isCollapsed && <th className="sticky top-0 bg-white dark:bg-zinc-950 w-20 h-16 z-30 border-0 border-b border-gray-300 dark:border-zinc-800 animate-task-btn overflow-hidden"></th>}
