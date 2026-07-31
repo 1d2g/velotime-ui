@@ -35,7 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         publishableKey={PUBLISHABLE_KEY}
         appearance={{
           elements: {
-            logoImage: "https://dg.tools/velotime/favicon.svg"
+            logoImage: "/favicon.svg"
           },
           variables: {
             colorPrimary: "#2563eb"
