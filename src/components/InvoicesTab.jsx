@@ -312,7 +312,7 @@ export default function InvoicesTab({ dbUser, projects, rawEntries, orgUsers, ap
                     <div className="whitespace-pre-wrap mt-1 text-sm">{activeInvoice.clientAddress}</div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right print:hidden">
                   <h3 className="text-sm font-bold text-gray-400 uppercase mb-1">Status</h3>
                   <span className={`px-3 py-1 border text-sm font-bold uppercase tracking-wider ${activeInvoice.status === 'paid' ? 'border-green-500 text-green-600' : activeInvoice.status === 'pending' ? 'border-yellow-500 text-yellow-600' : 'border-gray-400 text-gray-500'}`}>
                     {activeInvoice.status}

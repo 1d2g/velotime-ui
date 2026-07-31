@@ -45,20 +45,23 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
     );
   };
 
-  // Parse entries into list format
   const parsedEntries = useMemo(() => {
-    if (rawEntries && rawEntries.length > 0) {
-      return rawEntries.filter(e => e.hours > 0);
-    }
+    // Build a map of rawEntries for quick invoice lookup
+    const rawMap = {};
+    (rawEntries || []).forEach(re => {
+      rawMap[`${re.userId}_${re.dateId}_${re.taskId}`] = re;
+    });
+
     return Object.entries(entries).map(([key, hours]) => {
       const [userId, dateId, taskId] = key.split('_');
+      const raw = rawMap[key];
       return {
         userId,
         dateId,
         taskId,
         hours: parseFloat(hours) || 0,
         note: notes[key] || '',
-        invoiceId: null
+        invoiceId: raw ? raw.invoiceId : null
       };
     }).filter(e => e.hours > 0);
   }, [entries, rawEntries, notes]);
@@ -142,8 +145,8 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   // Filter and Sort entries
   const filteredEntries = useMemo(() => {
     let filtered = enrichedEntries.filter(e => {
-      const matchProject = selectedProject === 'all' || e.projectId === selectedProject;
-      const matchUser = selectedUser === 'all' || e.userId === selectedUser;
+      const matchProject = selectedProject === 'all' || String(e.projectId) === String(selectedProject);
+      const matchUser = selectedUser === 'all' || String(e.userId) === String(selectedUser);
       
       let matchPeriod = true;
       if (selectedPeriod === 'week') {
