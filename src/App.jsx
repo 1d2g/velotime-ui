@@ -617,7 +617,7 @@ export default function App() {
         ) : (
           <>
             <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
-              <div className="flex items-center gap-8">
+              <div className="flex items-center w-full lg:w-64 shrink-0">
                 <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2">
                   <svg
                     className="w-6 h-6 shrink-0"
@@ -627,19 +627,21 @@ export default function App() {
                     <rect width="200" height="200" fill="#0F172A" />
                     <path
                       d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
-                      fill="var(--color-primary-500)"
+                      fill="#F43F5E"
                     />
-                    <path d="M 90 72 H 110 V 94 H 90 Z" fill="var(--color-primary-500)" />
+                    <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
                     <path
                       d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
                       fill="#FFFFFF"
                     />
                   </svg>
                   <span>
-                    VELO<span className="text-primary-600">TIME</span>
+                    VELO<span className="text-rose-600">TIME</span>
                   </span>
                 </div>
-                <nav className="hidden md:flex w-full max-w-2xl mx-8 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
+              </div>
+              <div className="hidden md:flex flex-1 justify-center max-w-3xl px-4">
+                <nav className="flex w-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
                   {navTabs.map((tab) => (
                     <button
                       key={tab}
@@ -651,7 +653,7 @@ export default function App() {
                   ))}
                 </nav>
               </div>
-              <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
                 <button
                   onClick={cycleColorTheme}
                   className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-zinc-700 shadow-sm transition-transform hover:scale-110 flex items-center justify-center relative overflow-hidden group bg-primary-500"
