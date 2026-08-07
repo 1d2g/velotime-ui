@@ -54,6 +54,10 @@ export default function OnboardingTour({
     }
   };
 
+  if (hasCompletedOnboarding) {
+    return null;
+  }
+
   return (
     <Joyride
       steps={steps}
