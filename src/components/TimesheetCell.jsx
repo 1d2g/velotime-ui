@@ -1,14 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
 export default function TimesheetCell({
-  rowId, dateId, taskId, value, note, isFuture, isSelected, isEditing,
-  isFirstInProject, onCellChange, onNoteChange, onSelect,
-  onEditStart, onEditEnd, showMissingNotes, timeframe = 'month',
-  isToday, isCurrentWeek, className = ''
+  rowId,
+  dateId,
+  taskId,
+  value,
+  note,
+  isFuture,
+  isSelected,
+  isEditing,
+  isFirstInProject,
+  onCellChange,
+  onNoteChange,
+  onSelect,
+  onEditStart,
+  onEditEnd,
+  showMissingNotes,
+  timeframe = "month",
+  isToday,
+  isCurrentWeek,
+  className = "",
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [localNote, setLocalNote] = useState(note || '');
+  const [localNote, setLocalNote] = useState(note || "");
   const inputRef = useRef(null);
   const initialEditValue = useRef(value);
 
@@ -26,9 +41,16 @@ export default function TimesheetCell({
 
   useEffect(() => {
     const handleSpaceKeyDown = (e) => {
-      if ((isHovered || isSelected) && (e.key === ' ' || e.key === 'Spacebar') && !isNoteOpen) {
+      if (
+        (isHovered || isSelected) &&
+        (e.key === " " || e.key === "Spacebar") &&
+        !isNoteOpen
+      ) {
         // Ignore if typing inside any textarea
-        if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "TEXTAREA"
+        ) {
           return;
         }
         // Ignore Ctrl+Space or Cmd+Space so they still collapse/expand projects
@@ -40,38 +62,43 @@ export default function TimesheetCell({
         if (!isSelected && onSelect) {
           onSelect();
         }
-        if (!['day', 'week'].includes(timeframe)) {
+        if (!["day", "week"].includes(timeframe)) {
           setIsNoteOpen(true);
         } else {
-          document.getElementById('bottom-note-textarea')?.focus();
+          document.getElementById("bottom-note-textarea")?.focus();
         }
       }
     };
 
-    window.addEventListener('keydown', handleSpaceKeyDown, true);
-    return () => window.removeEventListener('keydown', handleSpaceKeyDown, true);
+    window.addEventListener("keydown", handleSpaceKeyDown, true);
+    return () =>
+      window.removeEventListener("keydown", handleSpaceKeyDown, true);
   }, [isHovered, isSelected, isNoteOpen, onSelect, timeframe]);
 
-  useEffect(() => { setLocalNote(note || ''); }, [note]);
+  useEffect(() => {
+    setLocalNote(note || "");
+  }, [note]);
 
   const hasHours = parseFloat(value) > 0;
-  const isMissingNote = hasHours && (!note || note.trim() === '');
+  const isMissingNote = hasHours && (!note || note.trim() === "");
   const displayAuditRed = showMissingNotes && isMissingNote;
 
   const handleInputKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       const currentVal = parseFloat(value) || 0;
       const initialVal = parseFloat(initialEditValue.current) || 0;
-      
+
       if (currentVal > 0 && currentVal !== initialVal && !note) {
         e.preventDefault();
         e.stopPropagation();
-        e.nativeEvent.stopImmediatePropagation(); 
-        
-        if (!['day', 'week'].includes(timeframe)) {
+        e.nativeEvent.stopImmediatePropagation();
+
+        if (!["day", "week"].includes(timeframe)) {
           setIsNoteOpen(true);
         } else {
-          document.getElementById(`cell_textarea_${dateId}_notes_${taskId}`)?.focus();
+          document
+            .getElementById(`cell_textarea_${dateId}_notes_${taskId}`)
+            ?.focus();
         }
         initialEditValue.current = value;
         return;
@@ -89,16 +116,16 @@ export default function TimesheetCell({
   return (
     <td
       id={`cell_${rowId}_${taskId}`}
-      tabIndex={-1} 
+      tabIndex={-1}
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`border-b border-r border-gray-300 dark:border-zinc-800 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-blue-50/40 dark:group-hover:bg-blue-900/20
-        ${isFirstInProject ? 'border-l dark:border-l-zinc-800' : ''}
-        ${isSelected && !isNoteOpen ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50 dark:bg-zinc-900 z-10' : isToday ? 'bg-blue-50/15' : isCurrentWeek ? 'bg-blue-50/5' : 'bg-transparent'}
-        ${displayAuditRed && !isSelected ? 'ring-2 ring-inset ring-red-400 dark:ring-red-500 bg-red-50/80 dark:bg-red-950/20' : ''}
-        ${className}
-      `}
+      className={`border-b border-r border-slate-300 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-rose-50/40 
+ ${isFirstInProject ? "border-l " : ""}
+ ${isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-rose-50/50 z-10" : isToday ? "bg-rose-50/15" : isCurrentWeek ? "bg-rose-50/5" : "bg-transparent"}
+ ${displayAuditRed && !isSelected ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
+ ${className}
+ `}
     >
       <input
         id={`cell_input_${rowId}_${taskId}`}
@@ -107,17 +134,19 @@ export default function TimesheetCell({
         min="0"
         max="24"
         step="0.5"
-        value={value || ''}
+        value={value || ""}
         onChange={(e) => onCellChange(dateId, taskId, e.target.value)}
         onKeyDown={handleInputKeyDown}
-        onFocus={() => { initialEditValue.current = value; }}
+        onFocus={() => {
+          initialEditValue.current = value;
+        }}
         onBlur={onEditEnd}
         className={`w-full h-full min-h-[40px] block text-center outline-none transition-all cursor-cell bg-transparent
-          ${isEditing && isSelected ? 'caret-auto' : 'caret-transparent'} 
-          ${isFuture ? 'text-gray-400 dark:text-zinc-500' : 'text-gray-800 dark:text-zinc-100'}
-          ${displayAuditRed ? 'text-red-700 dark:text-red-400 font-semibold' : ''}
-          ${isSelected ? 'font-bold' : ''}
-        `}
+ ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
+ ${isFuture ? "text-slate-400 " : "text-slate-900 "}
+ ${displayAuditRed ? "text-red-700 font-semibold" : ""}
+ ${isSelected ? "font-bold" : ""}
+ `}
       />
 
       {/* THE BLUE TRIANGLE: Shows if a note exists */}
@@ -127,16 +156,18 @@ export default function TimesheetCell({
           onClick={(e) => {
             e.stopPropagation();
             if (onSelect) onSelect();
-            
+
             // Wait for render, then focus the appropriate active textarea
             setTimeout(() => {
-              const el = document.getElementById(`cell_textarea_${dateId}_notes_${taskId}`);
+              const el = document.getElementById(
+                `cell_textarea_${dateId}_notes_${taskId}`,
+              );
               if (el) {
                 el.focus();
                 // If it's a textarea, set selection to the end of the text
-                if (el.tagName === 'TEXTAREA') {
+                if (el.tagName === "TEXTAREA") {
                   const val = el.value;
-                  el.value = '';
+                  el.value = "";
                   el.value = val;
                 }
               } else {
@@ -151,14 +182,16 @@ export default function TimesheetCell({
       {/* THE RED PLUS: Shows if hours exist but NO note exists */}
       {!note && hasHours && !isNoteOpen && (
         <div
-          className="absolute top-0.5 right-1 text-red-650 dark:text-red-400 cursor-pointer opacity-80 hover:opacity-100 font-black z-20 text-[10px] leading-none"
+          className="absolute top-0.5 right-1 text-red-650 cursor-pointer opacity-80 hover:opacity-100 font-black z-20 text-[10px] leading-none"
           onClick={(e) => {
             e.stopPropagation();
             if (onSelect) onSelect();
-            
+
             // Wait for render, then focus the appropriate active textarea
             setTimeout(() => {
-              const el = document.getElementById(`cell_textarea_${dateId}_notes_${taskId}`);
+              const el = document.getElementById(
+                `cell_textarea_${dateId}_notes_${taskId}`,
+              );
               if (el) {
                 el.focus();
               } else {
@@ -175,19 +208,23 @@ export default function TimesheetCell({
       {/* The Note Popover */}
       {isNoteOpen && (
         <div
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 w-56 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-gray-200 dark:border-zinc-800 p-3"
-          onClick={e => e.stopPropagation()}
-          onKeyDown={e => {
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 w-56 bg-white border border-slate-300 p-3"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
             // Protect textarea typing from global Matrix hotkeys
             e.stopPropagation();
             e.nativeEvent.stopImmediatePropagation();
-          }} 
+          }}
         >
-          <div className="text-xs font-bold text-gray-700 dark:text-zinc-300 mb-2 flex justify-between items-center">
+          <div className="text-xs font-bold text-slate-700 mb-2 flex justify-between items-center">
             <span>Task Note</span>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsNoteOpen(false); inputRef.current?.focus(); }} 
-              className="text-gray-400 dark:text-zinc-500 hover:text-red-500 text-base leading-none"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsNoteOpen(false);
+                inputRef.current?.focus();
+              }}
+              className="text-slate-400 hover:text-red-500 text-base leading-none"
             >
               &times;
             </button>
@@ -195,20 +232,30 @@ export default function TimesheetCell({
           <textarea
             autoFocus
             value={localNote}
-            onChange={e => setLocalNote(e.target.value)}
+            onChange={(e) => setLocalNote(e.target.value)}
             onKeyDown={(e) => {
               e.stopPropagation();
               e.nativeEvent.stopImmediatePropagation();
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveNote(); }
-              if (e.key === 'Escape') { e.preventDefault(); setIsNoteOpen(false); inputRef.current?.focus(); }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSaveNote();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setIsNoteOpen(false);
+                inputRef.current?.focus();
+              }
             }}
             placeholder="What did you work on?"
-            className="w-full text-sm p-2 border border-gray-200 dark:border-zinc-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-20 bg-gray-50 dark:bg-zinc-950 text-gray-800 dark:text-zinc-200"
+            className="w-full text-sm p-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none h-20 bg-slate-50 text-slate-900 "
           />
           <div className="flex justify-end mt-2">
             <button
-              onClick={(e) => { e.stopPropagation(); handleSaveNote(); }}
-              className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSaveNote();
+              }}
+              className="bg-slate-900 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-slate-900 transition-colors "
             >
               Save Note
             </button>

@@ -1,46 +1,82 @@
-import React, { useState, useMemo } from 'react';
-import * as XLSX from 'xlsx';
+import React, { useState, useMemo } from "react";
+import * as XLSX from "xlsx";
 
-export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEntries = [], orgUsers = [], notes = {}, taskRates = [] }) {
-  const isPremium = dbUser?.organization?.tier === 'premium';
-  
+export default function ReportsTab({
+  dbUser,
+  projects = [],
+  entries = {},
+  rawEntries = [],
+  orgUsers = [],
+  notes = {},
+  taskRates = [],
+}) {
+  const isPremium = dbUser?.organization?.tier === "premium";
+
   // State: 'menu', 'configuring', 'viewing'
-  const [reportPhase, setReportPhase] = useState('menu');
+  const [reportPhase, setReportPhase] = useState("menu");
   const [reportType, setReportType] = useState(null); // 'detailed', 'budgets', 'capacity', 'uninvoiced'
-  
+
   // Filter States
-  const [selectedProject, setSelectedProject] = useState('all');
-  const [selectedUser, setSelectedUser] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('all'); // 'all', 'week', 'month', 'lastMonth', 'custom'
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
-  
+  const [selectedProject, setSelectedProject] = useState("all");
+  const [selectedUser, setSelectedUser] = useState("all");
+  const [selectedPeriod, setSelectedPeriod] = useState("all"); // 'all', 'week', 'month', 'lastMonth', 'custom'
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+
   // Sort State
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
 
   const handleSort = (key) => {
-    let direction = 'asc';
+    let direction = "asc";
     if (sortConfig.key === key) {
-      if (sortConfig.direction === 'asc') direction = 'desc';
-      else if (sortConfig.direction === 'desc') direction = null;
+      if (sortConfig.direction === "asc") direction = "desc";
+      else if (sortConfig.direction === "desc") direction = null;
     }
-    setSortConfig(direction ? { key, direction } : { key: null, direction: null });
+    setSortConfig(
+      direction ? { key, direction } : { key: null, direction: null },
+    );
   };
 
   const SortIcon = ({ columnKey }) => {
     if (sortConfig.key !== columnKey || !sortConfig.direction) {
       return (
-        <svg className="w-3 h-3 ml-1 inline text-gray-400 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+        <svg
+          className="w-3 h-3 ml-1 inline text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+          />
         </svg>
       );
     }
     return (
-      <svg className="w-3 h-3 ml-1 inline text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {sortConfig.direction === 'asc' 
-          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/>
-          : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/>
-        }
+      <svg
+        className="w-3 h-3 ml-1 inline text-rose-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        {sortConfig.direction === "asc" ? (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M5 15l7-7 7 7"
+          />
+        ) : (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M19 9l-7 7-7-7"
+          />
+        )}
       </svg>
     );
   };
@@ -48,75 +84,90 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   const parsedEntries = useMemo(() => {
     // Build a map of rawEntries for quick invoice lookup
     const rawMap = {};
-    (rawEntries || []).forEach(re => {
+    (rawEntries || []).forEach((re) => {
       rawMap[`${re.userId}_${re.dateId}_${re.taskId}`] = re;
     });
 
-    return Object.entries(entries).map(([key, hours]) => {
-      const [userId, dateId, taskId] = key.split('_');
-      const raw = rawMap[key];
-      return {
-        userId,
-        dateId,
-        taskId,
-        hours: parseFloat(hours) || 0,
-        note: notes[key] || '',
-        invoiceId: raw ? raw.invoiceId : null
-      };
-    }).filter(e => e.hours > 0);
+    return Object.entries(entries)
+      .map(([key, hours]) => {
+        const [userId, dateId, taskId] = key.split("_");
+        const raw = rawMap[key];
+        return {
+          userId,
+          dateId,
+          taskId,
+          hours: parseFloat(hours) || 0,
+          note: notes[key] || "",
+          invoiceId: raw ? raw.invoiceId : null,
+        };
+      })
+      .filter((e) => e.hours > 0);
   }, [entries, rawEntries, notes]);
 
   // Enrich entries with user, project, and task information
   const enrichedEntries = useMemo(() => {
     // Build lookup maps for O(1) access
     const taskMap = {};
-    projects.forEach(p => {
-      p.tasks.forEach(t => {
+    projects.forEach((p) => {
+      p.tasks.forEach((t) => {
         taskMap[t.id] = { project: p, task: t };
       });
     });
 
     const userMap = {};
-    orgUsers.forEach(u => {
+    orgUsers.forEach((u) => {
       userMap[u.id] = u;
     });
 
-    return parsedEntries.map(e => {
-      const userObj = userMap[e.userId] || { firstName: 'Unknown', lastName: 'Member' };
+    return parsedEntries.map((e) => {
+      const userObj = userMap[e.userId] || {
+        firstName: "Unknown",
+        lastName: "Member",
+      };
       const mapObj = taskMap[e.taskId];
       const projectObj = mapObj ? mapObj.project : null;
       const taskObj = mapObj ? mapObj.task : null;
 
-      const taskRateOverride = taskRates.find(tr => tr.taskId === e.taskId && tr.userId === e.userId);
-      const rate = taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
-      const fName = userObj.firstName && userObj.firstName !== 'null' ? userObj.firstName : '';
-      const lName = userObj.lastName && userObj.lastName !== 'null' ? userObj.lastName : '';
+      const taskRateOverride = taskRates.find(
+        (tr) => tr.taskId === e.taskId && tr.userId === e.userId,
+      );
+      const rate =
+        taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
+      const fName =
+        userObj.firstName && userObj.firstName !== "null"
+          ? userObj.firstName
+          : "";
+      const lName =
+        userObj.lastName && userObj.lastName !== "null" ? userObj.lastName : "";
       let derivedName = `${fName} ${lName}`.trim();
       if (!derivedName) {
-        derivedName = userObj.emailAddress || userObj.email || 'Unnamed Employee';
+        derivedName =
+          userObj.emailAddress || userObj.email || "Unnamed Employee";
       }
 
       return {
         ...e,
         userName: derivedName,
-        projectName: projectObj ? projectObj.name : 'Unknown Project',
+        projectName: projectObj ? projectObj.name : "Unknown Project",
         projectId: projectObj ? projectObj.id : null,
-        taskName: taskObj ? taskObj.name : 'Unknown Task',
+        taskName: taskObj ? taskObj.name : "Unknown Task",
         rate: rate,
-        amount: e.hours * rate
+        amount: e.hours * rate,
       };
     });
   }, [parsedEntries, orgUsers, projects, taskRates]);
 
   // Date Range Filtering helpers
   const isThisMonth = (dateStr) => {
-    const d = new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr + "T00:00:00");
     const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
   };
 
   const isLastMonth = (dateStr) => {
-    const d = new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr + "T00:00:00");
     const now = new Date();
     let targetMonth = now.getMonth() - 1;
     let targetYear = now.getFullYear();
@@ -128,63 +179,77 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   };
 
   const isThisWeek = (dateStr) => {
-    const d = new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr + "T00:00:00");
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(now.setDate(diff));
-    monday.setHours(0,0,0,0);
-    
+    monday.setHours(0, 0, 0, 0);
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23,59,59,999);
-    
+    sunday.setHours(23, 59, 59, 999);
+
     return d >= monday && d <= sunday;
   };
 
   // Filter and Sort entries
   const filteredEntries = useMemo(() => {
-    let filtered = enrichedEntries.filter(e => {
-      const matchProject = selectedProject === 'all' || String(e.projectId) === String(selectedProject);
-      const matchUser = selectedUser === 'all' || String(e.userId) === String(selectedUser);
-      
+    let filtered = enrichedEntries.filter((e) => {
+      const matchProject =
+        selectedProject === "all" ||
+        String(e.projectId) === String(selectedProject);
+      const matchUser =
+        selectedUser === "all" || String(e.userId) === String(selectedUser);
+
       let matchPeriod = true;
-      if (selectedPeriod === 'week') {
+      if (selectedPeriod === "week") {
         matchPeriod = isThisWeek(e.dateId);
-      } else if (selectedPeriod === 'month') {
+      } else if (selectedPeriod === "month") {
         matchPeriod = isThisMonth(e.dateId);
-      } else if (selectedPeriod === 'lastMonth') {
+      } else if (selectedPeriod === "lastMonth") {
         matchPeriod = isLastMonth(e.dateId);
-      } else if (selectedPeriod === 'custom') {
-        const d = new Date(e.dateId + 'T00:00:00');
-        if (customStartDate && d < new Date(customStartDate + 'T00:00:00')) matchPeriod = false;
-        if (customEndDate && d > new Date(customEndDate + 'T23:59:59')) matchPeriod = false;
+      } else if (selectedPeriod === "custom") {
+        const d = new Date(e.dateId + "T00:00:00");
+        if (customStartDate && d < new Date(customStartDate + "T00:00:00"))
+          matchPeriod = false;
+        if (customEndDate && d > new Date(customEndDate + "T23:59:59"))
+          matchPeriod = false;
       }
 
       return matchProject && matchUser && matchPeriod;
     });
 
-    if (sortConfig.key && reportType === 'detailed') {
+    if (sortConfig.key && reportType === "detailed") {
       filtered.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
 
     return filtered;
-  }, [enrichedEntries, selectedProject, selectedUser, selectedPeriod, customStartDate, customEndDate, sortConfig, reportType]);
+  }, [
+    enrichedEntries,
+    selectedProject,
+    selectedUser,
+    selectedPeriod,
+    customStartDate,
+    customEndDate,
+    sortConfig,
+    reportType,
+  ]);
 
   // Aggregate Stats
   const totals = useMemo(() => {
     let hours = 0;
     let amount = 0;
-    filteredEntries.forEach(e => {
+    filteredEntries.forEach((e) => {
       hours += e.hours;
       amount += e.amount;
     });
@@ -193,14 +258,14 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   // Project Budgets Aggregation
   const projectBudgets = useMemo(() => {
-    let data = projects.map(p => {
-      const projEntries = enrichedEntries.filter(e => e.projectId === p.id);
+    let data = projects.map((p) => {
+      const projEntries = enrichedEntries.filter((e) => e.projectId === p.id);
       const projHours = projEntries.reduce((sum, e) => sum + e.hours, 0);
       const billableValue = projEntries.reduce((sum, e) => sum + e.amount, 0);
-      const budgetLimit = p.name.toLowerCase().includes('design') ? 80 : 120;
+      const budgetLimit = p.name.toLowerCase().includes("design") ? 80 : 120;
       const remaining = Math.max(0, budgetLimit - projHours);
       const burnPercentage = (projHours / budgetLimit) * 100;
-      
+
       return {
         id: p.id,
         name: p.name,
@@ -208,19 +273,19 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
         budgetLimit,
         remaining,
         burnPercentage,
-        billableValue
+        billableValue,
       };
     });
 
-    if (sortConfig.key && reportType === 'budgets') {
+    if (sortConfig.key && reportType === "budgets") {
       data.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -229,28 +294,38 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   // Uninvoiced Aggregation
   const uninvoicedProjectData = useMemo(() => {
-    let data = projects.map(p => {
-      const unbilledEntries = enrichedEntries.filter(e => e.projectId === p.id && !e.invoiceId);
-      const unbilledHours = unbilledEntries.reduce((sum, e) => sum + e.hours, 0);
-      const billableValue = unbilledEntries.reduce((sum, e) => sum + e.amount, 0);
-      
-      return {
-        id: p.id,
-        name: p.name,
-        hours: unbilledHours,
-        billableValue
-      };
-    }).filter(p => p.hours > 0);
+    let data = projects
+      .map((p) => {
+        const unbilledEntries = enrichedEntries.filter(
+          (e) => e.projectId === p.id && !e.invoiceId,
+        );
+        const unbilledHours = unbilledEntries.reduce(
+          (sum, e) => sum + e.hours,
+          0,
+        );
+        const billableValue = unbilledEntries.reduce(
+          (sum, e) => sum + e.amount,
+          0,
+        );
 
-    if (sortConfig.key && reportType === 'uninvoiced') {
+        return {
+          id: p.id,
+          name: p.name,
+          hours: unbilledHours,
+          billableValue,
+        };
+      })
+      .filter((p) => p.hours > 0);
+
+    if (sortConfig.key && reportType === "uninvoiced") {
       data.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -260,24 +335,24 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   // Project -> Team Aggregation
   const projectTeamData = useMemo(() => {
     let data = [];
-    projects.forEach(p => {
-      const projEntries = enrichedEntries.filter(e => e.projectId === p.id);
+    projects.forEach((p) => {
+      const projEntries = enrichedEntries.filter((e) => e.projectId === p.id);
       if (projEntries.length === 0) return;
 
       const userMap = {};
-      projEntries.forEach(e => {
+      projEntries.forEach((e) => {
         if (!userMap[e.userId]) {
           userMap[e.userId] = {
             userName: e.userName,
             hours: 0,
-            amount: 0
+            amount: 0,
           };
         }
         userMap[e.userId].hours += e.hours;
         userMap[e.userId].amount += e.amount;
       });
 
-      const users = Object.values(userMap).sort((a,b) => b.hours - a.hours);
+      const users = Object.values(userMap).sort((a, b) => b.hours - a.hours);
       const totalProjHours = users.reduce((s, u) => s + u.hours, 0);
       const totalProjAmount = users.reduce((s, u) => s + u.amount, 0);
 
@@ -285,19 +360,19 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
         projectName: p.name,
         hours: totalProjHours,
         amount: totalProjAmount,
-        users
+        users,
       });
     });
 
-    if (sortConfig.key && reportType === 'project-team') {
+    if (sortConfig.key && reportType === "project-team") {
       data.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -306,8 +381,10 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   // Team Capacity Aggregation
   const teamCapacity = useMemo(() => {
-    let data = orgUsers.map(u => {
-      const userHours = enrichedEntries.filter(e => e.userId === u.id).reduce((sum, e) => sum + e.hours, 0);
+    let data = orgUsers.map((u) => {
+      const userHours = enrichedEntries
+        .filter((e) => e.userId === u.id)
+        .reduce((sum, e) => sum + e.hours, 0);
       const capacity = 40; // 40 hours per week
       const utilization = (userHours / capacity) * 100;
       return {
@@ -315,19 +392,19 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
         name: `${u.firstName} ${u.lastName}`,
         hours: userHours,
         capacity,
-        utilization
+        utilization,
       };
     });
 
-    if (sortConfig.key && reportType === 'capacity') {
+    if (sortConfig.key && reportType === "capacity") {
       data.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -336,8 +413,17 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   // CSV Exporter
   const handleExportCSV = () => {
-    const headers = ['Date', 'Team Member', 'Project', 'Task', 'Hours', 'Rate ($/hr)', 'Billable Amount', 'Notes'];
-    const rows = filteredEntries.map(e => [
+    const headers = [
+      "Date",
+      "Team Member",
+      "Project",
+      "Task",
+      "Hours",
+      "Rate ($/hr)",
+      "Billable Amount",
+      "Notes",
+    ];
+    const rows = filteredEntries.map((e) => [
       e.dateId,
       e.userName,
       e.projectName,
@@ -345,20 +431,23 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
       e.hours,
       e.rate,
       e.amount,
-      e.note.replace(/"/g, '""')
+      e.note.replace(/"/g, '""'),
     ]);
 
     const csvContent = [
-      headers.join(','),
-      ...rows.map(r => r.map(val => `"${val}"`).join(','))
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((r) => r.map((val) => `"${val}"`).join(",")),
+    ].join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `velotime_detailed_report_${selectedPeriod}.csv`);
-    link.style.visibility = 'hidden';
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `velotime_detailed_report_${selectedPeriod}.csv`,
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -366,62 +455,62 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
 
   const [invoicedProjects, setInvoicedProjects] = useState([]);
   const handleMarkInvoiced = (projectId) => {
-    setInvoicedProjects(prev => [...prev, projectId]);
+    setInvoicedProjects((prev) => [...prev, projectId]);
     alert("Hours marked as invoiced. (Mock action updated in local state)");
   };
 
   const handleBack = () => {
-    if (reportPhase === 'viewing') {
-      setReportPhase('configuring');
+    if (reportPhase === "viewing") {
+      setReportPhase("configuring");
       setSortConfig({ key: null, direction: null });
-    } else if (reportPhase === 'configuring') {
-      setReportPhase('menu');
+    } else if (reportPhase === "configuring") {
+      setReportPhase("menu");
       setReportType(null);
     }
   };
 
   const selectReport = (id) => {
     setReportType(id);
-    setReportPhase('configuring');
+    setReportPhase("configuring");
   };
 
   const runReport = () => {
-    setReportPhase('viewing');
+    setReportPhase("viewing");
   };
 
   const handleExportExcel = () => {
     let data = [];
-    if (reportType === 'detailed') {
-      data = filteredEntries.map(e => ({
+    if (reportType === "detailed") {
+      data = filteredEntries.map((e) => ({
         Date: e.dateId,
-        'Team Member': e.userName,
+        "Team Member": e.userName,
         Project: e.projectName,
         Task: e.taskName,
         Description: e.note,
         Hours: e.hours,
-        Amount: e.amount
+        Amount: e.amount,
       }));
-    } else if (reportType === 'budgets') {
-      data = projectBudgets.map(p => ({
-        'Project Name': p.name,
-        'Billable Value': p.billableValue,
-        'Logged Hrs': p.hours,
-        'Budget Hrs': p.budgetLimit,
-        'Remaining': p.remaining,
-        'Burn %': Math.round(p.burnPercentage) + '%'
+    } else if (reportType === "budgets") {
+      data = projectBudgets.map((p) => ({
+        "Project Name": p.name,
+        "Billable Value": p.billableValue,
+        "Logged Hrs": p.hours,
+        "Budget Hrs": p.budgetLimit,
+        Remaining: p.remaining,
+        "Burn %": Math.round(p.burnPercentage) + "%",
       }));
-    } else if (reportType === 'capacity') {
-      data = teamCapacity.map(c => ({
-        'Team Member': c.name,
-        'Logged Hrs': c.hours,
-        'Expected (40h)': 40,
-        'Utilization': Math.round(c.utilization) + '%'
+    } else if (reportType === "capacity") {
+      data = teamCapacity.map((c) => ({
+        "Team Member": c.name,
+        "Logged Hrs": c.hours,
+        "Expected (40h)": 40,
+        Utilization: Math.round(c.utilization) + "%",
       }));
-    } else if (reportType === 'uninvoiced') {
-      data = uninvoicedProjects.map(p => ({
-        'Project Name': p.name,
-        'Uninvoiced Hrs': p.hours,
-        'Uninvoiced Value': p.amount
+    } else if (reportType === "uninvoiced") {
+      data = uninvoicedProjects.map((p) => ({
+        "Project Name": p.name,
+        "Uninvoiced Hrs": p.hours,
+        "Uninvoiced Value": p.amount,
       }));
     }
 
@@ -433,37 +522,63 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 dark:bg-zinc-950 overflow-hidden transition-colors h-full w-full">
+    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden transition-colors h-full w-full">
       {/* Top Bar with Title and Back Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border-b border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border-b border-slate-300 bg-white shrink-0">
         <div className="flex items-center gap-3">
-          {reportPhase !== 'menu' && (
-            <button 
+          {reportPhase !== "menu" && (
+            <button
               onClick={handleBack}
-              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-slate-100 text-slate-500 transition-colors cursor-pointer"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
             </button>
           )}
-          <h1 className="text-xl font-bold text-gray-800 dark:text-zinc-100 tracking-tight">
-            {reportPhase === 'menu' ? 'Reports' : 
-             reportType === 'project-team' ? 'Project & Team Summary' : 
-             reportType === 'detailed' ? 'Detailed Log' : 
-             reportType === 'budgets' ? 'Project Budgets' : 
-             reportType === 'capacity' ? 'Team Capacity' : 'Uninvoiced Time'}
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            {reportPhase === "menu"
+              ? "Reports"
+              : reportType === "project-team"
+                ? "Project & Team Summary"
+                : reportType === "detailed"
+                  ? "Detailed Log"
+                  : reportType === "budgets"
+                    ? "Project Budgets"
+                    : reportType === "capacity"
+                      ? "Team Capacity"
+                      : "Uninvoiced Time"}
           </h1>
         </div>
-        
+
         {/* Excel Export Button for Viewing phase */}
-        {reportPhase === 'viewing' && (
+        {reportPhase === "viewing" && (
           <button
             onClick={handleExportExcel}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-md text-xs shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             Export Excel
           </button>
@@ -471,32 +586,72 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
       </div>
 
       {/* Spreadsheet Content Area */}
-      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-zinc-950 relative w-full h-full custom-scrollbar">
-        
-        {reportPhase === 'menu' && (
+      <div className="flex-1 overflow-auto bg-slate-50 relative w-full h-full custom-scrollbar">
+        {reportPhase === "menu" && (
           <div className="p-6 md:p-10 max-w-6xl mx-auto w-full">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-6 tracking-tight">Prebuilt Reports</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight">
+              Prebuilt Reports
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { id: 'detailed', title: 'Detailed Time Log', desc: 'A comprehensive, line-by-line spreadsheet of every time entry logged across all projects and team members. Includes notes and billable amounts.', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-                { id: 'project-team', title: 'Project & Team Summary', desc: 'A hierarchical view of hours and billable amounts grouped by project, and further broken down by each employee.', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-                { id: 'budgets', title: 'Project Budgets', desc: 'Monitor project health by comparing logged hours against strict budget constraints. Instantly identify projects at risk of over-burning.', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-                { id: 'capacity', title: 'Team Capacity', desc: 'Ensure your workforce is balanced. Track employee logged hours against a standard 40-hour work week to identify overutilized team members.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
-                { id: 'uninvoiced', title: 'Uninvoiced Time', desc: 'Keep track of your financial ledger. View billable project totals that have not yet been marked as invoiced, with outstanding amounts clearly highlighted.', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' }
-              ].map(report => (
-                <div 
-                  key={report.id} 
+                {
+                  id: "detailed",
+                  title: "Detailed Time Log",
+                  desc: "A comprehensive, line-by-line spreadsheet of every time entry logged across all projects and team members. Includes notes and billable amounts.",
+                  icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+                },
+                {
+                  id: "project-team",
+                  title: "Project & Team Summary",
+                  desc: "A hierarchical view of hours and billable amounts grouped by project, and further broken down by each employee.",
+                  icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+                },
+                {
+                  id: "budgets",
+                  title: "Project Budgets",
+                  desc: "Monitor project health by comparing logged hours against strict budget constraints. Instantly identify projects at risk of over-burning.",
+                  icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                },
+                {
+                  id: "capacity",
+                  title: "Team Capacity",
+                  desc: "Ensure your workforce is balanced. Track employee logged hours against a standard 40-hour work week to identify overutilized team members.",
+                  icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+                },
+                {
+                  id: "uninvoiced",
+                  title: "Uninvoiced Time",
+                  desc: "Keep track of your financial ledger. View billable project totals that have not yet been marked as invoiced, with outstanding amounts clearly highlighted.",
+                  icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+                },
+              ].map((report) => (
+                <div
+                  key={report.id}
                   onClick={() => selectReport(report.id)}
-                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 cursor-pointer hover:border-blue-500 dark:hover:border-zinc-600 hover:shadow-lg transition-all group flex gap-4"
+                  className="bg-white border border-slate-300 p-6 cursor-pointer hover:border-slate-900 hover: transition-all group flex gap-4"
                 >
-                  <div className="bg-blue-50 dark:bg-zinc-800 p-3 rounded-lg h-fit group-hover:bg-blue-500 group-hover:text-white dark:group-hover:bg-zinc-700 transition-colors text-blue-600 dark:text-zinc-400">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={report.icon}/>
+                  <div className="bg-rose-50 p-3 h-fit group-hover:bg-slate-800 group-hover:text-white transition-colors text-rose-600 ">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d={report.icon}
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-zinc-200 transition-colors">{report.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-zinc-400 leading-relaxed">{report.desc}</p>
+                    <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-rose-600 transition-colors">
+                      {report.title}
+                    </h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      {report.desc}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -504,46 +659,60 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
           </div>
         )}
 
-        {reportPhase === 'configuring' && (
+        {reportPhase === "configuring" && (
           <div className="flex justify-center items-start pt-12 p-6 h-full w-full">
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm max-w-xl w-full overflow-hidden">
-              <div className="p-6 border-b border-gray-200 dark:border-zinc-800">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100">Configure Report</h2>
-                <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">Select filters to narrow down the data.</p>
+            <div className="bg-white border border-slate-300 max-w-xl w-full overflow-hidden">
+              <div className="p-6 border-b border-slate-300 ">
+                <h2 className="text-lg font-bold text-slate-900 ">
+                  Configure Report
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Select filters to narrow down the data.
+                </p>
               </div>
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="text-xs font-bold text-gray-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Project</label>
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                    Project
+                  </label>
                   <select
                     value={selectedProject}
                     onChange={(e) => setSelectedProject(e.target.value)}
-                    className="w-full text-sm font-semibold text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
                   >
                     <option value="all">All Projects</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Team Member</label>
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                    Team Member
+                  </label>
                   <select
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
-                    className="w-full text-sm font-semibold text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
                   >
                     <option value="all">All Members</option>
-                    {orgUsers.map(u => (
-                      <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                    {orgUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Date Range</label>
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                    Date Range
+                  </label>
                   <select
                     value={selectedPeriod}
                     onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="w-full text-sm font-semibold text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer mb-3"
+                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer mb-3"
                   >
                     <option value="all">All Time</option>
                     <option value="week">This Week</option>
@@ -552,34 +721,38 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
                     <option value="custom">Custom Date Range...</option>
                   </select>
 
-                  {selectedPeriod === 'custom' && (
+                  {selectedPeriod === "custom" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 block mb-1">Start Date</label>
-                        <input 
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">
+                          Start Date
+                        </label>
+                        <input
                           type="date"
                           value={customStartDate}
                           onChange={(e) => setCustomStartDate(e.target.value)}
-                          className="w-full text-sm text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 block mb-1">End Date</label>
-                        <input 
+                        <label className="text-[10px] font-bold text-slate-500 block mb-1">
+                          End Date
+                        </label>
+                        <input
                           type="date"
                           value={customEndDate}
                           onChange={(e) => setCustomEndDate(e.target.value)}
-                          className="w-full text-sm text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
                         />
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-zinc-950/50 border-t border-gray-200 dark:border-zinc-800 flex justify-end">
+              <div className="p-4 bg-slate-50 border-t border-slate-300 flex justify-end">
                 <button
                   onClick={runReport}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition-colors cursor-pointer text-sm"
+                  className="bg-slate-900 hover:bg-slate-900 text-white font-bold py-2 px-6 transition-colors cursor-pointer text-sm"
                 >
                   Run Report
                 </button>
@@ -588,177 +761,324 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
           </div>
         )}
 
-        {reportPhase === 'viewing' && reportType === 'detailed' && (
-          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-950">
-            <thead className="bg-gray-100 dark:bg-zinc-900 sticky top-0 z-50">
+        {reportPhase === "viewing" && reportType === "detailed" && (
+          <table className="w-full border-collapse min-w-max text-left bg-white ">
+            <thead className="bg-slate-100 sticky top-0 z-50">
               <tr>
-                <th onClick={() => handleSort('dateId')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("dateId")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Date <SortIcon columnKey="dateId" />
                 </th>
-                <th onClick={() => handleSort('userName')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-48 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("userName")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Team Member <SortIcon columnKey="userName" />
                 </th>
-                <th onClick={() => handleSort('projectName')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-64 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("projectName")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Project / Task <SortIcon columnKey="projectName" />
                 </th>
-                <th onClick={() => handleSort('note')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 min-w-[200px] cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("note")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Description <SortIcon columnKey="note" />
                 </th>
-                <th onClick={() => handleSort('hours')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-24 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("hours")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-24 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Hours <SortIcon columnKey="hours" />
                 </th>
-                <th onClick={() => handleSort('amount')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("amount")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Amount <SortIcon columnKey="amount" />
                 </th>
               </tr>
             </thead>
             <tbody>
               {filteredEntries.map((e, idx) => (
-                <tr key={`detailed_${idx}`} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 group">
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 whitespace-nowrap">{e.dateId}</td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 truncate">{e.userName}</td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 truncate">
-                    <span className="font-semibold">{e.projectName}</span>
-                    <span className="text-gray-500 dark:text-zinc-400 text-xs ml-2">({e.taskName})</span>
+                <tr
+                  key={`detailed_${idx}`}
+                  className="hover:bg-rose-50/50 group"
+                >
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 whitespace-nowrap">
+                    {e.dateId}
                   </td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-600 dark:text-zinc-400 truncate max-w-sm" title={e.note}>{e.note}</td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 font-bold text-right">{e.hours.toFixed(2)}</td>
-                  <td className="border-b border-gray-300 dark:border-zinc-800 p-2 text-sm text-emerald-700 dark:text-emerald-400 font-bold text-right">${e.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 truncate">
+                    {e.userName}
+                  </td>
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 truncate">
+                    <span className="font-semibold">{e.projectName}</span>
+                    <span className="text-slate-500 text-xs ml-2">
+                      ({e.taskName})
+                    </span>
+                  </td>
+                  <td
+                    className="border-b border-r border-slate-300 p-2 text-sm text-slate-600 truncate max-w-sm"
+                    title={e.note}
+                  >
+                    {e.note}
+                  </td>
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-bold text-right">
+                    {e.hours.toFixed(2)}
+                  </td>
+                  <td className="border-b border-slate-300 p-2 text-sm text-emerald-700 font-bold text-right">
+                    $
+                    {e.amount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
                 </tr>
               ))}
               {filteredEntries.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="border-b border-gray-300 dark:border-zinc-800 p-4 text-center text-sm text-gray-500 dark:text-zinc-500 italic">No time entries found.</td>
+                  <td
+                    colSpan={6}
+                    className="border-b border-slate-300 p-4 text-center text-sm text-slate-500 italic"
+                  >
+                    No time entries found.
+                  </td>
                 </tr>
               )}
             </tbody>
-            <tfoot className="bg-gray-100 dark:bg-zinc-900 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] dark:shadow-[0_-1px_0_0_rgba(39,39,42,1)]">
+            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td colSpan={4} className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">Totals:</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{totals.hours.toFixed(2)}</td>
-                <td className="p-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 text-right">${totals.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td
+                  colSpan={4}
+                  className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 "
+                >
+                  Totals:
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {totals.hours.toFixed(2)}
+                </td>
+                <td className="p-2 text-sm font-bold text-emerald-700 text-right">
+                  $
+                  {totals.amount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
               </tr>
             </tfoot>
           </table>
         )}
 
-        {reportPhase === 'viewing' && reportType === 'budgets' && (
-          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-950">
-            <thead className="bg-gray-100 dark:bg-zinc-900 sticky top-0 z-50">
+        {reportPhase === "viewing" && reportType === "budgets" && (
+          <table className="w-full border-collapse min-w-max text-left bg-white ">
+            <thead className="bg-slate-100 sticky top-0 z-50">
               <tr>
-                <th onClick={() => handleSort('name')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("name")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Project Name <SortIcon columnKey="name" />
                 </th>
-                <th onClick={() => handleSort('billableValue')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("billableValue")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Billable Value <SortIcon columnKey="billableValue" />
                 </th>
-                <th onClick={() => handleSort('hours')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("hours")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Logged Hrs <SortIcon columnKey="hours" />
                 </th>
-                <th onClick={() => handleSort('budgetLimit')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("budgetLimit")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Budget Hrs <SortIcon columnKey="budgetLimit" />
                 </th>
-                <th onClick={() => handleSort('remaining')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("remaining")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Remaining <SortIcon columnKey="remaining" />
                 </th>
-                <th onClick={() => handleSort('burnPercentage')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-48 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("burnPercentage")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Burn Status <SortIcon columnKey="burnPercentage" />
                 </th>
               </tr>
             </thead>
             <tbody>
-              {projectBudgets.map(p => {
+              {projectBudgets.map((p) => {
                 const isOver = p.burnPercentage >= 100;
-                const isWarning = p.burnPercentage >= 80 && p.burnPercentage < 100;
-                let progressColor = 'bg-blue-500 dark:bg-blue-600';
-                if (isOver) progressColor = 'bg-red-500 dark:bg-red-600';
-                else if (isWarning) progressColor = 'bg-yellow-500 dark:bg-yellow-600';
+                const isWarning =
+                  p.burnPercentage >= 80 && p.burnPercentage < 100;
+                let progressColor = "bg-blue-500 ";
+                if (isOver) progressColor = "bg-red-500 ";
+                else if (isWarning) progressColor = "bg-yellow-500 ";
 
                 return (
-                  <tr key={p.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 group">
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 font-semibold truncate">{p.name}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-emerald-700 dark:text-emerald-400 font-bold text-right">${p.billableValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 text-right">{p.hours.toFixed(2)}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-500 dark:text-zinc-400 text-right">{p.budgetLimit.toFixed(2)}</td>
-                    <td className={`border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm font-bold text-right ${isOver ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-zinc-200'}`}>{p.remaining.toFixed(2)}</td>
-                    <td className="border-b border-gray-300 dark:border-zinc-800 p-2 align-middle">
+                  <tr key={p.id} className="hover:bg-rose-50/50 group">
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold truncate">
+                      {p.name}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-emerald-700 font-bold text-right">
+                      $
+                      {p.billableValue.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 text-right">
+                      {p.hours.toFixed(2)}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-500 text-right">
+                      {p.budgetLimit.toFixed(2)}
+                    </td>
+                    <td
+                      className={`border-b border-r border-slate-300 p-2 text-sm font-bold text-right ${isOver ? "text-red-600 " : "text-slate-900 "}`}
+                    >
+                      {p.remaining.toFixed(2)}
+                    </td>
+                    <td className="border-b border-slate-300 p-2 align-middle">
                       <div className="flex items-center gap-2 w-full">
-                        <div className="flex-1 bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${progressColor}`} style={{ width: `${Math.min(100, p.burnPercentage)}%` }} />
+                        <div className="flex-1 bg-gray-200 h-2 overflow-hidden">
+                          <div
+                            className={`h-full ${progressColor}`}
+                            style={{
+                              width: `${Math.min(100, p.burnPercentage)}%`,
+                            }}
+                          />
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 dark:text-zinc-400 w-10 text-right">{Math.round(p.burnPercentage)}%</span>
+                        <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                          {Math.round(p.burnPercentage)}%
+                        </span>
                       </div>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
-            <tfoot className="bg-gray-100 dark:bg-zinc-900 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] dark:shadow-[0_-1px_0_0_rgba(39,39,42,1)]">
+            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">Totals:</td>
-                <td className="p-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 text-right border-r border-gray-300 dark:border-zinc-800">${projectBudgets.reduce((s, p) => s + p.billableValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{projectBudgets.reduce((s, p) => s + p.hours, 0).toFixed(2)}</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{projectBudgets.reduce((s, p) => s + p.budgetLimit, 0).toFixed(2)}</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{projectBudgets.reduce((s, p) => s + p.remaining, 0).toFixed(2)}</td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  Totals:
+                </td>
+                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 ">
+                  $
+                  {projectBudgets
+                    .reduce((s, p) => s + p.billableValue, 0)
+                    .toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {projectBudgets.reduce((s, p) => s + p.hours, 0).toFixed(2)}
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {projectBudgets
+                    .reduce((s, p) => s + p.budgetLimit, 0)
+                    .toFixed(2)}
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {projectBudgets
+                    .reduce((s, p) => s + p.remaining, 0)
+                    .toFixed(2)}
+                </td>
                 <td className="p-2"></td>
               </tr>
             </tfoot>
           </table>
         )}
 
-        {reportPhase === 'viewing' && reportType === 'capacity' && (
-          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-950">
-            <thead className="bg-gray-100 dark:bg-zinc-900 sticky top-0 z-50">
+        {reportPhase === "viewing" && reportType === "capacity" && (
+          <table className="w-full border-collapse min-w-max text-left bg-white ">
+            <thead className="bg-slate-100 sticky top-0 z-50">
               <tr>
-                <th onClick={() => handleSort('name')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-64 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("name")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Team Member <SortIcon columnKey="name" />
                 </th>
-                <th onClick={() => handleSort('hours')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("hours")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Logged Hrs <SortIcon columnKey="hours" />
                 </th>
-                <th onClick={() => handleSort('capacity')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-32 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("capacity")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Capacity Hrs <SortIcon columnKey="capacity" />
                 </th>
-                <th onClick={() => handleSort('utilization')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 min-w-[200px] cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("utilization")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Utilization <SortIcon columnKey="utilization" />
                 </th>
-                <th className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-48 text-center">
+                <th className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 text-center">
                   Status
                 </th>
               </tr>
             </thead>
             <tbody>
-              {teamCapacity.map(u => {
+              {teamCapacity.map((u) => {
                 const isOverUtilized = u.utilization > 100;
                 const isIdeal = u.utilization >= 75 && u.utilization <= 100;
-                let capacityColor = 'bg-blue-500 dark:bg-blue-600';
-                let statusText = 'Normal';
-                let statusColor = 'text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30';
+                let capacityColor = "bg-blue-500 ";
+                let statusText = "Normal";
+                let statusColor = "text-rose-700 bg-rose-100 ";
                 if (isOverUtilized) {
-                  capacityColor = 'bg-red-500 dark:bg-red-600';
-                  statusText = 'Over Capacity';
-                  statusColor = 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
+                  capacityColor = "bg-red-500 ";
+                  statusText = "Over Capacity";
+                  statusColor = "text-red-700 bg-red-100 ";
                 } else if (isIdeal) {
-                  capacityColor = 'bg-emerald-500 dark:bg-emerald-600';
-                  statusText = 'Target Achieved';
-                  statusColor = 'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30';
+                  capacityColor = "bg-emerald-500 ";
+                  statusText = "Target Achieved";
+                  statusColor = "text-emerald-700 bg-emerald-100 ";
                 }
 
                 return (
-                  <tr key={u.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 group">
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 font-semibold">{u.name}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 font-bold text-right">{u.hours.toFixed(2)}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-500 dark:text-zinc-400 text-right">{u.capacity.toFixed(2)}</td>
-                    <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 align-middle">
+                  <tr key={u.id} className="hover:bg-rose-50/50 group">
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold">
+                      {u.name}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-bold text-right">
+                      {u.hours.toFixed(2)}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-500 text-right">
+                      {u.capacity.toFixed(2)}
+                    </td>
+                    <td className="border-b border-r border-slate-300 p-2 align-middle">
                       <div className="flex items-center gap-2 w-full">
-                        <div className="flex-1 bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${capacityColor}`} style={{ width: `${Math.min(100, u.utilization)}%` }} />
+                        <div className="flex-1 bg-gray-200 h-2 overflow-hidden">
+                          <div
+                            className={`h-full ${capacityColor}`}
+                            style={{
+                              width: `${Math.min(100, u.utilization)}%`,
+                            }}
+                          />
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 dark:text-zinc-400 w-10 text-right">{Math.round(u.utilization)}%</span>
+                        <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                          {Math.round(u.utilization)}%
+                        </span>
                       </div>
                     </td>
-                    <td className="border-b border-gray-300 dark:border-zinc-800 p-2 text-center align-middle">
-                      <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${statusColor}`}>
+                    <td className="border-b border-slate-300 p-2 text-center align-middle">
+                      <span
+                        className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${statusColor}`}
+                      >
                         {statusText}
                       </span>
                     </td>
@@ -766,43 +1086,71 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
                 );
               })}
             </tbody>
-            <tfoot className="bg-gray-100 dark:bg-zinc-900 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] dark:shadow-[0_-1px_0_0_rgba(39,39,42,1)]">
+            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">Totals:</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{teamCapacity.reduce((s, u) => s + u.hours, 0).toFixed(2)}</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{teamCapacity.reduce((s, u) => s + u.capacity, 0).toFixed(2)}</td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  Totals:
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {teamCapacity.reduce((s, u) => s + u.hours, 0).toFixed(2)}
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {teamCapacity.reduce((s, u) => s + u.capacity, 0).toFixed(2)}
+                </td>
                 <td colSpan={2} className="p-2"></td>
               </tr>
             </tfoot>
           </table>
         )}
 
-        {reportPhase === 'viewing' && reportType === 'uninvoiced' && (
-          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-950">
-            <thead className="bg-gray-100 dark:bg-zinc-900 sticky top-0 z-50">
+        {reportPhase === "viewing" && reportType === "uninvoiced" && (
+          <table className="w-full border-collapse min-w-max text-left bg-white ">
+            <thead className="bg-slate-100 sticky top-0 z-50">
               <tr>
-                <th onClick={() => handleSort('name')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("name")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Project Name <SortIcon columnKey="name" />
                 </th>
-                <th onClick={() => handleSort('hours')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-40 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("hours")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Uninvoiced Hours <SortIcon columnKey="hours" />
                 </th>
-                <th onClick={() => handleSort('billableValue')} className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-40 text-right cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors group select-none">
+                <th
+                  onClick={() => handleSort("billableValue")}
+                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
                   Outstanding Amount <SortIcon columnKey="billableValue" />
                 </th>
-                <th className="sticky top-0 bg-gray-100 dark:bg-zinc-900 z-50 border-b border-gray-300 dark:border-zinc-800 p-2 text-xs font-bold text-gray-600 dark:text-zinc-300 w-48 text-center">
+                <th className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 text-center">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody>
-              {uninvoicedProjectData.map(p => (
-                <tr key={`uninvoiced_${p.id}`} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 group">
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 font-semibold">{p.name}</td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm text-gray-800 dark:text-zinc-200 text-right">{p.hours.toFixed(2)}</td>
-                  <td className="border-b border-r border-gray-300 dark:border-zinc-800 p-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 text-right">${p.billableValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                  <td className="border-b border-gray-300 dark:border-zinc-800 p-2 text-center align-middle">
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 px-3 py-1 rounded-md">
+              {uninvoicedProjectData.map((p) => (
+                <tr
+                  key={`uninvoiced_${p.id}`}
+                  className="hover:bg-rose-50/50 group"
+                >
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold">
+                    {p.name}
+                  </td>
+                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 text-right">
+                    {p.hours.toFixed(2)}
+                  </td>
+                  <td className="border-b border-r border-slate-300 p-2 text-sm font-bold text-emerald-700 text-right">
+                    $
+                    {p.billableValue.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td className="border-b border-slate-300 p-2 text-center align-middle">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1 ">
                       Uninvoiced
                     </span>
                   </td>
@@ -810,67 +1158,117 @@ export default function ReportsTab({ dbUser, projects = [], entries = {}, rawEnt
               ))}
               {uninvoicedProjectData.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="border-b border-gray-300 dark:border-zinc-800 p-8 text-center text-sm text-gray-500 italic">No uninvoiced hours found.</td>
+                  <td
+                    colSpan="4"
+                    className="border-b border-slate-300 p-8 text-center text-sm text-slate-500 italic"
+                  >
+                    No uninvoiced hours found.
+                  </td>
                 </tr>
               )}
             </tbody>
-            <tfoot className="bg-gray-100 dark:bg-zinc-900 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] dark:shadow-[0_-1px_0_0_rgba(39,39,42,1)]">
+            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">Totals:</td>
-                <td className="p-2 text-sm font-bold text-gray-900 dark:text-zinc-100 text-right border-r border-gray-300 dark:border-zinc-800">{uninvoicedProjectData.reduce((s, p) => s + p.hours, 0).toFixed(2)}</td>
-                <td className="p-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 text-right border-r border-gray-300 dark:border-zinc-800">${uninvoicedProjectData.reduce((s, p) => s + p.billableValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  Totals:
+                </td>
+                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                  {uninvoicedProjectData
+                    .reduce((s, p) => s + p.hours, 0)
+                    .toFixed(2)}
+                </td>
+                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 ">
+                  $
+                  {uninvoicedProjectData
+                    .reduce((s, p) => s + p.billableValue, 0)
+                    .toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                </td>
                 <td className="p-2"></td>
               </tr>
             </tfoot>
           </table>
         )}
 
-        {reportPhase === 'viewing' && reportType === 'project-team' && (
+        {reportPhase === "viewing" && reportType === "project-team" && (
           <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto pb-16">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100">Project & Team Summary</h2>
-              <div className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
-                {projectTeamData.length} {projectTeamData.length === 1 ? 'Project' : 'Projects'} Found
+              <h2 className="text-xl font-bold text-slate-900 ">
+                Project & Team Summary
+              </h2>
+              <div className="text-sm font-semibold text-slate-500 ">
+                {projectTeamData.length}{" "}
+                {projectTeamData.length === 1 ? "Project" : "Projects"} Found
               </div>
             </div>
-            
+
             {projectTeamData.map((proj, idx) => (
-              <div key={idx} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-                 <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-zinc-100">{proj.projectName}</h3>
-                    <div className="flex gap-4">
-                      <span className="text-sm font-semibold text-gray-600 dark:text-zinc-400">Total Hours: {proj.hours.toFixed(2)}</span>
-                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">${proj.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                    </div>
-                 </div>
-                 <table className="w-full text-left border-collapse">
-                   <thead className="bg-white dark:bg-zinc-900">
-                     <tr>
-                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800">Team Member</th>
-                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-100 dark:border-zinc-800 w-32">Hours Logged</th>
-                       <th className="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-100 dark:border-zinc-800 w-40">Amount Billable</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {proj.users.map((u, i) => (
-                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 group">
-                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm font-semibold text-gray-700 dark:text-zinc-300">{u.userName}</td>
-                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm text-gray-900 dark:text-zinc-100 font-bold text-right">{u.hours.toFixed(2)}</td>
-                           <td className="p-3 border-b border-gray-100 dark:border-zinc-800 text-sm text-emerald-600 dark:text-emerald-400 font-medium text-right">${u.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        </tr>
-                     ))}
-                   </tbody>
-                 </table>
+              <div
+                key={idx}
+                className="bg-white border border-slate-300 overflow-hidden "
+              >
+                <div className="bg-slate-50 p-4 border-b border-slate-300 flex justify-between items-center">
+                  <h3 className="font-bold text-lg text-slate-900 ">
+                    {proj.projectName}
+                  </h3>
+                  <div className="flex gap-4">
+                    <span className="text-sm font-semibold text-slate-600 ">
+                      Total Hours: {proj.hours.toFixed(2)}
+                    </span>
+                    <span className="text-sm font-bold text-emerald-700 ">
+                      $
+                      {proj.amount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-white ">
+                    <tr>
+                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-300 ">
+                        Team Member
+                      </th>
+                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 w-32">
+                        Hours Logged
+                      </th>
+                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 w-40">
+                        Amount Billable
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proj.users.map((u, i) => (
+                      <tr key={i} className="hover:bg-slate-50 group">
+                        <td className="p-3 border-b border-slate-300 text-sm font-semibold text-slate-700 ">
+                          {u.userName}
+                        </td>
+                        <td className="p-3 border-b border-slate-300 text-sm text-slate-900 font-bold text-right">
+                          {u.hours.toFixed(2)}
+                        </td>
+                        <td className="p-3 border-b border-slate-300 text-sm text-emerald-600 font-medium text-right">
+                          $
+                          {u.amount.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ))}
             {projectTeamData.length === 0 && (
-              <div className="p-12 text-center border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-xl text-gray-500 bg-white dark:bg-zinc-900">
+              <div className="p-12 text-center border-2 border-dashed border-slate-300 text-slate-500 bg-white ">
                 No matching data found for the selected criteria.
               </div>
             )}
           </div>
         )}
-
       </div>
     </div>
   );
