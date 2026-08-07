@@ -1,116 +1,43 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
+import fs from 'fs';
+import path from 'path';
 
-@layer base {
-  body {
-    background-color: #e5e7eb; /* matte light grey (gray-200) */
-    color: #0f172a;
-    font-family: "Inter", sans-serif;
-    overflow-x: hidden;
+function replaceRoseWithPrimary(filePath) {
+  let content = fs.readFileSync(filePath, 'utf8');
+  let original = content;
+  
+  content = content.replace(/\brose-([0-9]+)\b/g, 'primary-$1');
+  
+  if (content !== original) {
+    fs.writeFileSync(filePath, content);
+    console.log('Themed', filePath);
   }
 }
 
-@layer components {
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Grid Cell Architecture with Shared Collapsing Borders */
-  .grid-cell {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    position: relative;
-    transition:
-      border-color 0.15s ease,
-      background-color 0.15s ease;
-  }
-
-  .grid-cell:hover {
-    border-color: #94a3b8;
-    z-index: 2;
-  }
-
-  .grid-cell-highlight {
-    background-color: var(--primary-50);
-    border: 1px solid var(--primary-300);
-  }
-
-  /* Clean Cell Input Engine */
-  .cell-input {
-    font-variant-numeric: tabular-nums;
-    transition: all 0.12s ease;
-    border-radius: 0px !important;
-    outline: none;
-  }
-
-  .cell-input:focus {
-    background-color: var(--primary-50);
-    box-shadow: inset 0 0 0 2px var(--primary-600);
-    color: var(--primary-800);
-    font-weight: 700;
+function walkDir(dir) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      walkDir(fullPath);
+    } else if (fullPath.endsWith('.jsx') || fullPath.endsWith('.js') || fullPath.endsWith('.tsx')) {
+      replaceRoseWithPrimary(fullPath);
+    }
   }
 }
 
-/* Hide number spinner arrows */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
+walkDir('c:/Users/4thge/Desktop/dgtools/velotime-ui/src');
 
-/* Custom scrollbar for tables */
-::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-}
+const cssPath = 'c:/Users/4thge/Desktop/dgtools/velotime-ui/src/index.css';
+let cssContent = fs.readFileSync(cssPath, 'utf8');
 
-/* Print Styles */
-@media print {
-  header,
-  nav,
-  button,
-  .no-print {
-    display: none !important;
-  }
+// Replace hardcoded rose hexes with var(--primary-*)
+cssContent = cssContent.replace(/background-color: #fff1f2;/g, 'background-color: var(--primary-50);');
+cssContent = cssContent.replace(/border: 1px solid #fda4af;/g, 'border: 1px solid var(--primary-300);');
+cssContent = cssContent.replace(/box-shadow: inset 0 0 0 2px #e11d48;/g, 'box-shadow: inset 0 0 0 2px var(--primary-600);');
+cssContent = cssContent.replace(/color: #9f1239;/g, 'color: var(--primary-800);');
+cssContent = cssContent.replace(/color: #e11d48;/g, 'color: var(--primary-600);');
 
-  body,
-  .grid-cell {
-    background: white !important;
-    color: black !important;
-    border: none !important;
-  }
-
-  #invoice-print-area {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-shadow: none !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-
-  th,
-  td {
-    border-bottom: 1px solid #ccc !important;
-  }
-}
-
-
+const themeDef = `
 @theme {
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
@@ -180,4 +107,10 @@ input[type="number"] {
   --primary-800: var(--color-amber-800);
   --primary-900: var(--color-amber-900);
   --primary-950: var(--color-amber-950);
+}
+`;
+
+if (!cssContent.includes('@theme {')) {
+  fs.writeFileSync(cssPath, cssContent + '\n' + themeDef);
+  console.log('Updated index.css with CSS Variables');
 }

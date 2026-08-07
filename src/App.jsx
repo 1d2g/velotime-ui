@@ -46,6 +46,22 @@ export default function App() {
     return localStorage.getItem("velotime_theme") || "light";
   });
 
+  const [colorTheme, setColorTheme] = useState(() => {
+    return localStorage.getItem("velotime_colorTheme") || "blue";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", colorTheme);
+    localStorage.setItem("velotime_colorTheme", colorTheme);
+  }, [colorTheme]);
+
+  const cycleColorTheme = () => {
+    const themes = ["blue", "rose", "violet", "amber"];
+    const currentIndex = themes.indexOf(colorTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setColorTheme(themes[nextIndex]);
+  };
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [lockout, setLockout] = useState(null);
 
@@ -543,7 +559,7 @@ export default function App() {
   };
 
   return (
-    <div className="font-sans text-sm h-screen flex flex-col bg-gray-200 text-slate-900 overflow-hidden">
+    <div className="font-sans text-sm h-screen flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100 overflow-hidden">
       <style>{`
  .force-black-cursor { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Crect x='7.5' y='2' width='1' height='16' fill='black'/%3E%3Crect x='5' y='1' width='6' height='1' fill='black'/%3E%3Crect x='5' y='18' width='6' height='1' fill='black'/%3E%3C/svg%3E") 8 10, text !important; }
  .hide-caret { caret-color: transparent !important; }
@@ -552,7 +568,7 @@ export default function App() {
  `}</style>
 
       <SignedOut>
-        <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-200">
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-200 dark:bg-zinc-950">
           <SignIn
             routing="hash"
             fallbackRedirectUrl="/"
@@ -565,8 +581,8 @@ export default function App() {
 
       <SignedIn>
         {lockout === "seat_limit_reached" ? (
-          <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-center">
-            <div className="max-w-md w-full bg-white p-8 border border-red-200 ">
+          <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
+            <div className="max-w-md w-full bg-white dark:bg-zinc-900 p-8 border border-red-200 ">
               <div className="w-16 h-16 mx-auto mb-6 bg-red-100 flex items-center justify-center">
                 <svg
                   className="w-8 h-8 text-red-600 "
@@ -582,17 +598,17 @@ export default function App() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">
                 Seat Limit Reached
               </h2>
-              <p className="text-slate-600 mb-8 leading-relaxed text-sm">
+              <p className="text-slate-600 dark:text-slate-400 dark:text-slate-600 mb-8 leading-relaxed text-sm">
                 The organization you are trying to join has reached its maximum
                 seat limit for the demo tier. An administrator must upgrade the
                 workspace to Pro to allow more members.
               </p>
               <div className="space-y-3">
                 <UserButton afterSignOutUrl="/" />
-                <p className="text-xs text-slate-500 ">
+                <p className="text-xs text-slate-500 dark:text-slate-500 ">
                   Sign out or switch accounts
                 </p>
               </div>
@@ -600,9 +616,9 @@ export default function App() {
           </div>
         ) : (
           <>
-            <header className="bg-white border-b-2 border-slate-300 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
+            <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
               <div className="flex items-center gap-8">
-                <div className="font-black text-xl text-slate-900 tracking-tighter cursor-pointer flex items-center gap-2">
+                <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2">
                   <svg
                     className="w-6 h-6 shrink-0"
                     viewBox="0 0 200 200"
@@ -611,24 +627,24 @@ export default function App() {
                     <rect width="200" height="200" fill="#0F172A" />
                     <path
                       d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
-                      fill="#F43F5E"
+                      fill="var(--color-primary-500)"
                     />
-                    <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
+                    <path d="M 90 72 H 110 V 94 H 90 Z" fill="var(--color-primary-500)" />
                     <path
                       d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
                       fill="#FFFFFF"
                     />
                   </svg>
                   <span>
-                    VELO<span className="text-rose-600">TIME</span>
+                    VELO<span className="text-primary-600">TIME</span>
                   </span>
                 </div>
-                <nav className="hidden md:flex bg-slate-100 border border-slate-300">
+                <nav className="hidden md:flex w-full max-w-2xl mx-8 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
                   {navTabs.map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-4 py-2 font-semibold text-xs border-r border-slate-300 last:border-r-0 transition-colors ${activeTab === tab ? "bg-white text-slate-900" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}
+                      className={`flex-1 px-4 py-2 font-semibold text-xs border-r border-slate-300 dark:border-zinc-700 last:border-r-0 transition-colors ${activeTab === tab ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100" : "text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:bg-white dark:bg-zinc-900 hover:text-slate-900 dark:text-slate-100"}`}
                     >
                       {tab}
                     </button>
@@ -636,11 +652,57 @@ export default function App() {
                 </nav>
               </div>
               <div className="flex items-center gap-3 sm:gap-4">
+                <button
+                  onClick={cycleColorTheme}
+                  className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-zinc-700 shadow-sm transition-transform hover:scale-110 flex items-center justify-center relative overflow-hidden group bg-primary-500"
+                  title="Cycle Color Theme"
+                  aria-label="Cycle Color Theme"
+                >
+                  <span className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                </button>
+                <button
+                  onClick={() =>
+                    setTheme((prev) => (prev === "light" ? "dark" : "light"))
+                  }
+                  className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:bg-zinc-800 transition-colors"
+                  aria-label="Toggle Theme"
+                  title="Toggle Light/Dark Theme"
+                >
+                  {theme === "light" ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5 text-yellow-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"
+                      />
+                    </svg>
+                  )}
+                </button>
                 <div className="text-right hidden sm:block">
-                  <div className="text-sm font-semibold text-slate-800">
+                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                     {user?.fullName || "Welcome"}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 dark:text-slate-500">
                     {dbUser?.role
                       ? dbUser.role.charAt(0).toUpperCase() +
                         dbUser.role.slice(1)
@@ -652,7 +714,7 @@ export default function App() {
                 {/* Hamburger Button for Mobile */}
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="md:hidden p-2 text-slate-600 hover:bg-slate-100 "
+                  className="md:hidden p-2 text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:bg-zinc-800 "
                   aria-label="Toggle Menu"
                 >
                   {isMenuOpen ? (
@@ -690,7 +752,7 @@ export default function App() {
 
             {/* Mobile Dropdown Menu */}
             {isMenuOpen && (
-              <div className="md:hidden bg-white border-b border-slate-300 px-6 py-4 flex flex-col gap-2 shrink-0 z-40 ">
+              <div className="md:hidden bg-white dark:bg-zinc-900 border-b border-slate-300 dark:border-zinc-700 px-6 py-4 flex flex-col gap-2 shrink-0 z-40 ">
                 {navTabs.map((tab) => (
                   <button
                     key={tab}
@@ -698,7 +760,7 @@ export default function App() {
                       setActiveTab(tab);
                       setIsMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 font-semibold transition-colors ${activeTab === tab ? "bg-rose-50 text-rose-700 " : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 "}`}
+                    className={`w-full text-left px-4 py-2 font-semibold transition-colors ${activeTab === tab ? "bg-primary-50 text-primary-700 " : "text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:bg-zinc-800 hover:text-slate-900 dark:text-slate-100 "}`}
                   >
                     {tab}
                   </button>
@@ -708,7 +770,7 @@ export default function App() {
 
             <main className="flex-1 flex flex-col pt-8 overflow-hidden relative">
               {isSyncing ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-600">
                   <div className="w-8 h-8 border-4 border-slate-900 border-t-blue-600 animate-spin mb-4"></div>
                   <p>Syncing secure data...</p>
                 </div>
@@ -717,17 +779,17 @@ export default function App() {
                   <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-4">
                     <div className="flex items-center justify-between gap-6">
                       <div className="flex items-center gap-4 flex-wrap">
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                           Timesheet for {timesheetTitle}
                         </h1>
 
                         {/* Timeframe Segmented Control */}
-                        <div className="bg-gray-200/80 p-0.5 flex items-center text-xs font-semibold select-none">
+                        <div className="bg-gray-200 dark:bg-zinc-950/80 p-0.5 flex items-center text-xs font-semibold select-none">
                           {["day", "week", "month"].map((t) => (
                             <button
                               key={t}
                               onClick={() => setTimeframe(t)}
-                              className={`px-3 py-1 transition-all ${timeframe === t ? "bg-white text-slate-900 " : "text-slate-500 hover:text-gray-850 "}`}
+                              className={`px-3 py-1 transition-all ${timeframe === t ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 " : "text-slate-500 dark:text-slate-500 hover:text-gray-850 "}`}
                             >
                               {t.charAt(0).toUpperCase() + t.slice(1)}
                             </button>
@@ -737,14 +799,14 @@ export default function App() {
                         {dbUser &&
                           (dbUser.role === "admin" ||
                             dbUser.role === "manager") && (
-                            <div className="ml-2 flex items-center gap-2 border-l border-slate-300 pl-4">
-                              <span className="text-xs font-bold text-slate-400 uppercase">
+                            <div className="ml-2 flex items-center gap-2 border-l border-slate-300 dark:border-zinc-700 pl-4">
+                              <span className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase">
                                 Viewing:
                               </span>
                               <select
                                 value={viewUserId || dbUser.id}
                                 onChange={(e) => setViewUserId(e.target.value)}
-                                className="text-sm font-semibold text-slate-700 bg-white border border-slate-300 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
+                                className="text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
                               >
                                 {orgUsers.map((u) => (
                                   <option key={u.id} value={u.id}>
@@ -762,7 +824,7 @@ export default function App() {
                         {/* Search Bar */}
                         <div className="relative w-64 max-w-full">
                           <svg
-                            className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400"
+                            className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 dark:text-slate-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -779,17 +841,17 @@ export default function App() {
                             placeholder="Search projects..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white border-2 border-slate-300 pl-9 pr-3 py-1.5 text-xs font-medium outline-none focus:border-slate-900 transition-colors text-slate-900"
+                            className="w-full bg-white dark:bg-zinc-900 border-2 border-slate-300 dark:border-zinc-700 pl-9 pr-3 py-1.5 text-xs font-medium outline-none focus:border-slate-900 transition-colors text-slate-900 dark:text-slate-100"
                           />
                         </div>
 
                         {isSaving ? (
                           <button
                             disabled
-                            className="tour-save-indicator bg-rose-50 text-rose-700 font-semibold py-1.5 px-4 border border-slate-900 transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
+                            className="tour-save-indicator bg-primary-50 text-primary-700 font-semibold py-1.5 px-4 border border-slate-900 transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
                           >
                             <svg
-                              className="animate-spin h-4 w-4 text-rose-600"
+                              className="animate-spin h-4 w-4 text-primary-600"
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
                               viewBox="0 0 24 24"
@@ -835,7 +897,7 @@ export default function App() {
                       </div>
                     </div>
                     {/* Navigation Chevrons under "Timesheet for [Timeframe]" */}
-                    <div className="flex items-center gap-3 text-slate-500 mt-1 select-none">
+                    <div className="flex items-center gap-3 text-slate-500 dark:text-slate-500 mt-1 select-none">
                       <button
                         onClick={handlePrev}
                         className="p-1 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
@@ -855,7 +917,7 @@ export default function App() {
                           />
                         </svg>
                       </button>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-600">
                         Navigate {timeframe}
                       </span>
                       <button
@@ -877,7 +939,7 @@ export default function App() {
                           />
                         </svg>
                       </button>
-                      <div className="border-l border-slate-300 h-4 mx-2"></div>
+                      <div className="border-l border-slate-300 dark:border-zinc-700 h-4 mx-2"></div>
                       <button
                         onClick={() =>
                           setZoomLevel((prev) => Math.max(50, prev - 10))
@@ -899,7 +961,7 @@ export default function App() {
                           />
                         </svg>
                       </button>
-                      <span className="text-[10px] font-bold tracking-wider text-slate-400 w-8 text-center">
+                      <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-600 w-8 text-center">
                         {zoomLevel}%
                       </span>
                       <button
@@ -925,10 +987,10 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300">
+                  <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
                     {projects.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center">
-                        <div className="bg-rose-50 text-rose-600 w-16 h-16 flex items-center justify-center mb-4">
+                        <div className="bg-primary-50 text-primary-600 w-16 h-16 flex items-center justify-center mb-4">
                           <svg
                             className="w-8 h-8"
                             fill="none"
@@ -943,10 +1005,10 @@ export default function App() {
                             ></path>
                           </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                           Welcome to VeloTime!
                         </h2>
-                        <p className="text-slate-500 max-w-md mb-6">
+                        <p className="text-slate-500 dark:text-slate-500 max-w-md mb-6">
                           You don't have any projects yet. Create your first
                           project to start logging hours and generating
                           timesheets.
@@ -1050,8 +1112,8 @@ export default function App() {
                   forceSync={forceSync}
                 />
               ) : (
-                <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 bg-white ">
-                  <h2 className="text-xl font-bold text-slate-400 ">
+                <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 ">
+                  <h2 className="text-xl font-bold text-slate-400 dark:text-slate-600 ">
                     Under Construction
                   </h2>
                 </div>

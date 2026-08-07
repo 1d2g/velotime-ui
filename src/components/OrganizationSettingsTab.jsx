@@ -12,7 +12,7 @@ export default function OrganizationSettingsTab({
 
   if (dbUser?.role !== "admin") {
     return (
-      <div className="flex-1 p-8 bg-slate-50 flex flex-col items-center justify-center text-center transition-colors">
+      <div className="flex-1 p-8 bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center text-center transition-colors">
         <svg
           className="w-16 h-16 text-gray-300 mb-4"
           fill="none"
@@ -26,8 +26,8 @@ export default function OrganizationSettingsTab({
             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"
           />
         </svg>
-        <h2 className="text-xl font-bold text-slate-700 ">Access Restricted</h2>
-        <p className="text-slate-500 mt-2">
+        <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300 ">Access Restricted</h2>
+        <p className="text-slate-500 dark:text-slate-500 mt-2">
           You need administrator privileges to view or modify organization
           settings.
         </p>
@@ -108,21 +108,21 @@ export default function OrganizationSettingsTab({
   };
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 bg-slate-50 overflow-y-auto transition-colors">
+    <div className="flex-1 flex flex-col p-4 md:p-8 bg-slate-50 dark:bg-zinc-950 overflow-y-auto transition-colors">
       <div className="max-w-4xl w-full mx-auto space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             Organization Settings
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-500 dark:text-slate-500 text-sm">
             Manage your workspace configuration, billing, and team access.
           </p>
         </div>
 
         {/* Billing & Subscription Card */}
-        <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-          <div className="px-6 py-5 border-b border-slate-300 bg-slate-50/50 ">
-            <h2 className="text-lg font-bold text-slate-900 ">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 ">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
               Billing & Subscription
             </h2>
           </div>
@@ -170,10 +170,10 @@ export default function OrganizationSettingsTab({
                 )}
               </div>
             ) : (
-              <div className="bg-rose-50 border border-slate-900 p-6">
+              <div className="bg-primary-50 border border-slate-900 p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <svg
-                    className="w-6 h-6 text-rose-600"
+                    className="w-6 h-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -189,7 +189,7 @@ export default function OrganizationSettingsTab({
                     14-Day Free Trial
                   </h3>
                 </div>
-                <p className="text-rose-700 text-sm mb-4">
+                <p className="text-primary-700 text-sm mb-4">
                   You are currently on the demo tier.
                   {(() => {
                     if (!dbUser?.organization?.createdAt) return "";
@@ -202,7 +202,7 @@ export default function OrganizationSettingsTab({
                   })()}
                 </p>
 
-                <div className="bg-rose-100/50 rounded p-3 mb-4 border border-slate-900 ">
+                <div className="bg-primary-100/50 rounded p-3 mb-4 border border-slate-900 ">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-semibold text-blue-900 ">
                       Seats Used
@@ -263,7 +263,7 @@ export default function OrganizationSettingsTab({
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-rose-600 font-semibold italic">
+                  <p className="text-xs text-primary-600 font-semibold italic">
                     Only organization admins can upgrade the subscription.
                   </p>
                 )}
@@ -273,15 +273,15 @@ export default function OrganizationSettingsTab({
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-          <div className="px-6 py-5 border-b border-slate-300 bg-slate-50/50 ">
-            <h2 className="text-lg font-bold text-slate-900 ">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 ">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
               Organization Profile
             </h2>
           </div>
           <div className="p-6 flex flex-col gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                 Organization Name
               </label>
               <div className="flex gap-3">
@@ -289,7 +289,7 @@ export default function OrganizationSettingsTab({
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="flex-1 max-w-md bg-white border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
+                  className="flex-1 max-w-md bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-4 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
                 />
                 <button
                   onClick={handleSaveOrg}
@@ -306,9 +306,9 @@ export default function OrganizationSettingsTab({
         </div>
 
         {/* Invoice Settings Card */}
-        <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-          <div className="px-6 py-5 border-b border-slate-300 bg-slate-50/50 ">
-            <h2 className="text-lg font-bold text-slate-900 ">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 ">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
               Invoice Settings
             </h2>
           </div>
@@ -318,7 +318,7 @@ export default function OrganizationSettingsTab({
               className="flex flex-col gap-4 max-w-xl"
             >
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Invoice Prefix
                 </label>
                 <input
@@ -326,11 +326,11 @@ export default function OrganizationSettingsTab({
                   value={invoicePrefix}
                   onChange={(e) => setInvoicePrefix(e.target.value)}
                   disabled={!isAdmin}
-                  className="w-full bg-white border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
+                  className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-4 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Next Invoice Number
                 </label>
                 <input
@@ -338,11 +338,11 @@ export default function OrganizationSettingsTab({
                   value={nextInvoiceNumber}
                   onChange={(e) => setNextInvoiceNumber(e.target.value)}
                   disabled={!isAdmin}
-                  className="w-full bg-white border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
+                  className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-4 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-slate-900 outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Company Logo
                 </label>
                 <div className="flex items-center gap-4 mt-2">
@@ -351,7 +351,7 @@ export default function OrganizationSettingsTab({
                       <img
                         src={logoBase64}
                         alt="Company Logo"
-                        className="h-16 w-auto object-contain border border-slate-300 rounded bg-white p-1"
+                        className="h-16 w-auto object-contain border border-slate-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-900 p-1"
                       />
                       {isAdmin && (
                         <button
@@ -376,7 +376,7 @@ export default function OrganizationSettingsTab({
                       )}
                     </div>
                   ) : (
-                    <div className="h-16 w-16 flex items-center justify-center bg-slate-100 border border-dashed border-slate-300 rounded text-slate-400 ">
+                    <div className="h-16 w-16 flex items-center justify-center bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700 rounded text-slate-400 dark:text-slate-600 ">
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -393,7 +393,7 @@ export default function OrganizationSettingsTab({
                     </div>
                   )}
                   {isAdmin && (
-                    <label className="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 transition-colors text-sm">
+                    <label className="cursor-pointer bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 transition-colors text-sm">
                       <span>Upload Image</span>
                       <input
                         type="file"
@@ -404,7 +404,7 @@ export default function OrganizationSettingsTab({
                     </label>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
                   Recommended: PNG or JPG under 2MB. Appears on printed
                   invoices.
                 </p>
@@ -423,79 +423,79 @@ export default function OrganizationSettingsTab({
         </div>
 
         {/* Billing Card */}
-        <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-          <div className="px-6 py-5 border-b border-slate-300 bg-slate-50/50 ">
-            <h2 className="text-lg font-bold text-slate-900 ">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 ">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
               Billing & Subscription
             </h2>
           </div>
           <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-base font-bold text-slate-900 ">
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 ">
                   Current Plan:
                 </h3>
                 <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 ">
                   {dbUser?.organization?.tier?.toUpperCase() || "DEMO"}
                 </span>
               </div>
-              <p className="text-sm text-slate-500 ">
+              <p className="text-sm text-slate-500 dark:text-slate-500 ">
                 {dbUser?.organization?.tier === "pro"
                   ? "You are on the Pro plan with access to all premium features."
                   : "Upgrade to Pro to unlock advanced reporting and unlimited projects."}
               </p>
             </div>
-            <button className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap ">
+            <button className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap ">
               Manage Billing
             </button>
           </div>
         </div>
 
         {/* Roles Card */}
-        <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-          <div className="px-6 py-5 border-b border-slate-300 bg-slate-50/50 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900 ">Team Roles</h2>
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">Team Roles</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 ">
-              <thead className="bg-slate-50 ">
+              <thead className="bg-slate-50 dark:bg-zinc-950 ">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                     Role
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200 ">
+              <tbody className="bg-white dark:bg-zinc-900 divide-y divide-gray-200 ">
                 {orgUsers.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="hover:bg-slate-50 dark:bg-zinc-950 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-8 w-8 bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs border border-slate-900 ">
+                        <div className="h-8 w-8 bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs border border-slate-900 ">
                           {user.firstName?.charAt(0)}
                           {user.lastName?.charAt(0)}
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-bold text-slate-900 ">
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 ">
                             {user.firstName} {user.lastName}
                           </p>
                           {user.id === dbUser.id && (
-                            <span className="text-[10px] text-slate-400 ">
+                            <span className="text-[10px] text-slate-400 dark:text-slate-600 ">
                               (You)
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 ">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-500 ">
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -506,7 +506,7 @@ export default function OrganizationSettingsTab({
                           onChange={(e) =>
                             handleRoleChange(user.id, e.target.value)
                           }
-                          className="bg-white border border-slate-300 text-slate-700 text-sm focus:ring-slate-900 focus:border-slate-900 block p-2 outline-none cursor-pointer disabled:opacity-50 transition-colors"
+                          className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-300 text-sm focus:ring-slate-900 focus:border-slate-900 block p-2 outline-none cursor-pointer disabled:opacity-50 transition-colors"
                         >
                           <option value="employee">Employee</option>
                           <option value="manager">Manager</option>
@@ -514,7 +514,7 @@ export default function OrganizationSettingsTab({
                         </select>
                         {roleSaves[user.id] && (
                           <svg
-                            className="animate-spin h-4 w-4 text-rose-600"
+                            className="animate-spin h-4 w-4 text-primary-600"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"

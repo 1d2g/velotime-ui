@@ -40,20 +40,20 @@ const LegalPages = ({ path }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full bg-white shadow p-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-white dark:bg-zinc-900 shadow p-8">
         <div className="mb-8 flex justify-between items-center border-b pb-4">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
             {title}
           </h1>
           <a
             href="/"
-            className="text-rose-600 hover:text-blue-800 font-semibold text-sm transition-colors"
+            className="text-primary-600 hover:text-blue-800 font-semibold text-sm transition-colors"
           >
             &larr; Back to VeloTime
           </a>
         </div>
-        <div className="prose prose-blue max-w-none text-slate-700">
+        <div className="prose prose-blue max-w-none text-slate-700 dark:text-slate-300">
           {isHtml ? (
             <div dangerouslySetInnerHTML={{ __html: content }} />
           ) : (

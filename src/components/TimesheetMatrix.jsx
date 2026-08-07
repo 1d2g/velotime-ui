@@ -446,33 +446,33 @@ export default function TimesheetMatrix({
   };
 
   const stickyLeft1 =
-    "sticky left-0 z-20 bg-white border-r border-b border-slate-300 ";
+    "sticky left-0 z-20 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
   const stickyLeft2 =
-    "sticky left-24 z-20 bg-white border-r border-b border-slate-300 ";
+    "sticky left-24 z-20 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
   const stickyLeft3 =
-    "sticky left-48 z-20 border-r border-b border-slate-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
+    "sticky left-48 z-20 border-r border-b border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
   const stickyRight =
-    "sticky right-0 z-30 bg-white border-l border-b border-slate-300 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
+    "sticky right-0 z-30 bg-white dark:bg-zinc-900 border-l border-b border-slate-300 dark:border-zinc-700 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
 
   if (isMobile) {
     return (
       <div
         ref={containerRef}
-        className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto bg-slate-50 text-xs"
+        className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto bg-slate-50 dark:bg-zinc-950 text-xs"
       >
         {/* Mobile Capacity Progress Indicator */}
-        <div className="bg-white border border-slate-300 p-4 flex items-center justify-between shrink-0">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex items-center justify-between shrink-0">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
               Weekly Progress
             </span>
-            <span className="text-lg font-black text-slate-900 ">
+            <span className="text-lg font-black text-slate-900 dark:text-slate-100 ">
               {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
             </span>
           </div>
           <div className="text-right">
             <span
-              className={`px-2.5 py-1 text-[10px] font-bold ${totalHours >= capacityGoal ? "bg-emerald-100 text-emerald-700 " : "bg-rose-100 text-rose-700 "}`}
+              className={`px-2.5 py-1 text-[10px] font-bold ${totalHours >= capacityGoal ? "bg-emerald-100 text-emerald-700 " : "bg-primary-100 text-primary-700 "}`}
             >
               {totalHours >= capacityGoal
                 ? "100% Achieved"
@@ -488,18 +488,18 @@ export default function TimesheetMatrix({
             return (
               <div
                 key={dateObj.id}
-                className={`bg-white border ${dateObj.isToday ? "border-slate-900 ring-1 ring-slate-900 " : "border-slate-300 "} overflow-hidden`}
+                className={`bg-white dark:bg-zinc-900 border ${dateObj.isToday ? "border-slate-900 ring-1 ring-slate-900 " : "border-slate-300 dark:border-zinc-700 "} overflow-hidden`}
               >
                 {/* Day Header */}
-                <div className="bg-slate-50 px-4 py-3 border-b border-slate-300 flex justify-between items-center">
+                <div className="bg-slate-50 dark:bg-zinc-950 px-4 py-3 border-b border-slate-300 dark:border-zinc-700 flex justify-between items-center">
                   <div>
                     <span className="font-bold text-gray-850 text-sm mr-2">
                       {dateObj.label}
                     </span>
-                    <span className="text-slate-400 ">{dateObj.dateStr}</span>
+                    <span className="text-slate-400 dark:text-slate-600 ">{dateObj.dateStr}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-black text-slate-700 bg-gray-200 px-2 py-0.5 rounded">
+                    <span className="text-xs font-black text-slate-700 dark:text-slate-300 bg-gray-200 dark:bg-zinc-950 px-2 py-0.5 rounded">
                       {dayTotal.toFixed(1)} hrs
                     </span>
                   </div>
@@ -524,10 +524,10 @@ export default function TimesheetMatrix({
                             {/* Task Title & Hours Input */}
                             <div className="flex justify-between items-center gap-4">
                               <div className="min-w-0">
-                                <span className="text-[10px] font-bold text-rose-600 block truncate">
+                                <span className="text-[10px] font-bold text-primary-600 block truncate">
                                   {p.name}
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 truncate block">
+                                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate block">
                                   {t.name}
                                 </span>
                               </div>
@@ -547,9 +547,9 @@ export default function TimesheetMatrix({
                                     )
                                   }
                                   placeholder="0"
-                                  className="w-16 text-center border border-slate-300 p-1.5 font-bold text-sm bg-transparent text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none"
+                                  className="w-16 text-center border border-slate-300 dark:border-zinc-700 p-1.5 font-bold text-sm bg-transparent text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-slate-900 outline-none"
                                 />
-                                <span className="text-[10px] font-bold text-slate-400 ">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 ">
                                   hrs
                                 </span>
                               </div>
@@ -557,7 +557,7 @@ export default function TimesheetMatrix({
 
                             {/* Task Notes Input */}
                             <div className="flex gap-2 items-start">
-                              <span className="text-slate-400 font-bold text-xs select-none mt-1.5">
+                              <span className="text-slate-400 dark:text-slate-600 font-bold text-xs select-none mt-1.5">
                                 ↳
                               </span>
                               <textarea
@@ -572,7 +572,7 @@ export default function TimesheetMatrix({
                                 }
                                 placeholder="Add notes..."
                                 rows={2}
-                                className="flex-1 text-xs border border-slate-300 bg-slate-50/50 px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900 resize-none leading-snug animate-none"
+                                className="flex-1 text-xs border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-900 resize-none leading-snug animate-none"
                               />
                             </div>
                           </div>
@@ -582,7 +582,7 @@ export default function TimesheetMatrix({
                   ))}
                   {projects.length === 0 ||
                   projects.every((p) => p.tasks.length === 0) ? (
-                    <div className="p-8 text-center text-slate-400 italic">
+                    <div className="p-8 text-center text-slate-400 dark:text-slate-600 italic">
                       No projects or tasks found. Tap the "Projects" tab to add
                       one.
                     </div>
@@ -599,7 +599,7 @@ export default function TimesheetMatrix({
   return (
     <div
       ref={containerRef}
-      className="h-full flex flex-col overflow-hidden relative flex-1 bg-white "
+      className="h-full flex flex-col overflow-hidden relative flex-1 bg-white dark:bg-zinc-900 "
     >
       <style>{`
  @keyframes expandColumn { 0% { width: 0; min-width: 0; max-width: 0; opacity: 0; padding-left: 0; padding-right: 0; } 100% { width: 6rem; min-width: 6rem; max-width: 6rem; opacity: 1; padding-left: 0.5rem; padding-right: 0.5rem; } }
@@ -631,19 +631,19 @@ export default function TimesheetMatrix({
         ></div>
       )}
 
-      <div className="flex-1 overflow-auto no-scrollbar bg-white transition-colors">
-        <table className="min-w-full w-max border-separate border-spacing-0 bg-white ">
+      <div className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors">
+        <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
           <thead ref={theadRef}>
-            <tr className="bg-slate-100 ">
+            <tr className="bg-slate-100 dark:bg-zinc-800 ">
               <th
-                className="sticky top-0 left-0 z-50 bg-white h-16 border-b border-r border-slate-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] "
+                className="sticky top-0 left-0 z-50 bg-white dark:bg-zinc-900 h-16 border-b border-r border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] "
                 colSpan={3}
               >
                 <div className="flex items-center justify-center h-full w-full px-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 border border-slate-300 transition-colors w-full justify-center">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 hover:bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 border border-slate-300 dark:border-zinc-700 transition-colors w-full justify-center">
                     <input
                       type="checkbox"
-                      className="w-3.5 h-3.5 text-red-500 focus:ring-red-500 border-slate-300 rounded cursor-pointer bg-transparent"
+                      className="w-3.5 h-3.5 text-red-500 focus:ring-red-500 border-slate-300 dark:border-zinc-700 rounded cursor-pointer bg-transparent"
                       checked={showMissingNotes}
                       onChange={(e) => setShowMissingNotes(e.target.checked)}
                     />
@@ -653,18 +653,18 @@ export default function TimesheetMatrix({
                   </label>
                 </div>
               </th>
-              <th className="sticky top-0 bg-white w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
+              <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
 
               {filteredProjects.map((p, pIndex) => (
                 <React.Fragment key={`tier1_${p.id}`}>
                   <th
-                    className={`sticky top-0 border-b border-slate-300 px-2 h-16 bg-rose-100 text-slate-900 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? "w-24 min-w-[6rem] max-w-[6rem]" : ""} ${pIndex === 0 ? "tour-project-header" : ""}`}
+                    className={`sticky top-0 border-b border-slate-300 dark:border-zinc-700 px-2 h-16 bg-primary-100 text-slate-900 dark:text-slate-100 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? "w-24 min-w-[6rem] max-w-[6rem]" : ""} ${pIndex === 0 ? "tour-project-header" : ""}`}
                     colSpan={p.isCollapsed ? 1 : p.tasks.length}
                   >
                     <div className="sticky left-[18rem] flex items-center justify-start px-2 h-full w-max max-w-full gap-2">
                       <button
                         onClick={() => onToggleCollapse(p.id)}
-                        className="text-rose-600 hover:text-blue-800 bg-white/40 hover:bg-white rounded p-1 transition-all duration-200 flex-shrink-0 "
+                        className="text-primary-600 hover:text-blue-800 bg-white dark:bg-zinc-900/40 hover:bg-white dark:bg-zinc-900 rounded p-1 transition-all duration-200 flex-shrink-0 "
                         title="Collapse Project (Ctrl+Space)"
                       >
                         <svg
@@ -690,14 +690,14 @@ export default function TimesheetMatrix({
                     </div>
                   </th>
                   {!p.isCollapsed && (
-                    <th className="sticky top-0 bg-white w-20 h-16 z-30 border-0 border-b border-slate-300 animate-task-btn overflow-hidden"></th>
+                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
                   )}
-                  <th className="sticky top-0 bg-white w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
+                  <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
                 </React.Fragment>
               ))}
 
               <th
-                className={`${stickyRight} sticky top-0 z-50 bg-white w-14 min-w-[3.5rem] max-w-[3.5rem] border-b border-l border-slate-300 p-1 relative`}
+                className={`${stickyRight} sticky top-0 z-50 bg-white dark:bg-zinc-900 w-14 min-w-[3.5rem] max-w-[3.5rem] border-b border-l border-slate-300 dark:border-zinc-700 p-1 relative`}
                 rowSpan={2}
               >
                 <button
@@ -705,7 +705,7 @@ export default function TimesheetMatrix({
                     setIsAddingProject(true);
                     setActiveTaskPopover(null);
                   }}
-                  className="w-full h-full min-h-[5rem] flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                  className="w-full h-full min-h-[5rem] flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 hover:text-primary-600 transition-colors cursor-pointer"
                   title={
                     writeAllowed
                       ? "Add Project"
@@ -729,28 +729,28 @@ export default function TimesheetMatrix({
               </th>
             </tr>
 
-            <tr className="bg-slate-100 ">
+            <tr className="bg-slate-100 dark:bg-zinc-800 ">
               <th
-                className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 bg-slate-100 border-b border-slate-300`}
+                className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Client
               </th>
               <th
-                className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 bg-slate-100 border-b border-slate-300`}
+                className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Project
               </th>
               <th
-                className={`${stickyLeft3} bg-rose-50 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-rose-800 border-b border-slate-300`}
+                className={`${stickyLeft3} bg-primary-50 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-primary-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Total
               </th>
-              <th className="sticky top-16 bg-white w-4 min-w-[1rem] max-w-[1rem] border-none z-30"></th>
+              <th className="sticky top-16 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30"></th>
 
               {filteredProjects.map((p) => (
                 <React.Fragment key={`tier2_${p.id}`}>
                   {p.isCollapsed ? (
-                    <th className="sticky top-16 border-b border-x border-slate-300 px-1 py-4 bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider z-30 w-24 min-w-[6rem] max-w-[6rem] animate-collapse overflow-hidden">
+                    <th className="sticky top-16 border-b border-x border-slate-300 dark:border-zinc-700 px-1 py-4 bg-slate-50 dark:bg-zinc-950 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider z-30 w-24 min-w-[6rem] max-w-[6rem] animate-collapse overflow-hidden">
                       Total
                     </th>
                   ) : (
@@ -758,7 +758,7 @@ export default function TimesheetMatrix({
                       {p.tasks.map((t) => (
                         <th
                           key={t.id}
-                          className="group sticky top-16 border-b border-r border-slate-300 px-2 py-4 font-normal text-slate-600 bg-slate-50 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
+                          className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
                         >
                           <span className="truncate block w-full">
                             {t.name}
@@ -767,7 +767,7 @@ export default function TimesheetMatrix({
                             <button
                               onClick={() => onRemoveTask(p.id, t.id)}
                               title="Delete Task (Ctrl+Backspace)"
-                              className="absolute top-1 right-1 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 rounded"
+                              className="absolute top-1 right-1 text-slate-400 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 dark:bg-zinc-950 rounded"
                             >
                               <svg
                                 className="w-3 h-3"
@@ -801,7 +801,7 @@ export default function TimesheetMatrix({
                       />
                     </>
                   )}
-                  <th className="sticky top-16 bg-white w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors"></th>
+                  <th className="sticky top-16 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors"></th>
                 </React.Fragment>
               ))}
             </tr>
@@ -814,19 +814,19 @@ export default function TimesheetMatrix({
 
               if (isNotesRow) {
                 const isActive = activeDateId === dateObj.id;
-                let notesRowBg = "text-slate-700";
-                let notesLeftGlow = "bg-white ";
-                let notesLabelGlow = "bg-white text-slate-400";
-                let notesTotalGlow = "bg-white ";
+                let notesRowBg = "text-slate-700 dark:text-slate-300";
+                let notesLeftGlow = "bg-white dark:bg-zinc-900 ";
+                let notesLabelGlow = "bg-white dark:bg-zinc-900 text-slate-400 dark:text-slate-600";
+                let notesTotalGlow = "bg-white dark:bg-zinc-900 ";
 
                 if (dateObj.isToday) {
-                  notesLeftGlow = "bg-rose-50 border-l-4 border-l-blue-500";
-                  notesLabelGlow = "bg-rose-50 text-rose-700 font-semibold";
-                  notesTotalGlow = "bg-rose-50 ";
+                  notesLeftGlow = "bg-primary-50 border-l-4 border-l-blue-500";
+                  notesLabelGlow = "bg-primary-50 text-primary-700 font-semibold";
+                  notesTotalGlow = "bg-primary-50 ";
                 } else if (dateObj.isCurrentWeek) {
-                  notesLeftGlow = "bg-rose-50 border-l-4 border-l-blue-400";
-                  notesLabelGlow = "bg-rose-50 text-blue-900 font-semibold";
-                  notesTotalGlow = "bg-rose-50 ";
+                  notesLeftGlow = "bg-primary-50 border-l-4 border-l-blue-400";
+                  notesLabelGlow = "bg-primary-50 text-blue-900 font-semibold";
+                  notesTotalGlow = "bg-primary-50 ";
                 }
 
                 // To make height transition smooth on table rows, we transition the inner container's max-height and padding.
@@ -844,10 +844,10 @@ export default function TimesheetMatrix({
                     className={`${notesRowBg} overflow-hidden`}
                   >
                     <td
-                      className={`${stickyLeft1} ${notesLeftGlow} transition-all duration-200 ${isActive ? "border-b border-r border-slate-300" : "border-b border-r border-transparent"}`}
+                      className={`${stickyLeft1} ${notesLeftGlow} transition-all duration-200 ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}`}
                     />
                     <td
-                      className={`${stickyLeft2} ${notesLabelGlow} text-[10px] font-bold text-center align-middle transition-all duration-200 ${isActive ? "border-b border-r border-slate-300" : "border-b border-r border-transparent"} uppercase tracking-wider select-none`}
+                      className={`${stickyLeft2} ${notesLabelGlow} text-[10px] font-bold text-center align-middle transition-all duration-200 ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"} uppercase tracking-wider select-none`}
                     >
                       <div
                         style={{
@@ -858,14 +858,14 @@ export default function TimesheetMatrix({
                         }}
                         className="flex items-center justify-center gap-1"
                       >
-                        <span className="text-slate-400 font-bold text-xs select-none">
+                        <span className="text-slate-400 dark:text-slate-600 font-bold text-xs select-none">
                           ↳
                         </span>{" "}
                         Notes
                       </div>
                     </td>
                     <td
-                      className={`${stickyLeft3} ${notesTotalGlow} transition-all duration-200 ${isActive ? "border-b border-r border-slate-300" : "border-b border-r border-transparent"}`}
+                      className={`${stickyLeft3} ${notesTotalGlow} transition-all duration-200 ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}`}
                     />
                     <td className="w-4 bg-transparent border-none" />
 
@@ -873,7 +873,7 @@ export default function TimesheetMatrix({
                       <React.Fragment key={`row_notes_${p.id}_${dateObj.id}`}>
                         {p.isCollapsed ? (
                           <td
-                            className={`p-0 w-24 min-w-[6rem] max-w-[6rem] transition-all duration-200 ${isActive ? "border-b border-x border-slate-300 " : "border-b border-x border-transparent"} ${dateObj.isToday ? "bg-rose-50/20 " : dateObj.isCurrentWeek ? "bg-rose-50/10 " : "bg-slate-50/50 "}`}
+                            className={`p-0 w-24 min-w-[6rem] max-w-[6rem] transition-all duration-200 ${isActive ? "border-b border-x border-slate-300 dark:border-zinc-700 " : "border-b border-x border-transparent"} ${dateObj.isToday ? "bg-primary-50/20 " : dateObj.isCurrentWeek ? "bg-primary-50/10 " : "bg-slate-50 dark:bg-zinc-950/50 "}`}
                           />
                         ) : (
                           <>
@@ -904,7 +904,7 @@ export default function TimesheetMatrix({
                               );
                             })}
                             <td
-                              className={`w-20 min-w-[5rem] max-w-[5rem] transition-all duration-200 ${isActive ? "border-b border-r border-slate-300 " : "border-b border-r border-transparent"} ${dateObj.isToday ? "bg-rose-50/15 " : dateObj.isCurrentWeek ? "bg-rose-50/5 " : "bg-slate-50 "}`}
+                              className={`w-20 min-w-[5rem] max-w-[5rem] transition-all duration-200 ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700 " : "border-b border-r border-transparent"} ${dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-slate-50 dark:bg-zinc-950 "}`}
                             />
                           </>
                         )}
@@ -926,7 +926,7 @@ export default function TimesheetMatrix({
                             setSelectedCell({ r: rIndex, c: cIndex });
                             setIsEditing(false);
                           }}
-                          className={`${stickyRight} w-14 min-w-[3.5rem] max-w-[3.5rem] cursor-pointer transition-all duration-200 ${isActive ? "border-b border-l border-slate-300 " : "border-b border-l border-transparent"} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-rose-100/50 z-10" : dateObj.isToday ? "bg-rose-50/15 " : dateObj.isCurrentWeek ? "bg-rose-50/5 " : "bg-slate-50 "}`}
+                          className={`${stickyRight} w-14 min-w-[3.5rem] max-w-[3.5rem] cursor-pointer transition-all duration-200 ${isActive ? "border-b border-l border-slate-300 dark:border-zinc-700 " : "border-b border-l border-transparent"} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-100/50 z-10" : dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-slate-50 dark:bg-zinc-950 "}`}
                         />
                       );
                     })()}
@@ -941,26 +941,26 @@ export default function TimesheetMatrix({
                   : rowTotal < 8
                     ? "bg-green-100"
                     : "bg-green-300";
-              if (dateObj.isFuture) totalColor = "bg-gray-200 text-slate-400";
+              if (dateObj.isFuture) totalColor = "bg-gray-200 dark:bg-zinc-950 text-slate-400 dark:text-slate-600";
 
-              let rowBg = "hover:bg-slate-50 text-slate-700";
-              let labelGlow = "bg-white ";
-              let dateGlow = "bg-white ";
+              let rowBg = "hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300";
+              let labelGlow = "bg-white dark:bg-zinc-900 ";
+              let dateGlow = "bg-white dark:bg-zinc-900 ";
 
               if (dateObj.isToday) {
-                rowBg = "text-slate-700 font-bold";
+                rowBg = "text-slate-700 dark:text-slate-300 font-bold";
                 labelGlow =
-                  "border-l-4 border-l-blue-500 bg-rose-50 text-rose-700 font-bold";
-                dateGlow = "bg-rose-50 text-rose-700 font-bold";
+                  "border-l-4 border-l-blue-500 bg-primary-50 text-primary-700 font-bold";
+                dateGlow = "bg-primary-50 text-primary-700 font-bold";
               } else if (dateObj.isCurrentWeek) {
-                rowBg = "text-slate-700 font-medium";
+                rowBg = "text-slate-700 dark:text-slate-300 font-medium";
                 labelGlow =
-                  "border-l-4 border-l-blue-400 bg-rose-50 text-blue-900 font-bold";
-                dateGlow = "bg-rose-50 text-blue-900 font-bold";
+                  "border-l-4 border-l-blue-400 bg-primary-50 text-blue-900 font-bold";
+                dateGlow = "bg-primary-50 text-blue-900 font-bold";
               } else if (dateObj.isFuture) {
-                rowBg = "bg-slate-50/80 text-slate-400";
-                labelGlow = "bg-slate-50 text-slate-400";
-                dateGlow = "bg-slate-50 text-slate-400";
+                rowBg = "bg-slate-50 dark:bg-zinc-950/80 text-slate-400 dark:text-slate-600";
+                labelGlow = "bg-slate-50 dark:bg-zinc-950 text-slate-400 dark:text-slate-600";
+                dateGlow = "bg-slate-50 dark:bg-zinc-950 text-slate-400 dark:text-slate-600";
               }
 
               return (
@@ -1005,7 +1005,7 @@ export default function TimesheetMatrix({
                                 setSelectedCell({ r: rIndex, c: cIndex });
                                 setIsEditing(false);
                               }}
-                              className={`border-b border-x border-slate-300 p-0 h-12 align-middle text-center font-bold text-slate-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden group-hover:bg-rose-50/40 ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-rose-50/50 relative z-10" : dateObj.isToday ? "bg-rose-50/20" : dateObj.isCurrentWeek ? "bg-rose-50/10" : "bg-slate-50/30"}`}
+                              className={`border-b border-x border-slate-300 dark:border-zinc-700 p-0 h-12 align-middle text-center font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden group-hover:bg-primary-50/40 ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 relative z-10" : dateObj.isToday ? "bg-primary-50/20" : dateObj.isCurrentWeek ? "bg-primary-50/10" : "bg-slate-50 dark:bg-zinc-950/30"}`}
                             >
                               <div className="w-full h-full flex items-center justify-center p-2">
                                 {getProjectTotal(dateObj.id, p).toFixed(2)}
@@ -1076,10 +1076,10 @@ export default function TimesheetMatrix({
                                   setActiveTaskPopover(p.id);
                                   setIsAddingProject(false);
                                 }}
-                                className={`border-b border-r border-slate-300 hover:bg-rose-50/30 group-hover:bg-rose-50/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? "border-l" : ""} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-rose-100/50 z-10" : dateObj.isToday ? "bg-rose-50/15 " : dateObj.isCurrentWeek ? "bg-rose-50/5 " : "bg-slate-50 "} ${pIndex === 0 && rIndex === 0 ? "tour-add-task" : ""}`}
+                                className={`border-b border-r border-slate-300 dark:border-zinc-700 hover:bg-primary-50/30 group-hover:bg-primary-50/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? "border-l" : ""} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-100/50 z-10" : dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-slate-50 dark:bg-zinc-950 "} ${pIndex === 0 && rIndex === 0 ? "tour-add-task" : ""}`}
                               >
                                 <div
-                                  className={`absolute inset-0 flex items-center justify-center font-bold transition-opacity ${isSelected ? "text-rose-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
+                                  className={`absolute inset-0 flex items-center justify-center font-bold transition-opacity ${isSelected ? "text-primary-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
                                 >
                                   <span className="text-xl">+</span>
                                 </div>
@@ -1108,10 +1108,10 @@ export default function TimesheetMatrix({
                           setIsAddingProject(true);
                           setActiveTaskPopover(null);
                         }}
-                        className={`${stickyRight} group-hover:bg-rose-50/20 hover:bg-rose-50/30 border-b border-l border-slate-300 w-14 min-w-[3.5rem] max-w-[3.5rem] z-20 cursor-pointer transition-colors relative ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-rose-100/50 " : dateObj.isToday ? "bg-rose-50/15 " : dateObj.isCurrentWeek ? "bg-rose-50/5 " : "bg-white "}`}
+                        className={`${stickyRight} group-hover:bg-primary-50/20 hover:bg-primary-50/30 border-b border-l border-slate-300 dark:border-zinc-700 w-14 min-w-[3.5rem] max-w-[3.5rem] z-20 cursor-pointer transition-colors relative ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-100/50 " : dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-white dark:bg-zinc-900 "}`}
                       >
                         <div
-                          className={`absolute inset-0 flex items-center justify-center font-light transition-opacity ${isSelected ? "text-rose-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
+                          className={`absolute inset-0 flex items-center justify-center font-light transition-opacity ${isSelected ? "text-primary-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
                         >
                           <span className="text-2xl">+</span>
                         </div>
@@ -1127,9 +1127,9 @@ export default function TimesheetMatrix({
 
       {/* Insights & Time Allocation Dashboard */}
       {["day", "week"].includes(timeframe) && (
-        <div className="bg-slate-50 border-t border-slate-300 p-5 flex gap-5 shrink-0 h-44 select-none overflow-hidden text-xs transition-colors">
+        <div className="bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 p-5 flex gap-5 shrink-0 h-44 select-none overflow-hidden text-xs transition-colors">
           {/* Card 1: Capacity Goal Progress */}
-          <div className="w-72 bg-white border border-slate-300 p-4 flex items-center gap-4 transition-colors">
+          <div className="w-72 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex items-center gap-4 transition-colors">
             <div className="relative flex items-center justify-center shrink-0">
               <svg width="60" height="60" className="transform -rotate-90">
                 <circle
@@ -1160,7 +1160,7 @@ export default function TimesheetMatrix({
                   className="transition-all duration-500 ease-out"
                 />
               </svg>
-              <span className="absolute text-[11px] font-black text-slate-700">
+              <span className="absolute text-[11px] font-black text-slate-700 dark:text-slate-300">
                 {Math.round(
                   (capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100,
                 )}
@@ -1169,10 +1169,10 @@ export default function TimesheetMatrix({
             </div>
 
             <div className="space-y-0.5">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
                 Capacity Goal
               </span>
-              <span className="text-sm font-black text-slate-900 block">
+              <span className="text-sm font-black text-slate-900 dark:text-slate-100 block">
                 {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
               </span>
               {totalHours >= capacityGoal ? (
@@ -1180,7 +1180,7 @@ export default function TimesheetMatrix({
                   <span>Goal achieved! 🎉</span>
                 </span>
               ) : (
-                <span className="text-[10px] font-semibold text-rose-600 block">
+                <span className="text-[10px] font-semibold text-primary-600 block">
                   {(capacityGoal - totalHours).toFixed(1)} hrs remaining
                 </span>
               )}
@@ -1188,13 +1188,13 @@ export default function TimesheetMatrix({
           </div>
 
           {/* Card 2: Time Allocation by Project */}
-          <div className="flex-1 bg-white border border-slate-300 p-4 flex flex-col gap-2 overflow-hidden justify-center">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+          <div className="flex-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col gap-2 overflow-hidden justify-center">
+            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
               Time Allocation
             </span>
 
             {projectBreakdown.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center text-slate-400 font-medium italic">
+              <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 font-medium italic">
                 No hours logged in this timeframe.
               </div>
             ) : (
@@ -1206,7 +1206,7 @@ export default function TimesheetMatrix({
                     "bg-violet-400",
                   ];
                   const textColors = [
-                    "text-rose-600",
+                    "text-primary-600",
                     "text-indigo-650",
                     "text-violet-650",
                   ];
@@ -1216,7 +1216,7 @@ export default function TimesheetMatrix({
                         <span className="font-bold text-gray-750 truncate max-w-[180px]">
                           {proj.name}
                         </span>
-                        <span className="text-slate-400 font-medium">
+                        <span className="text-slate-400 dark:text-slate-600 font-medium">
                           <span className={`font-black ${textColors[idx % 3]}`}>
                             {proj.hours.toFixed(1)}h
                           </span>
@@ -1226,7 +1226,7 @@ export default function TimesheetMatrix({
                           </span>
                         </span>
                       </div>
-                      <div className="w-full bg-slate-100 h-1.5 overflow-hidden">
+                      <div className="w-full bg-slate-100 dark:bg-zinc-800 h-1.5 overflow-hidden">
                         <div
                           className={`h-full ${barColors[idx % 3]} transition-all duration-500`}
                           style={{ width: `${proj.percentage}%` }}
@@ -1236,7 +1236,7 @@ export default function TimesheetMatrix({
                   );
                 })}
                 {projectBreakdown.length > 2 && (
-                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-right">
+                  <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-right">
                     + {projectBreakdown.length - 2} more project(s)
                   </div>
                 )}
@@ -1245,9 +1245,9 @@ export default function TimesheetMatrix({
           </div>
 
           {/* Card 3: Timesheet Audit Status */}
-          <div className="w-72 bg-white border border-slate-300 p-4 flex flex-col justify-between">
+          <div className="w-72 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col justify-between">
             <div className="space-y-2">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
                 Audit Status
               </span>
 
@@ -1302,7 +1302,7 @@ export default function TimesheetMatrix({
               )}
             </div>
 
-            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-center select-none border-t border-slate-300 pt-1.5">
+            <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-center select-none border-t border-slate-300 dark:border-zinc-700 pt-1.5">
               Space focuses note editor &middot; Enter saves
             </div>
           </div>
@@ -1368,8 +1368,8 @@ function TimesheetNoteCell({
         }
       }}
       className={`p-0 relative transition-all duration-200 cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
- ${isActive ? "border-b border-r border-slate-300" : "border-b border-r border-transparent"}
- ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-rose-50/30 z-10" : isToday ? "bg-rose-50/15" : isCurrentWeek ? "bg-rose-50/5" : "bg-slate-50/10"}
+ ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}
+ ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/30 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-slate-50 dark:bg-zinc-950/10"}
  `}
     >
       <div
@@ -1390,7 +1390,7 @@ function TimesheetNoteCell({
           onKeyDown={handleKeyDown}
           placeholder="Add note..."
           className={`w-full h-full block text-left outline-none transition-all cursor-cell bg-transparent text-xs text-gray-750 resize-none font-normal leading-snug p-1.5 border border-transparent no-scrollbar
- ${isSelected ? "bg-white border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900" : "hover:bg-gray-150/40"}
+ ${isSelected ? "bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900" : "hover:bg-gray-150/40"}
  `}
           style={{ scrollbarWidth: "none" }}
           disabled={!isActive}

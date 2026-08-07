@@ -32,10 +32,10 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
 
       {/* Lockout Overlay */}
       <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-md">
-        <div className="bg-white p-8 md:p-12 max-w-lg w-full text-center border border-slate-300 ">
-          <div className="w-20 h-20 bg-rose-50 flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white dark:bg-zinc-900 p-8 md:p-12 max-w-lg w-full text-center border border-slate-300 dark:border-zinc-700 ">
+          <div className="w-20 h-20 bg-primary-50 flex items-center justify-center mx-auto mb-6">
             <svg
-              className="w-10 h-10 text-rose-600 "
+              className="w-10 h-10 text-primary-600 "
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -49,10 +49,10 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
             </svg>
           </div>
 
-          <h2 className="text-3xl font-black text-slate-900 mb-4">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-4">
             Trial Expired
           </h2>
-          <p className="text-slate-500 mb-8 leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-500 mb-8 leading-relaxed">
             Your 14-day free trial of VeloTime has ended. To continue logging
             hours, generating invoices, and managing your team, please upgrade
             to the Pro plan.
@@ -73,7 +73,7 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
               Upgrade to Pro — $9/mo
             </button>
           ) : (
-            <div className="bg-slate-100 p-4 text-slate-600 text-sm font-medium">
+            <div className="bg-slate-100 dark:bg-zinc-800 p-4 text-slate-600 dark:text-slate-400 dark:text-slate-600 text-sm font-medium">
               Please ask an organization admin to upgrade the subscription to
               continue using VeloTime.
             </div>

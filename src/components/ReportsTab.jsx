@@ -41,7 +41,7 @@ export default function ReportsTab({
     if (sortConfig.key !== columnKey || !sortConfig.direction) {
       return (
         <svg
-          className="w-3 h-3 ml-1 inline text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="w-3 h-3 ml-1 inline text-slate-400 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -57,7 +57,7 @@ export default function ReportsTab({
     }
     return (
       <svg
-        className="w-3 h-3 ml-1 inline text-rose-600"
+        className="w-3 h-3 ml-1 inline text-primary-600"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -522,14 +522,14 @@ export default function ReportsTab({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden transition-colors h-full w-full">
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden transition-colors h-full w-full">
       {/* Top Bar with Title and Back Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border-b border-slate-300 bg-white shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border-b border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 shrink-0">
         <div className="flex items-center gap-3">
           {reportPhase !== "menu" && (
             <button
               onClick={handleBack}
-              className="p-1.5 hover:bg-slate-100 text-slate-500 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-500 transition-colors cursor-pointer"
             >
               <svg
                 className="w-5 h-5"
@@ -546,7 +546,7 @@ export default function ReportsTab({
               </svg>
             </button>
           )}
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             {reportPhase === "menu"
               ? "Reports"
               : reportType === "project-team"
@@ -586,10 +586,10 @@ export default function ReportsTab({
       </div>
 
       {/* Spreadsheet Content Area */}
-      <div className="flex-1 overflow-auto bg-slate-50 relative w-full h-full custom-scrollbar">
+      <div className="flex-1 overflow-auto bg-slate-50 dark:bg-zinc-950 relative w-full h-full custom-scrollbar">
         {reportPhase === "menu" && (
           <div className="p-6 md:p-10 max-w-6xl mx-auto w-full">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
               Prebuilt Reports
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -628,9 +628,9 @@ export default function ReportsTab({
                 <div
                   key={report.id}
                   onClick={() => selectReport(report.id)}
-                  className="bg-white border border-slate-300 p-6 cursor-pointer hover:border-slate-900 hover: transition-all group flex gap-4"
+                  className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 cursor-pointer hover:border-slate-900 hover: transition-all group flex gap-4"
                 >
-                  <div className="bg-rose-50 p-3 h-fit group-hover:bg-slate-800 group-hover:text-white transition-colors text-rose-600 ">
+                  <div className="bg-primary-50 p-3 h-fit group-hover:bg-slate-800 group-hover:text-white transition-colors text-primary-600 ">
                     <svg
                       className="w-6 h-6"
                       fill="none"
@@ -646,10 +646,10 @@ export default function ReportsTab({
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-rose-600 transition-colors">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-primary-600 transition-colors">
                       {report.title}
                     </h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-slate-500 leading-relaxed">
                       {report.desc}
                     </p>
                   </div>
@@ -661,24 +661,24 @@ export default function ReportsTab({
 
         {reportPhase === "configuring" && (
           <div className="flex justify-center items-start pt-12 p-6 h-full w-full">
-            <div className="bg-white border border-slate-300 max-w-xl w-full overflow-hidden">
-              <div className="p-6 border-b border-slate-300 ">
-                <h2 className="text-lg font-bold text-slate-900 ">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 max-w-xl w-full overflow-hidden">
+              <div className="p-6 border-b border-slate-300 dark:border-zinc-700 ">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
                   Configure Report
                 </h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
                   Select filters to narrow down the data.
                 </p>
               </div>
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 uppercase tracking-wider block mb-2">
                     Project
                   </label>
                   <select
                     value={selectedProject}
                     onChange={(e) => setSelectedProject(e.target.value)}
-                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
+                    className="w-full text-sm font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
                   >
                     <option value="all">All Projects</option>
                     {projects.map((p) => (
@@ -689,13 +689,13 @@ export default function ReportsTab({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 uppercase tracking-wider block mb-2">
                     Team Member
                   </label>
                   <select
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
-                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
+                    className="w-full text-sm font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
                   >
                     <option value="all">All Members</option>
                     {orgUsers.map((u) => (
@@ -706,13 +706,13 @@ export default function ReportsTab({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 uppercase tracking-wider block mb-2">
                     Date Range
                   </label>
                   <select
                     value={selectedPeriod}
                     onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer mb-3"
+                    className="w-full text-sm font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer mb-3"
                   >
                     <option value="all">All Time</option>
                     <option value="week">This Week</option>
@@ -724,32 +724,32 @@ export default function ReportsTab({
                   {selectedPeriod === "custom" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">
+                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-500 block mb-1">
                           Start Date
                         </label>
                         <input
                           type="date"
                           value={customStartDate}
                           onChange={(e) => setCustomStartDate(e.target.value)}
-                          className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                          className="w-full text-sm text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-1">
+                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-500 block mb-1">
                           End Date
                         </label>
                         <input
                           type="date"
                           value={customEndDate}
                           onChange={(e) => setCustomEndDate(e.target.value)}
-                          className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                          className="w-full text-sm text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
                         />
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-4 bg-slate-50 border-t border-slate-300 flex justify-end">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 flex justify-end">
                 <button
                   onClick={runReport}
                   className="bg-slate-900 hover:bg-slate-900 text-white font-bold py-2 px-6 transition-colors cursor-pointer text-sm"
@@ -762,42 +762,42 @@ export default function ReportsTab({
         )}
 
         {reportPhase === "viewing" && reportType === "detailed" && (
-          <table className="w-full border-collapse min-w-max text-left bg-white ">
-            <thead className="bg-slate-100 sticky top-0 z-50">
+          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-900 ">
+            <thead className="bg-slate-100 dark:bg-zinc-800 sticky top-0 z-50">
               <tr>
                 <th
                   onClick={() => handleSort("dateId")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Date <SortIcon columnKey="dateId" />
                 </th>
                 <th
                   onClick={() => handleSort("userName")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Team Member <SortIcon columnKey="userName" />
                 </th>
                 <th
                   onClick={() => handleSort("projectName")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Project / Task <SortIcon columnKey="projectName" />
                 </th>
                 <th
                   onClick={() => handleSort("note")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Description <SortIcon columnKey="note" />
                 </th>
                 <th
                   onClick={() => handleSort("hours")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-24 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-24 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Hours <SortIcon columnKey="hours" />
                 </th>
                 <th
                   onClick={() => handleSort("amount")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Amount <SortIcon columnKey="amount" />
                 </th>
@@ -807,30 +807,30 @@ export default function ReportsTab({
               {filteredEntries.map((e, idx) => (
                 <tr
                   key={`detailed_${idx}`}
-                  className="hover:bg-rose-50/50 group"
+                  className="hover:bg-primary-50/50 group"
                 >
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 whitespace-nowrap">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">
                     {e.dateId}
                   </td>
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 truncate">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 truncate">
                     {e.userName}
                   </td>
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 truncate">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 truncate">
                     <span className="font-semibold">{e.projectName}</span>
-                    <span className="text-slate-500 text-xs ml-2">
+                    <span className="text-slate-500 dark:text-slate-500 text-xs ml-2">
                       ({e.taskName})
                     </span>
                   </td>
                   <td
-                    className="border-b border-r border-slate-300 p-2 text-sm text-slate-600 truncate max-w-sm"
+                    className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-600 truncate max-w-sm"
                     title={e.note}
                   >
                     {e.note}
                   </td>
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-bold text-right">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 font-bold text-right">
                     {e.hours.toFixed(2)}
                   </td>
-                  <td className="border-b border-slate-300 p-2 text-sm text-emerald-700 font-bold text-right">
+                  <td className="border-b border-slate-300 dark:border-zinc-700 p-2 text-sm text-emerald-700 font-bold text-right">
                     $
                     {e.amount.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
@@ -843,22 +843,22 @@ export default function ReportsTab({
                 <tr>
                   <td
                     colSpan={6}
-                    className="border-b border-slate-300 p-4 text-center text-sm text-slate-500 italic"
+                    className="border-b border-slate-300 dark:border-zinc-700 p-4 text-center text-sm text-slate-500 dark:text-slate-500 italic"
                   >
                     No time entries found.
                   </td>
                 </tr>
               )}
             </tbody>
-            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
+            <tfoot className="bg-slate-100 dark:bg-zinc-800 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
                 <td
                   colSpan={4}
-                  className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 "
+                  className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 "
                 >
                   Totals:
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {totals.hours.toFixed(2)}
                 </td>
                 <td className="p-2 text-sm font-bold text-emerald-700 text-right">
@@ -874,42 +874,42 @@ export default function ReportsTab({
         )}
 
         {reportPhase === "viewing" && reportType === "budgets" && (
-          <table className="w-full border-collapse min-w-max text-left bg-white ">
-            <thead className="bg-slate-100 sticky top-0 z-50">
+          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-900 ">
+            <thead className="bg-slate-100 dark:bg-zinc-800 sticky top-0 z-50">
               <tr>
                 <th
                   onClick={() => handleSort("name")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Project Name <SortIcon columnKey="name" />
                 </th>
                 <th
                   onClick={() => handleSort("billableValue")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Billable Value <SortIcon columnKey="billableValue" />
                 </th>
                 <th
                   onClick={() => handleSort("hours")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Logged Hrs <SortIcon columnKey="hours" />
                 </th>
                 <th
                   onClick={() => handleSort("budgetLimit")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Budget Hrs <SortIcon columnKey="budgetLimit" />
                 </th>
                 <th
                   onClick={() => handleSort("remaining")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Remaining <SortIcon columnKey="remaining" />
                 </th>
                 <th
                   onClick={() => handleSort("burnPercentage")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Burn Status <SortIcon columnKey="burnPercentage" />
                 </th>
@@ -925,31 +925,31 @@ export default function ReportsTab({
                 else if (isWarning) progressColor = "bg-yellow-500 ";
 
                 return (
-                  <tr key={p.id} className="hover:bg-rose-50/50 group">
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold truncate">
+                  <tr key={p.id} className="hover:bg-primary-50/50 group">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 font-semibold truncate">
                       {p.name}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-emerald-700 font-bold text-right">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-emerald-700 font-bold text-right">
                       $
                       {p.billableValue.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 text-right">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 text-right">
                       {p.hours.toFixed(2)}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-500 text-right">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-500 dark:text-slate-500 text-right">
                       {p.budgetLimit.toFixed(2)}
                     </td>
                     <td
-                      className={`border-b border-r border-slate-300 p-2 text-sm font-bold text-right ${isOver ? "text-red-600 " : "text-slate-900 "}`}
+                      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm font-bold text-right ${isOver ? "text-red-600 " : "text-slate-900 dark:text-slate-100 "}`}
                     >
                       {p.remaining.toFixed(2)}
                     </td>
-                    <td className="border-b border-slate-300 p-2 align-middle">
+                    <td className="border-b border-slate-300 dark:border-zinc-700 p-2 align-middle">
                       <div className="flex items-center gap-2 w-full">
-                        <div className="flex-1 bg-gray-200 h-2 overflow-hidden">
+                        <div className="flex-1 bg-gray-200 dark:bg-zinc-950 h-2 overflow-hidden">
                           <div
                             className={`h-full ${progressColor}`}
                             style={{
@@ -957,7 +957,7 @@ export default function ReportsTab({
                             }}
                           />
                         </div>
-                        <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-10 text-right">
                           {Math.round(p.burnPercentage)}%
                         </span>
                       </div>
@@ -966,12 +966,12 @@ export default function ReportsTab({
                 );
               })}
             </tbody>
-            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
+            <tfoot className="bg-slate-100 dark:bg-zinc-800 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   Totals:
                 </td>
-                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   $
                   {projectBudgets
                     .reduce((s, p) => s + p.billableValue, 0)
@@ -980,15 +980,15 @@ export default function ReportsTab({
                       maximumFractionDigits: 2,
                     })}
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {projectBudgets.reduce((s, p) => s + p.hours, 0).toFixed(2)}
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {projectBudgets
                     .reduce((s, p) => s + p.budgetLimit, 0)
                     .toFixed(2)}
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {projectBudgets
                     .reduce((s, p) => s + p.remaining, 0)
                     .toFixed(2)}
@@ -1000,34 +1000,34 @@ export default function ReportsTab({
         )}
 
         {reportPhase === "viewing" && reportType === "capacity" && (
-          <table className="w-full border-collapse min-w-max text-left bg-white ">
-            <thead className="bg-slate-100 sticky top-0 z-50">
+          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-900 ">
+            <thead className="bg-slate-100 dark:bg-zinc-800 sticky top-0 z-50">
               <tr>
                 <th
                   onClick={() => handleSort("name")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-64 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Team Member <SortIcon columnKey="name" />
                 </th>
                 <th
                   onClick={() => handleSort("hours")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Logged Hrs <SortIcon columnKey="hours" />
                 </th>
                 <th
                   onClick={() => handleSort("capacity")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Capacity Hrs <SortIcon columnKey="capacity" />
                 </th>
                 <th
                   onClick={() => handleSort("utilization")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 min-w-[200px] cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Utilization <SortIcon columnKey="utilization" />
                 </th>
-                <th className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 text-center">
+                <th className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 text-center">
                   Status
                 </th>
               </tr>
@@ -1038,7 +1038,7 @@ export default function ReportsTab({
                 const isIdeal = u.utilization >= 75 && u.utilization <= 100;
                 let capacityColor = "bg-blue-500 ";
                 let statusText = "Normal";
-                let statusColor = "text-rose-700 bg-rose-100 ";
+                let statusColor = "text-primary-700 bg-primary-100 ";
                 if (isOverUtilized) {
                   capacityColor = "bg-red-500 ";
                   statusText = "Over Capacity";
@@ -1050,19 +1050,19 @@ export default function ReportsTab({
                 }
 
                 return (
-                  <tr key={u.id} className="hover:bg-rose-50/50 group">
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold">
+                  <tr key={u.id} className="hover:bg-primary-50/50 group">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 font-semibold">
                       {u.name}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-bold text-right">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 font-bold text-right">
                       {u.hours.toFixed(2)}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-500 text-right">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-500 dark:text-slate-500 text-right">
                       {u.capacity.toFixed(2)}
                     </td>
-                    <td className="border-b border-r border-slate-300 p-2 align-middle">
+                    <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 align-middle">
                       <div className="flex items-center gap-2 w-full">
-                        <div className="flex-1 bg-gray-200 h-2 overflow-hidden">
+                        <div className="flex-1 bg-gray-200 dark:bg-zinc-950 h-2 overflow-hidden">
                           <div
                             className={`h-full ${capacityColor}`}
                             style={{
@@ -1070,12 +1070,12 @@ export default function ReportsTab({
                             }}
                           />
                         </div>
-                        <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-10 text-right">
                           {Math.round(u.utilization)}%
                         </span>
                       </div>
                     </td>
-                    <td className="border-b border-slate-300 p-2 text-center align-middle">
+                    <td className="border-b border-slate-300 dark:border-zinc-700 p-2 text-center align-middle">
                       <span
                         className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${statusColor}`}
                       >
@@ -1086,15 +1086,15 @@ export default function ReportsTab({
                 );
               })}
             </tbody>
-            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
+            <tfoot className="bg-slate-100 dark:bg-zinc-800 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   Totals:
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {teamCapacity.reduce((s, u) => s + u.hours, 0).toFixed(2)}
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {teamCapacity.reduce((s, u) => s + u.capacity, 0).toFixed(2)}
                 </td>
                 <td colSpan={2} className="p-2"></td>
@@ -1104,28 +1104,28 @@ export default function ReportsTab({
         )}
 
         {reportPhase === "viewing" && reportType === "uninvoiced" && (
-          <table className="w-full border-collapse min-w-max text-left bg-white ">
-            <thead className="bg-slate-100 sticky top-0 z-50">
+          <table className="w-full border-collapse min-w-max text-left bg-white dark:bg-zinc-900 ">
+            <thead className="bg-slate-100 dark:bg-zinc-800 sticky top-0 z-50">
               <tr>
                 <th
                   onClick={() => handleSort("name")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Project Name <SortIcon columnKey="name" />
                 </th>
                 <th
                   onClick={() => handleSort("hours")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Uninvoiced Hours <SortIcon columnKey="hours" />
                 </th>
                 <th
                   onClick={() => handleSort("billableValue")}
-                  className="sticky top-0 bg-slate-100 z-50 border-b border-r border-slate-300 p-2 text-xs font-bold text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-40 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Outstanding Amount <SortIcon columnKey="billableValue" />
                 </th>
-                <th className="sticky top-0 bg-slate-100 z-50 border-b border-slate-300 p-2 text-xs font-bold text-slate-600 w-48 text-center">
+                <th className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 text-center">
                   Action
                 </th>
               </tr>
@@ -1134,22 +1134,22 @@ export default function ReportsTab({
               {uninvoicedProjectData.map((p) => (
                 <tr
                   key={`uninvoiced_${p.id}`}
-                  className="hover:bg-rose-50/50 group"
+                  className="hover:bg-primary-50/50 group"
                 >
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 font-semibold">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 font-semibold">
                     {p.name}
                   </td>
-                  <td className="border-b border-r border-slate-300 p-2 text-sm text-slate-900 text-right">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm text-slate-900 dark:text-slate-100 text-right">
                     {p.hours.toFixed(2)}
                   </td>
-                  <td className="border-b border-r border-slate-300 p-2 text-sm font-bold text-emerald-700 text-right">
+                  <td className="border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm font-bold text-emerald-700 text-right">
                     $
                     {p.billableValue.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </td>
-                  <td className="border-b border-slate-300 p-2 text-center align-middle">
+                  <td className="border-b border-slate-300 dark:border-zinc-700 p-2 text-center align-middle">
                     <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1 ">
                       Uninvoiced
                     </span>
@@ -1160,24 +1160,24 @@ export default function ReportsTab({
                 <tr>
                   <td
                     colSpan="4"
-                    className="border-b border-slate-300 p-8 text-center text-sm text-slate-500 italic"
+                    className="border-b border-slate-300 dark:border-zinc-700 p-8 text-center text-sm text-slate-500 dark:text-slate-500 italic"
                   >
                     No uninvoiced hours found.
                   </td>
                 </tr>
               )}
             </tbody>
-            <tfoot className="bg-slate-100 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
+            <tfoot className="bg-slate-100 dark:bg-zinc-800 sticky bottom-0 z-40 shadow-[0_-1px_0_0_rgba(209,213,219,1)] ">
               <tr>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   Totals:
                 </td>
-                <td className="p-2 text-sm font-bold text-slate-900 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-slate-900 dark:text-slate-100 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   {uninvoicedProjectData
                     .reduce((s, p) => s + p.hours, 0)
                     .toFixed(2)}
                 </td>
-                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 ">
+                <td className="p-2 text-sm font-bold text-emerald-700 text-right border-r border-slate-300 dark:border-zinc-700 ">
                   $
                   {uninvoicedProjectData
                     .reduce((s, p) => s + p.billableValue, 0)
@@ -1195,10 +1195,10 @@ export default function ReportsTab({
         {reportPhase === "viewing" && reportType === "project-team" && (
           <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto pb-16">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-bold text-slate-900 ">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 ">
                 Project & Team Summary
               </h2>
-              <div className="text-sm font-semibold text-slate-500 ">
+              <div className="text-sm font-semibold text-slate-500 dark:text-slate-500 ">
                 {projectTeamData.length}{" "}
                 {projectTeamData.length === 1 ? "Project" : "Projects"} Found
               </div>
@@ -1207,14 +1207,14 @@ export default function ReportsTab({
             {projectTeamData.map((proj, idx) => (
               <div
                 key={idx}
-                className="bg-white border border-slate-300 overflow-hidden "
+                className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden "
               >
-                <div className="bg-slate-50 p-4 border-b border-slate-300 flex justify-between items-center">
-                  <h3 className="font-bold text-lg text-slate-900 ">
+                <div className="bg-slate-50 dark:bg-zinc-950 p-4 border-b border-slate-300 dark:border-zinc-700 flex justify-between items-center">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 ">
                     {proj.projectName}
                   </h3>
                   <div className="flex gap-4">
-                    <span className="text-sm font-semibold text-slate-600 ">
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-600 ">
                       Total Hours: {proj.hours.toFixed(2)}
                     </span>
                     <span className="text-sm font-bold text-emerald-700 ">
@@ -1227,29 +1227,29 @@ export default function ReportsTab({
                   </div>
                 </div>
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-white ">
+                  <thead className="bg-white dark:bg-zinc-900 ">
                     <tr>
-                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-300 ">
+                      <th className="p-3 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider border-b border-slate-300 dark:border-zinc-700 ">
                         Team Member
                       </th>
-                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 w-32">
+                      <th className="p-3 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 dark:border-zinc-700 w-32">
                         Hours Logged
                       </th>
-                      <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 w-40">
+                      <th className="p-3 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider text-right border-b border-slate-300 dark:border-zinc-700 w-40">
                         Amount Billable
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {proj.users.map((u, i) => (
-                      <tr key={i} className="hover:bg-slate-50 group">
-                        <td className="p-3 border-b border-slate-300 text-sm font-semibold text-slate-700 ">
+                      <tr key={i} className="hover:bg-slate-50 dark:bg-zinc-950 group">
+                        <td className="p-3 border-b border-slate-300 dark:border-zinc-700 text-sm font-semibold text-slate-700 dark:text-slate-300 ">
                           {u.userName}
                         </td>
-                        <td className="p-3 border-b border-slate-300 text-sm text-slate-900 font-bold text-right">
+                        <td className="p-3 border-b border-slate-300 dark:border-zinc-700 text-sm text-slate-900 dark:text-slate-100 font-bold text-right">
                           {u.hours.toFixed(2)}
                         </td>
-                        <td className="p-3 border-b border-slate-300 text-sm text-emerald-600 font-medium text-right">
+                        <td className="p-3 border-b border-slate-300 dark:border-zinc-700 text-sm text-emerald-600 font-medium text-right">
                           $
                           {u.amount.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
@@ -1263,7 +1263,7 @@ export default function ReportsTab({
               </div>
             ))}
             {projectTeamData.length === 0 && (
-              <div className="p-12 text-center border-2 border-dashed border-slate-300 text-slate-500 bg-white ">
+              <div className="p-12 text-center border-2 border-dashed border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-500 bg-white dark:bg-zinc-900 ">
                 No matching data found for the selected criteria.
               </div>
             )}

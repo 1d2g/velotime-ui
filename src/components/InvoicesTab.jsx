@@ -234,7 +234,7 @@ export default function InvoicesTab({
     const hourlyData = liIsHourly ? calculateHourlyData() : null;
 
     return (
-      <div className="flex-1 flex flex-col p-8 bg-slate-50 overflow-y-auto transition-colors">
+      <div className="flex-1 flex flex-col p-8 bg-slate-50 dark:bg-zinc-950 overflow-y-auto transition-colors">
         <div className="max-w-4xl mx-auto w-full">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -242,7 +242,7 @@ export default function InvoicesTab({
                 setActiveInvoice(null);
                 setIsEditingHeader(false);
               }}
-              className="text-slate-500 hover:text-slate-900 flex items-center gap-1 font-semibold transition-colors"
+              className="text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-100 flex items-center gap-1 font-semibold transition-colors"
             >
               <svg
                 className="w-5 h-5"
@@ -281,7 +281,7 @@ export default function InvoicesTab({
               </button>
               <button
                 onClick={handleExportPDF}
-                className="text-rose-600 hover:text-rose-700 font-semibold text-sm flex items-center gap-1"
+                className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-1"
               >
                 <svg
                   className="w-4 h-4"
@@ -300,7 +300,7 @@ export default function InvoicesTab({
               </button>
               <button
                 onClick={handleDeleteInvoice}
-                className="text-red-500 hover:text-red-600 font-semibold text-sm ml-2 border-l border-slate-300 pl-4"
+                className="text-red-500 hover:text-red-600 font-semibold text-sm ml-2 border-l border-slate-300 dark:border-zinc-700 pl-4"
               >
                 Delete Invoice
               </button>
@@ -309,7 +309,7 @@ export default function InvoicesTab({
 
           <div
             id="invoice-print-area"
-            className="bg-white border-0 sm:border sm:border-slate-300 p-8 md:p-12 mb-6 max-w-4xl mx-auto text-slate-900 font-sans sm:"
+            className="bg-white dark:bg-zinc-900 border-0 sm:border sm:border-slate-300 dark:border-zinc-700 p-8 md:p-12 mb-6 max-w-4xl mx-auto text-slate-900 dark:text-slate-100 font-sans sm:"
           >
             {/* Header: Logo and Invoice Info */}
             <div className="flex justify-between items-start mb-12">
@@ -321,33 +321,33 @@ export default function InvoicesTab({
                     className="h-16 w-auto object-contain mb-4"
                   />
                 )}
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {dbUser?.organization?.name || "Company Name"}
                 </h2>
               </div>
               <div className="text-right">
-                <h1 className="text-4xl font-light text-slate-400 mb-4 tracking-wider uppercase">
+                <h1 className="text-4xl font-light text-slate-400 dark:text-slate-600 mb-4 tracking-wider uppercase">
                   Invoice
                 </h1>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm justify-items-end text-right">
-                  <span className="font-semibold text-slate-500">
+                  <span className="font-semibold text-slate-500 dark:text-slate-500">
                     Invoice Number:
                   </span>
-                  <span className="text-slate-900">
+                  <span className="text-slate-900 dark:text-slate-100">
                     {activeInvoice.invoiceNumber}
                   </span>
 
-                  <span className="font-semibold text-slate-500">
+                  <span className="font-semibold text-slate-500 dark:text-slate-500">
                     Date Issued:
                   </span>
-                  <span className="text-slate-900">
+                  <span className="text-slate-900 dark:text-slate-100">
                     {formatDate(activeInvoice.dateIssued)}
                   </span>
 
-                  <span className="font-semibold text-slate-500">
+                  <span className="font-semibold text-slate-500 dark:text-slate-500">
                     Due Date:
                   </span>
-                  <span className="text-slate-900">
+                  <span className="text-slate-900 dark:text-slate-100">
                     {formatDate(activeInvoice.dueDate)}
                   </span>
                 </div>
@@ -355,24 +355,24 @@ export default function InvoicesTab({
             </div>
 
             {/* Edit Mode Toggle for Header */}
-            <div className="print:hidden mb-8 border-b border-slate-300 pb-4">
+            <div className="print:hidden mb-8 border-b border-slate-300 dark:border-zinc-700 pb-4">
               {!isEditingHeader ? (
                 <button
                   onClick={() => {
                     setHeaderForm(activeInvoice);
                     setIsEditingHeader(true);
                   }}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded text-sm font-semibold transition-colors"
+                  className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 px-4 py-2 rounded text-sm font-semibold transition-colors"
                 >
                   Edit Invoice Details
                 </button>
               ) : (
                 <form
                   onSubmit={handleSaveHeader}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 border border-slate-300"
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-zinc-950 p-4 border border-slate-300 dark:border-zinc-700"
                 >
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Client Name
                     </label>
                     <input
@@ -384,11 +384,11 @@ export default function InvoicesTab({
                           clientName: e.target.value,
                         })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Client Address
                     </label>
                     <input
@@ -400,11 +400,11 @@ export default function InvoicesTab({
                           clientAddress: e.target.value,
                         })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Date Issued
                     </label>
                     <input
@@ -424,11 +424,11 @@ export default function InvoicesTab({
                             : null,
                         })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Due Date
                     </label>
                     <input
@@ -448,11 +448,11 @@ export default function InvoicesTab({
                             : null,
                         })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Status
                     </label>
                     <select
@@ -460,7 +460,7 @@ export default function InvoicesTab({
                       onChange={(e) =>
                         setHeaderForm({ ...headerForm, status: e.target.value })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     >
                       <option value="draft">Draft</option>
                       <option value="pending">Pending</option>
@@ -468,7 +468,7 @@ export default function InvoicesTab({
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Notes & Terms (Legal / Disclaimer)
                     </label>
                     <textarea
@@ -476,7 +476,7 @@ export default function InvoicesTab({
                       onChange={(e) =>
                         setHeaderForm({ ...headerForm, notes: e.target.value })
                       }
-                      className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                       rows="3"
                       placeholder="Thank you for your business! Payment is due within 15 days..."
                     ></textarea>
@@ -485,7 +485,7 @@ export default function InvoicesTab({
                     <button
                       type="button"
                       onClick={() => setIsEditingHeader(false)}
-                      className="px-4 py-2 font-medium text-slate-500"
+                      className="px-4 py-2 font-medium text-slate-500 dark:text-slate-500"
                     >
                       Cancel
                     </button>
@@ -504,10 +504,10 @@ export default function InvoicesTab({
             {!isEditingHeader && (
               <div className="mb-10 flex justify-between items-end">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-400 uppercase mb-2">
+                  <h3 className="text-sm font-bold text-slate-400 dark:text-slate-600 uppercase mb-2">
                     Bill To
                   </h3>
-                  <div className="text-slate-900">
+                  <div className="text-slate-900 dark:text-slate-100">
                     <div className="font-bold text-lg">
                       {activeInvoice.clientName || "Unspecified Client"}
                     </div>
@@ -517,11 +517,11 @@ export default function InvoicesTab({
                   </div>
                 </div>
                 <div className="text-right print:hidden">
-                  <h3 className="text-sm font-bold text-slate-400 uppercase mb-1">
+                  <h3 className="text-sm font-bold text-slate-400 dark:text-slate-600 uppercase mb-1">
                     Status
                   </h3>
                   <span
-                    className={`px-3 py-1 border text-sm font-bold uppercase tracking-wider ${activeInvoice.status === "paid" ? "border-green-500 text-green-600" : activeInvoice.status === "pending" ? "border-yellow-500 text-yellow-600" : "border-slate-300 text-slate-500"}`}
+                    className={`px-3 py-1 border text-sm font-bold uppercase tracking-wider ${activeInvoice.status === "paid" ? "border-green-500 text-green-600" : activeInvoice.status === "pending" ? "border-yellow-500 text-yellow-600" : "border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-500"}`}
                   >
                     {activeInvoice.status}
                   </span>
@@ -532,7 +532,7 @@ export default function InvoicesTab({
             {/* Line Items Table */}
             <table className="w-full text-left text-sm mb-8 border-collapse">
               <thead>
-                <tr className="border-y-2 border-slate-300 text-slate-900 font-bold uppercase tracking-wider text-xs">
+                <tr className="border-y-2 border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 font-bold uppercase tracking-wider text-xs">
                   <th className="py-3 px-2">Description</th>
                   <th className="py-3 px-2 text-center">Qty / Type</th>
                   <th className="py-3 px-2 text-right">Rate</th>
@@ -542,23 +542,23 @@ export default function InvoicesTab({
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {activeInvoice.lineItems?.map((li) => (
-                  <tr key={li.id} className="hover:bg-slate-50">
-                    <td className="py-4 px-2 font-medium text-slate-900">
+                  <tr key={li.id} className="hover:bg-slate-50 dark:bg-zinc-950">
+                    <td className="py-4 px-2 font-medium text-slate-900 dark:text-slate-100">
                       {li.description}
                     </td>
-                    <td className="py-4 px-2 text-center text-slate-600">
+                    <td className="py-4 px-2 text-center text-slate-600 dark:text-slate-400 dark:text-slate-600">
                       {li.isHourly ? `${li.hours} hrs` : "Custom"}
                     </td>
-                    <td className="py-4 px-2 text-right text-slate-600">
+                    <td className="py-4 px-2 text-right text-slate-600 dark:text-slate-400 dark:text-slate-600">
                       {li.isHourly ? formatMoney(li.rate) : "-"}
                     </td>
-                    <td className="py-4 px-2 text-right font-bold text-slate-900">
+                    <td className="py-4 px-2 text-right font-bold text-slate-900 dark:text-slate-100">
                       {formatMoney(li.amount)}
                     </td>
                     <td className="py-4 px-2 text-right print:hidden">
                       <button
                         onClick={() => handleDeleteLineItem(li.id)}
-                        className="text-slate-400 hover:text-red-500"
+                        className="text-slate-400 dark:text-slate-600 hover:text-red-500"
                       >
                         <svg
                           className="w-4 h-4 inline-block"
@@ -579,7 +579,7 @@ export default function InvoicesTab({
                 ))}
                 {!activeInvoice.lineItems?.length && (
                   <tr>
-                    <td colSpan="5" className="py-8 text-center text-slate-400">
+                    <td colSpan="5" className="py-8 text-center text-slate-400 dark:text-slate-600">
                       No line items added yet.
                     </td>
                   </tr>
@@ -591,22 +591,22 @@ export default function InvoicesTab({
             <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-8">
               <div className="flex-1 max-w-lg mt-8 md:mt-0">
                 {activeInvoice.notes ? (
-                  <div className="bg-slate-50 p-4 border border-slate-300">
-                    <span className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
+                  <div className="bg-slate-50 dark:bg-zinc-950 p-4 border border-slate-300 dark:border-zinc-700">
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-2 tracking-wider">
                       Notes & Terms
                     </span>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                       {activeInvoice.notes}
                     </p>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-400 italic">
+                  <div className="text-sm text-slate-400 dark:text-slate-600 italic">
                     No notes or legal terms added.
                   </div>
                 )}
               </div>
-              <div className="w-full md:w-64 border-t-2 border-slate-300 pt-4">
-                <div className="flex justify-between items-center text-lg font-bold text-slate-900">
+              <div className="w-full md:w-64 border-t-2 border-slate-300 dark:border-zinc-700 pt-4">
+                <div className="flex justify-between items-center text-lg font-bold text-slate-900 dark:text-slate-100">
                   <span>Total</span>
                   <span>{formatMoney(totalAmount)}</span>
                 </div>
@@ -614,11 +614,11 @@ export default function InvoicesTab({
             </div>
 
             {/* Add Line Item Form (Hidden on Print) */}
-            <div className="print:hidden border-t border-slate-300 pt-8 mt-8">
+            <div className="print:hidden border-t border-slate-300 dark:border-zinc-700 pt-8 mt-8">
               {!isAddingLineItem ? (
                 <button
                   onClick={() => setIsAddingLineItem(true)}
-                  className="text-slate-600 hover:text-slate-900 font-bold text-sm flex items-center gap-2"
+                  className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-bold text-sm flex items-center gap-2"
                 >
                   <svg
                     className="w-4 h-4"
@@ -638,19 +638,19 @@ export default function InvoicesTab({
               ) : (
                 <form
                   onSubmit={handleAddLineItem}
-                  className="bg-slate-50 p-6 rounded border border-slate-300"
+                  className="bg-slate-50 dark:bg-zinc-950 p-6 rounded border border-slate-300 dark:border-zinc-700"
                 >
-                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-300">
-                    <label className="flex items-center gap-2 font-bold text-slate-700 cursor-pointer select-none">
+                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-300 dark:border-zinc-700">
+                    <label className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={liIsHourly}
                         onChange={(e) => setLiIsHourly(e.target.checked)}
-                        className="w-4 h-4 text-slate-900 rounded focus:ring-gray-900 border-slate-300"
+                        className="w-4 h-4 text-slate-900 dark:text-slate-100 rounded focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
                       />
                       Hourly Task
                     </label>
-                    <span className="text-xs text-slate-500 italic">
+                    <span className="text-xs text-slate-500 dark:text-slate-500 italic">
                       Bill automatically based on timesheets
                     </span>
                   </div>
@@ -658,7 +658,7 @@ export default function InvoicesTab({
                   {liIsHourly ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Select Project
                         </label>
                         <select
@@ -667,7 +667,7 @@ export default function InvoicesTab({
                             setLiProjectId(e.target.value);
                             setLiTaskId("");
                           }}
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         >
                           <option value="">-- Choose Project --</option>
                           {projects.map((p) => (
@@ -678,14 +678,14 @@ export default function InvoicesTab({
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Select Phase / Task
                         </label>
                         <select
                           value={liTaskId}
                           onChange={(e) => setLiTaskId(e.target.value)}
                           disabled={!liProjectId}
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900 disabled:opacity-50"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 disabled:opacity-50"
                         >
                           <option value="">-- Choose Task --</option>
                           {projects
@@ -698,13 +698,13 @@ export default function InvoicesTab({
                         </select>
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Select Team Member
                         </label>
                         <select
                           value={liUserId}
                           onChange={(e) => setLiUserId(e.target.value)}
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         >
                           <option value="">-- Choose User --</option>
                           {orgUsers.map((u) => (
@@ -716,26 +716,26 @@ export default function InvoicesTab({
                       </div>
 
                       {liTaskId && liUserId && hourlyData && (
-                        <div className="md:col-span-2 mt-2 bg-white p-4 flex items-center justify-between border border-slate-300">
+                        <div className="md:col-span-2 mt-2 bg-white dark:bg-zinc-900 p-4 flex items-center justify-between border border-slate-300 dark:border-zinc-700">
                           <div>
-                            <div className="text-sm text-slate-900 font-medium">
+                            <div className="text-sm text-slate-900 dark:text-slate-100 font-medium">
                               Unbilled Hours Found:{" "}
                               <span className="font-bold">
                                 {hourlyData.hours}
                               </span>
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                               Billing Rate: {formatMoney(hourlyData.rate)} / hr
                             </div>
                           </div>
-                          <div className="text-xl font-bold text-slate-900">
+                          <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                             {formatMoney(hourlyData.amount)}
                           </div>
                         </div>
                       )}
 
                       <div className="md:col-span-2 mt-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Optional Description Override
                         </label>
                         <input
@@ -743,14 +743,14 @@ export default function InvoicesTab({
                           value={liDescription}
                           onChange={(e) => setLiDescription(e.target.value)}
                           placeholder="Leave blank to use default"
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         />
                       </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Description
                         </label>
                         <input
@@ -758,11 +758,11 @@ export default function InvoicesTab({
                           required
                           value={liDescription}
                           onChange={(e) => setLiDescription(e.target.value)}
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                           Flat Amount ($)
                         </label>
                         <input
@@ -771,7 +771,7 @@ export default function InvoicesTab({
                           required
                           value={liAmount}
                           onChange={(e) => setLiAmount(e.target.value)}
-                          className="w-full border border-slate-300 p-2 bg-white text-slate-900"
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         />
                       </div>
                     </div>
@@ -781,7 +781,7 @@ export default function InvoicesTab({
                     <button
                       type="button"
                       onClick={() => setIsAddingLineItem(false)}
-                      className="px-4 py-2 font-medium text-slate-500"
+                      className="px-4 py-2 font-medium text-slate-500 dark:text-slate-500"
                     >
                       Cancel
                     </button>
@@ -803,9 +803,9 @@ export default function InvoicesTab({
 
   // --- List View ---
   return (
-    <div className="flex-1 flex flex-col p-8 bg-slate-50 overflow-y-auto transition-colors">
+    <div className="flex-1 flex flex-col p-8 bg-slate-50 dark:bg-zinc-950 overflow-y-auto transition-colors">
       <div className="max-w-4xl mx-auto w-full">
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">Invoices</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Invoices</h1>
 
         <div className="flex justify-end mb-6">
           <button
@@ -830,12 +830,12 @@ export default function InvoicesTab({
         </div>
 
         {isLoading ? (
-          <div className="text-center text-slate-400 py-12">
+          <div className="text-center text-slate-400 dark:text-slate-600 py-12">
             Loading invoices...
           </div>
         ) : invoices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center bg-white border border-slate-300 py-20 px-6 text-center">
-            <div className="bg-rose-50 text-rose-600 w-16 h-16 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 py-20 px-6 text-center">
+            <div className="bg-primary-50 text-primary-600 w-16 h-16 flex items-center justify-center mb-4">
               <svg
                 className="w-8 h-8"
                 fill="none"
@@ -850,10 +850,10 @@ export default function InvoicesTab({
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               No Invoices Yet
             </h3>
-            <p className="text-slate-500 max-w-sm mb-6">
+            <p className="text-slate-500 dark:text-slate-500 max-w-sm mb-6">
               Create your first draft invoice to start billing your clients for
               tracked time.
             </p>
@@ -865,9 +865,9 @@ export default function InvoicesTab({
             </button>
           </div>
         ) : (
-          <div className="bg-white border border-slate-300 overflow-hidden transition-colors">
-            <table className="w-full text-left text-sm text-slate-600 ">
-              <thead className="bg-slate-50 border-b border-slate-300 text-slate-900 font-semibold transition-colors">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400 dark:text-slate-600 ">
+              <thead className="bg-slate-50 dark:bg-zinc-950 border-b border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 font-semibold transition-colors">
                 <tr>
                   <th className="px-6 py-4">Invoice ID</th>
                   <th className="px-6 py-4">Client</th>
@@ -881,20 +881,20 @@ export default function InvoicesTab({
                   <tr
                     key={inv.id}
                     onClick={() => setActiveInvoice(inv)}
-                    className="cursor-pointer hover:bg-slate-50 transition-colors"
+                    className="cursor-pointer hover:bg-slate-50 dark:bg-zinc-950 transition-colors"
                   >
-                    <td className="px-6 py-4 font-bold text-slate-900 ">
+                    <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100 ">
                       {inv.invoiceNumber}
                     </td>
                     <td className="px-6 py-4">
                       {inv.clientName || (
-                        <span className="text-slate-400 italic">
+                        <span className="text-slate-400 dark:text-slate-600 italic">
                           Unspecified
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4">{formatDate(inv.dateIssued)}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900 ">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100 ">
                       {formatMoney(
                         inv.lineItems?.reduce(
                           (sum, li) => sum + li.amount,
@@ -904,7 +904,7 @@ export default function InvoicesTab({
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2.5 py-0.5 text-xs font-bold uppercase ${inv.status === "paid" ? "bg-green-100 text-green-700" : inv.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"}`}
+                        className={`px-2.5 py-0.5 text-xs font-bold uppercase ${inv.status === "paid" ? "bg-green-100 text-green-700" : inv.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 dark:text-slate-600"}`}
                       >
                         {inv.status}
                       </span>

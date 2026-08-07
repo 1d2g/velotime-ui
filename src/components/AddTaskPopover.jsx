@@ -110,15 +110,15 @@ export default function AddTaskPopover({
   return (
     // THE Z-INDEX FIX: Elevates to z-[60] when active so it naturally floats above sticky right columns
     <th
-      className={`sticky top-16 bg-white w-20 h-16 border-0 border-b border-slate-300 animate-task-btn overflow-visible relative transition-colors ${isActive ? "z-[60]" : "z-30"}`}
+      className={`sticky top-16 bg-white dark:bg-zinc-900 w-20 h-16 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-visible relative transition-colors ${isActive ? "z-[60]" : "z-30"}`}
     >
-      <div className="absolute inset-0 w-full h-full p-1 flex items-center justify-center border-l border-slate-300 bg-slate-50 transition-colors">
+      <div className="absolute inset-0 w-full h-full p-1 flex items-center justify-center border-l border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 transition-colors">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggle(project.id);
           }}
-          className="w-full h-full flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-white transition-colors rounded border border-transparent hover:border-slate-300 cursor-pointer"
+          className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 hover:text-primary-600 hover:bg-white dark:bg-zinc-900 transition-colors rounded border border-transparent hover:border-slate-300 dark:border-zinc-700 cursor-pointer"
           title={
             writeAllowed
               ? "Add Task"
@@ -135,7 +135,7 @@ export default function AddTaskPopover({
 
       {isActive && (
         <div
-          className="absolute top-14 right-0 bg-white p-3.5 border border-slate-300 w-64 flex flex-col font-sans font-normal text-left z-[70]"
+          className="absolute top-14 right-0 bg-white dark:bg-zinc-900 p-3.5 border border-slate-300 dark:border-zinc-700 w-64 flex flex-col font-sans font-normal text-left z-[70]"
           onClick={(e) => e.stopPropagation()}
         >
           {!writeAllowed ? (
@@ -146,20 +146,20 @@ export default function AddTaskPopover({
                 </span>
                 <button
                   onClick={() => onToggle(project.id)}
-                  className="text-slate-400 hover:text-red-500 text-lg leading-none cursor-pointer p-0.5"
+                  className="text-slate-400 dark:text-slate-600 hover:text-red-500 text-lg leading-none cursor-pointer p-0.5"
                   title="Close"
                 >
                   &times;
                 </button>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              <p className="text-xs text-slate-500 dark:text-slate-500 leading-relaxed font-normal">
                 Please contact an administrator to add a task.
               </p>
             </div>
           ) : (
             <>
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                   New Task
                 </span>
                 {error && (
@@ -174,7 +174,7 @@ export default function AddTaskPopover({
                   ref={inputRef}
                   type="text"
                   placeholder="Search or create..."
-                  className={`flex-1 border px-3 py-2 text-sm outline-none focus:ring-2 text-slate-900 transition-colors ${error ? "border-red-300 focus:ring-red-500 bg-red-50/30" : "border-slate-300 focus:ring-slate-900"}`}
+                  className={`flex-1 border px-3 py-2 text-sm outline-none focus:ring-2 text-slate-900 dark:text-slate-100 transition-colors ${error ? "border-red-300 focus:ring-red-500 bg-red-50/30" : "border-slate-300 dark:border-zinc-700 focus:ring-slate-900"}`}
                   value={taskName}
                   onChange={(e) => {
                     setTaskName(e.target.value);
@@ -192,7 +192,7 @@ export default function AddTaskPopover({
 
               <ul
                 ref={listRef}
-                className="mt-2 max-h-40 overflow-y-auto border border-slate-300 bg-slate-50 flex flex-col divide-y divide-gray-100 "
+                className="mt-2 max-h-40 overflow-y-auto border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 flex flex-col divide-y divide-gray-100 "
               >
                 {options.map((opt, i) => {
                   const isSelected = i === selectedIndex;
@@ -200,7 +200,7 @@ export default function AddTaskPopover({
                     return (
                       <li
                         key="create-new"
-                        className={`px-3 py-2 text-sm text-rose-600 cursor-pointer italic font-medium transition-colors ${isSelected ? "bg-rose-100" : "hover:bg-rose-100/50"}`}
+                        className={`px-3 py-2 text-sm text-primary-600 cursor-pointer italic font-medium transition-colors ${isSelected ? "bg-primary-100" : "hover:bg-primary-100/50"}`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           handleSubmit(taskName);
@@ -213,7 +213,7 @@ export default function AddTaskPopover({
                   return (
                     <li
                       key={opt}
-                      className={`px-3 py-2 text-sm text-slate-700 cursor-pointer transition-colors ${isSelected ? "bg-rose-100 text-blue-800" : "hover:bg-rose-50"}`}
+                      className={`px-3 py-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer transition-colors ${isSelected ? "bg-primary-100 text-blue-800" : "hover:bg-primary-50"}`}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         handleSubmit(opt);

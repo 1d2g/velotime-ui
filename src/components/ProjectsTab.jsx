@@ -53,8 +53,8 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
   if (!orgUsers || orgUsers.length === 0) return null;
 
   return (
-    <div className="bg-rose-50/50 p-6 border-b border-slate-300 ">
-      <h4 className="text-xs font-black text-slate-500 mb-4 uppercase tracking-wider">
+    <div className="bg-primary-50/50 p-6 border-b border-slate-300 dark:border-zinc-700 ">
+      <h4 className="text-xs font-black text-slate-500 dark:text-slate-500 mb-4 uppercase tracking-wider">
         Employee Task Rates Override
       </h4>
       <div className="grid gap-3 max-w-4xl max-h-96 overflow-y-auto pr-2">
@@ -65,30 +65,30 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
           return (
             <div
               key={u.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-3 border border-slate-300 gap-4"
+              className="flex flex-col sm:flex-row sm:items-center justify-between bg-white dark:bg-zinc-900 p-3 border border-slate-300 dark:border-zinc-700 gap-4"
             >
               <div className="flex flex-col">
-                <span className="font-bold text-slate-900">
+                <span className="font-bold text-slate-900 dark:text-slate-100">
                   {u.firstName} {u.lastName}{" "}
-                  <span className="text-slate-400 font-normal">
+                  <span className="text-slate-400 dark:text-slate-600 font-normal">
                     ({u.email})
                   </span>
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase">
                     Cost / hr
                   </label>
                   <div className="relative">
-                    <span className="absolute left-2 top-1 text-slate-400 text-sm font-semibold">
+                    <span className="absolute left-2 top-1 text-slate-400 dark:text-slate-600 text-sm font-semibold">
                       $
                     </span>
                     <input
                       type="number"
                       step="0.01"
                       placeholder={u.defaultCostRate || "0.00"}
-                      className="w-24 pl-6 pr-2 py-1 text-sm border border-slate-300 rounded font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                      className="w-24 pl-6 pr-2 py-1 text-sm border border-slate-300 dark:border-zinc-700 rounded font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                       value={rates[u.id]?.costRate || ""}
                       onChange={(e) =>
                         setRates({
@@ -100,18 +100,18 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase">
                     Bill / hr
                   </label>
                   <div className="relative">
-                    <span className="absolute left-2 top-1 text-slate-400 text-sm font-semibold">
+                    <span className="absolute left-2 top-1 text-slate-400 dark:text-slate-600 text-sm font-semibold">
                       $
                     </span>
                     <input
                       type="number"
                       step="0.01"
                       placeholder={u.defaultBillingRate || "0.00"}
-                      className="w-24 pl-6 pr-2 py-1 text-sm border border-slate-300 rounded font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                      className="w-24 pl-6 pr-2 py-1 text-sm border border-slate-300 dark:border-zinc-700 rounded font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                       value={rates[u.id]?.billingRate || ""}
                       onChange={(e) =>
                         setRates({
@@ -128,7 +128,7 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
                 <button
                   onClick={() => handleSave(u.id)}
                   disabled={savingUserId === u.id}
-                  className={`text-xs font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap min-w-[120px] ${hasOverride ? "bg-slate-900 text-white hover:bg-slate-900 " : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300"}`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap min-w-[120px] ${hasOverride ? "bg-slate-900 text-white hover:bg-slate-900 " : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:bg-slate-200 border border-slate-300 dark:border-zinc-700"}`}
                 >
                   {savingUserId === u.id
                     ? "Saving..."
@@ -277,13 +277,13 @@ export default function ProjectsTab({
             setDetailProjEditing(false);
             setNewTaskName("");
           }}
-          className="text-rose-600 hover:text-blue-800 flex items-center gap-2 mb-6 font-semibold transition-colors w-fit"
+          className="text-primary-600 hover:text-blue-800 flex items-center gap-2 mb-6 font-semibold transition-colors w-fit"
         >
           <span>&larr;</span> Back to Projects
         </button>
 
-        <div className="bg-white border border-slate-300 overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-300 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {detailProjEditing ? (
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <form
@@ -319,14 +319,14 @@ export default function ProjectsTab({
                       }
                       // Enter is handled by the form onSubmit
                     }}
-                    className="px-3 py-1 border border-slate-900 text-2xl font-black text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 w-full sm:w-64 "
+                    className="px-3 py-1 border border-slate-900 text-2xl font-black text-slate-900 dark:text-slate-100 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-slate-900 w-full sm:w-64 "
                     autoFocus
                   />
                 </form>
               </div>
             ) : (
               <div className="flex items-center gap-3 group">
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                   {project.name}
                 </h2>
                 {writeAllowed && (
@@ -335,7 +335,7 @@ export default function ProjectsTab({
                       setDetailProjEditing(true);
                       setDetailProjName(project.name);
                     }}
-                    className="text-sm opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-rose-600 p-1"
+                    className="text-sm opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-slate-600 hover:text-primary-600 p-1"
                     title="Click to edit project name"
                   >
                     ✏️
@@ -382,23 +382,23 @@ export default function ProjectsTab({
                     placeholder="New task name..."
                     value={newTaskName}
                     onChange={(e) => setNewTaskName(e.target.value)}
-                    className="px-3 py-1.5 border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 "
+                    className="px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
                   />
                   <button
                     type="submit"
                     disabled={!newTaskName.trim()}
-                    className="bg-slate-900 hover:bg-slate-900 disabled:bg-gray-150 disabled:text-slate-400 text-white font-semibold py-1.5 px-4 text-sm transition-all active:scale-[0.98]"
+                    className="bg-slate-900 hover:bg-slate-900 disabled:bg-gray-150 disabled:text-slate-400 dark:text-slate-600 text-white font-semibold py-1.5 px-4 text-sm transition-all active:scale-[0.98]"
                   >
                     Add Task
                   </button>
                 </form>
               )}
-              <div className="text-sm font-bold text-slate-500 bg-white px-4 py-1.5 border border-slate-300 flex items-center gap-2">
+              <div className="text-sm font-bold text-slate-500 dark:text-slate-500 bg-white dark:bg-zinc-900 px-4 py-1.5 border border-slate-300 dark:border-zinc-700 flex items-center gap-2">
                 <span>
                   Total Hours: {getProjectTotalHours(project).toFixed(2)}
                 </span>
                 {isAdmin && (
-                  <span className="text-slate-400 font-normal">
+                  <span className="text-slate-400 dark:text-slate-600 font-normal">
                     (Your hours:{" "}
                     {Object.entries(entries)
                       .filter(
@@ -427,20 +427,20 @@ export default function ProjectsTab({
             ) : (
               <table className="min-w-full w-full border-collapse">
                 <thead>
-                  <tr className="bg-white border-b border-slate-300">
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-white dark:bg-zinc-900 border-b border-slate-300 dark:border-zinc-700">
+                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                       Task Name
                     </th>
                     {writeAllowed && (
-                      <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider w-48">
+                      <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider w-48">
                         Override All (Bill)
                       </th>
                     )}
-                    <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider w-40">
+                    <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider w-40">
                       Hours Logged
                     </th>
                     {writeAllowed && (
-                      <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider w-24"></th>
+                      <th className="py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider w-24"></th>
                     )}
                   </tr>
                 </thead>
@@ -455,10 +455,10 @@ export default function ProjectsTab({
 
                     return (
                       <React.Fragment key={task.id}>
-                        <tr className="border-b border-slate-300 hover:bg-slate-50 transition-colors group">
+                        <tr className="border-b border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:bg-zinc-950 transition-colors group">
                           {/* THE EDITABLE TASK CELL */}
                           <td
-                            className="py-4 px-6 text-sm font-medium text-slate-900 cursor-pointer"
+                            className="py-4 px-6 text-sm font-medium text-slate-900 dark:text-slate-100 cursor-pointer"
                             onClick={() => {
                               if (editingTaskId !== task.id)
                                 handleStartEdit(task);
@@ -472,7 +472,7 @@ export default function ProjectsTab({
                                 onChange={(e) => setEditName(e.target.value)}
                                 onBlur={() => handleSaveEdit(project.id)}
                                 onKeyDown={(e) => handleKeyDown(e, project.id)}
-                                className="w-full px-2 py-1 -ml-2 border border-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900"
+                                className="w-full px-2 py-1 -ml-2 border border-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                               />
                             ) : (
                               <div className="flex items-center gap-3">
@@ -496,7 +496,7 @@ export default function ProjectsTab({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="relative">
-                                  <span className="absolute left-2 top-1 text-slate-400 text-sm font-semibold">
+                                  <span className="absolute left-2 top-1 text-slate-400 dark:text-slate-600 text-sm font-semibold">
                                     $
                                   </span>
                                   <input
@@ -504,7 +504,7 @@ export default function ProjectsTab({
                                     type="number"
                                     step="0.01"
                                     placeholder="Rate"
-                                    className="w-20 pl-5 pr-1 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-slate-900 bg-white "
+                                    className="w-20 pl-5 pr-1 py-1 text-sm border border-slate-300 dark:border-zinc-700 rounded focus:outline-none focus:border-slate-900 bg-white dark:bg-zinc-900 "
                                   />
                                 </div>
                                 <button
@@ -520,7 +520,7 @@ export default function ProjectsTab({
                                       ).value = "";
                                     }
                                   }}
-                                  className="text-xs font-bold bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-600 px-2 py-1.5 rounded transition-colors border border-slate-300 hover:border-slate-900"
+                                  className="text-xs font-bold bg-slate-100 dark:bg-zinc-800 hover:bg-slate-900 hover:text-white text-slate-600 dark:text-slate-400 dark:text-slate-600 px-2 py-1.5 rounded transition-colors border border-slate-300 dark:border-zinc-700 hover:border-slate-900"
                                 >
                                   Set All
                                 </button>
@@ -528,7 +528,7 @@ export default function ProjectsTab({
                             </td>
                           )}
 
-                          <td className="py-4 px-6 text-sm font-bold text-rose-600 text-right bg-rose-50/10">
+                          <td className="py-4 px-6 text-sm font-bold text-primary-600 text-right bg-primary-50/10">
                             {taskHours.toFixed(2)}
                           </td>
 
@@ -541,7 +541,7 @@ export default function ProjectsTab({
                                     expandedTaskId === task.id ? null : task.id,
                                   );
                                 }}
-                                className="text-rose-600 hover:text-blue-800 text-xs font-bold mr-4 uppercase transition-colors p-1"
+                                className="text-primary-600 hover:text-blue-800 text-xs font-bold mr-4 uppercase transition-colors p-1"
                               >
                                 {expandedTaskId === task.id
                                   ? "Close Rates"
@@ -558,7 +558,7 @@ export default function ProjectsTab({
                                     onRemoveTask(project.id, task.id);
                                   }
                                 }}
-                                className="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50"
+                                className="text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50"
                                 title="Delete Task"
                               >
                                 🗑️
@@ -601,10 +601,10 @@ export default function ProjectsTab({
     <div className="p-8 max-w-6xl mx-auto w-full h-full overflow-auto no-scrollbar flex flex-col">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
             Active Projects
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
             Manage project configurations, tasks, and track logged hours.
           </p>
         </div>
@@ -617,9 +617,9 @@ export default function ProjectsTab({
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 text-sm w-64 transition-all focus:border-slate-900"
+              className="pl-9 pr-4 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-64 transition-all focus:border-slate-900"
             />
-            <span className="absolute left-3 top-2.5 text-slate-400">
+            <span className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-600">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -640,7 +640,7 @@ export default function ProjectsTab({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-700 text-sm transition-all cursor-pointer"
+            className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 text-sm transition-all cursor-pointer"
           >
             <option value="name-asc">Name (A-Z)</option>
             <option value="name-desc">Name (Z-A)</option>
@@ -657,7 +657,7 @@ export default function ProjectsTab({
             onClick={() => {
               if (!isCreatingProj) setIsCreatingProj(true);
             }}
-            className={`bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-slate-900 hover:bg-white p-6 hover: transition-all flex flex-col h-44 justify-center items-center group relative cursor-pointer ${isCreatingProj ? "cursor-default" : ""}`}
+            className={`bg-slate-50 dark:bg-zinc-950/50 border-2 border-dashed border-slate-300 dark:border-zinc-700 hover:border-slate-900 hover:bg-white dark:bg-zinc-900 p-6 hover: transition-all flex flex-col h-44 justify-center items-center group relative cursor-pointer ${isCreatingProj ? "cursor-default" : ""}`}
           >
             {isCreatingProj ? (
               <div
@@ -665,7 +665,7 @@ export default function ProjectsTab({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div>
-                  <label className="text-xs font-bold text-slate-500 block mb-1">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-500 block mb-1">
                     Create New Project
                   </label>
                   <input
@@ -684,7 +684,7 @@ export default function ProjectsTab({
                         setIsCreatingProj(false);
                       }
                     }}
-                    className="w-full px-3 py-1.5 border border-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 "
+                    className="w-full px-3 py-1.5 border border-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
                     autoFocus
                   />
                 </div>
@@ -694,7 +694,7 @@ export default function ProjectsTab({
                       setIsCreatingProj(false);
                       setNewProjName("");
                     }}
-                    className="px-3 py-1 text-xs text-slate-500 hover:bg-slate-100 font-medium"
+                    className="px-3 py-1 text-xs text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:bg-zinc-800 font-medium"
                   >
                     Cancel
                   </button>
@@ -714,10 +714,10 @@ export default function ProjectsTab({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center">
-                <span className="text-3xl text-slate-400 group-hover:text-rose-600 transition-all mb-2">
+                <span className="text-3xl text-slate-400 dark:text-slate-600 group-hover:text-primary-600 transition-all mb-2">
                   +
                 </span>
-                <span className="text-sm font-semibold text-slate-500 group-hover:text-rose-600 transition-all">
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-500 group-hover:text-primary-600 transition-all">
                   Create New Project
                 </span>
               </div>
@@ -738,7 +738,7 @@ export default function ProjectsTab({
                   setSelectedProjectId(project.id);
                 }
               }}
-              className="bg-white border border-slate-300 p-6 hover: hover:border-slate-900 transition-all cursor-pointer group flex flex-col h-44 relative overflow-hidden"
+              className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 hover: hover:border-slate-900 transition-all cursor-pointer group flex flex-col h-44 relative overflow-hidden"
             >
               {isConfirmingDelete ? (
                 <div
@@ -749,7 +749,7 @@ export default function ProjectsTab({
                     <h4 className="text-sm font-bold text-red-600 mb-1">
                       Delete Project
                     </h4>
-                    <p className="text-xs text-slate-500 leading-tight">
+                    <p className="text-xs text-slate-500 dark:text-slate-500 leading-tight">
                       Permanently delete "{project.name}", all of its tasks, and
                       hours logged?
                     </p>
@@ -757,7 +757,7 @@ export default function ProjectsTab({
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => setConfirmDeleteProjectId(null)}
-                      className="px-3 py-1 text-xs text-slate-500 hover:bg-slate-100 font-medium"
+                      className="px-3 py-1 text-xs text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:bg-zinc-800 font-medium"
                     >
                       Cancel
                     </button>
@@ -791,7 +791,7 @@ export default function ProjectsTab({
                     className="flex flex-col h-full justify-between w-full"
                   >
                     <div>
-                      <label className="text-xs font-bold text-slate-500 block mb-1">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-500 block mb-1">
                         Rename Project
                       </label>
                       <input
@@ -813,7 +813,7 @@ export default function ProjectsTab({
                             setEditingProjectId(null);
                           }
                         }}
-                        className="w-full px-2 py-1.5 border border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 text-sm "
+                        className="w-full px-2 py-1.5 border border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm "
                         autoFocus
                       />
                     </div>
@@ -824,7 +824,7 @@ export default function ProjectsTab({
                           e.preventDefault(); // Prevents input onBlur
                           setEditingProjectId(null);
                         }}
-                        className="px-3 py-1 text-xs text-slate-500 hover:bg-slate-100 font-medium"
+                        className="px-3 py-1 text-xs text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:bg-zinc-800 font-medium"
                       >
                         Cancel
                       </button>
@@ -842,7 +842,7 @@ export default function ProjectsTab({
                 <>
                   <div className="flex justify-between items-start mb-1">
                     <h3
-                      className="text-lg font-bold text-slate-900 group-hover:text-rose-600 transition-colors truncate pr-16"
+                      className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary-600 transition-colors truncate pr-16"
                       title={project.name}
                     >
                       {project.name}
@@ -859,7 +859,7 @@ export default function ProjectsTab({
                               setEditingProjectId(project.id);
                               setEditProjName(project.name);
                             }}
-                            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-rose-600 transition-colors text-xs"
+                            className="p-1 hover:bg-slate-100 dark:bg-zinc-800 rounded text-slate-400 dark:text-slate-600 hover:text-primary-600 transition-colors text-xs"
                             title="Rename Project"
                           >
                             ✏️
@@ -868,14 +868,14 @@ export default function ProjectsTab({
                             onClick={() =>
                               setConfirmDeleteProjectId(project.id)
                             }
-                            className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-600 transition-colors text-xs"
+                            className="p-1 hover:bg-red-50 rounded text-slate-400 dark:text-slate-600 hover:text-red-600 transition-colors text-xs"
                             title="Delete Project"
                           >
                             🗑️
                           </button>
                         </>
                       )}
-                      <div className="text-gray-300 group-hover:text-rose-600 transition-colors transform group-hover:translate-x-1 duration-200 ml-1">
+                      <div className="text-gray-300 group-hover:text-primary-600 transition-colors transform group-hover:translate-x-1 duration-200 ml-1">
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -893,15 +893,15 @@ export default function ProjectsTab({
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 mb-4 font-medium">
+                  <p className="text-xs text-slate-400 dark:text-slate-600 mb-4 font-medium">
                     Created: {formatDate(project.createdAt)}
                   </p>
 
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-300 ">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-300 dark:border-zinc-700 ">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                       {project.tasks.length} Tasks
                     </span>
-                    <span className="text-sm font-black text-slate-700 bg-gray-150 px-3 py-1 ">
+                    <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-gray-150 px-3 py-1 ">
                       {totalHours.toFixed(2)} hrs
                     </span>
                   </div>
@@ -912,7 +912,7 @@ export default function ProjectsTab({
         })}
 
         {filteredProjects.length === 0 && (
-          <div className="col-span-full p-16 text-center border-2 border-dashed border-slate-300 text-slate-400 font-medium bg-slate-50/50">
+          <div className="col-span-full p-16 text-center border-2 border-dashed border-slate-300 dark:border-zinc-700 text-slate-400 dark:text-slate-600 font-medium bg-slate-50 dark:bg-zinc-950/50">
             No projects found matching that filter.
           </div>
         )}

@@ -116,7 +116,7 @@ export default function AddProjectPopover({
 
   return (
     <div
-      className="absolute top-2 right-16 z-50 bg-white p-3.5 border border-slate-300 w-64 flex flex-col font-sans text-left"
+      className="absolute top-2 right-16 z-50 bg-white dark:bg-zinc-900 p-3.5 border border-slate-300 dark:border-zinc-700 w-64 flex flex-col font-sans text-left"
       onClick={(e) => e.stopPropagation()}
     >
       {!writeAllowed ? (
@@ -127,20 +127,20 @@ export default function AddProjectPopover({
             </span>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-red-500 text-lg leading-none cursor-pointer p-0.5"
+              className="text-slate-400 dark:text-slate-600 hover:text-red-500 text-lg leading-none cursor-pointer p-0.5"
               title="Close"
             >
               &times;
             </button>
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed font-normal">
+          <p className="text-xs text-slate-500 dark:text-slate-500 leading-relaxed font-normal">
             Please contact an administrator to add a project.
           </p>
         </div>
       ) : (
         <>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
               New Project
             </span>
             {error && (
@@ -155,10 +155,10 @@ export default function AddProjectPopover({
               ref={inputRef}
               type="text"
               placeholder="Search or create..."
-              className={`flex-1 border px-3 py-2 text-sm outline-none focus:ring-2 font-normal text-slate-900 transition-colors ${
+              className={`flex-1 border px-3 py-2 text-sm outline-none focus:ring-2 font-normal text-slate-900 dark:text-slate-100 transition-colors ${
                 error
                   ? "border-red-300 focus:ring-red-500 bg-red-50/30"
-                  : "border-slate-300 focus:ring-slate-900"
+                  : "border-slate-300 dark:border-zinc-700 focus:ring-slate-900"
               }`}
               value={newProjectName}
               onChange={(e) => {
@@ -177,7 +177,7 @@ export default function AddProjectPopover({
 
           <ul
             ref={listRef}
-            className="mt-2 max-h-40 overflow-y-auto border border-slate-300 bg-slate-50 flex flex-col divide-y divide-gray-100 "
+            className="mt-2 max-h-40 overflow-y-auto border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 flex flex-col divide-y divide-gray-100 "
           >
             {options.map((opt, i) => {
               const isSelected = i === selectedIndex;
@@ -186,7 +186,7 @@ export default function AddProjectPopover({
                 return (
                   <li
                     key="create-new"
-                    className={`px-3 py-2 text-sm text-rose-600 cursor-pointer italic font-medium transition-colors ${isSelected ? "bg-rose-100" : "hover:bg-rose-100/50"}`}
+                    className={`px-3 py-2 text-sm text-primary-600 cursor-pointer italic font-medium transition-colors ${isSelected ? "bg-primary-100" : "hover:bg-primary-100/50"}`}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleSubmit(newProjectName);
@@ -200,7 +200,7 @@ export default function AddProjectPopover({
               return (
                 <li
                   key={opt}
-                  className={`px-3 py-2 text-sm text-slate-700 cursor-pointer transition-colors ${isSelected ? "bg-rose-100 text-blue-800" : "hover:bg-rose-50"}`}
+                  className={`px-3 py-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer transition-colors ${isSelected ? "bg-primary-100 text-blue-800" : "hover:bg-primary-50"}`}
                   onMouseDown={(e) => {
                     e.preventDefault();
                     handleSubmit(opt);
@@ -212,7 +212,7 @@ export default function AddProjectPopover({
             })}
 
             {options.length === 0 && !newProjectName.trim() && (
-              <li className="px-3 py-2 text-xs text-slate-400 text-center italic">
+              <li className="px-3 py-2 text-xs text-slate-400 dark:text-slate-600 text-center italic">
                 Start typing to search...
               </li>
             )}

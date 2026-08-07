@@ -34,29 +34,29 @@ export default function AssignTeamModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-md flex flex-col border border-slate-300 max-h-[90vh]">
-        <div className="p-6 border-b border-slate-300 shrink-0">
-          <h2 className="text-xl font-bold text-slate-900 ">Assign Team</h2>
-          <p className="text-sm text-slate-500 mt-1">
+      <div className="bg-white dark:bg-zinc-900 w-full max-w-md flex flex-col border border-slate-300 dark:border-zinc-700 max-h-[90vh]">
+        <div className="p-6 border-b border-slate-300 dark:border-zinc-700 shrink-0">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 ">Assign Team</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
             Select who can view and log time for <strong>{project.name}</strong>
             .
           </p>
         </div>
 
-        <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50 shrink-0">
-          <span className="text-sm font-semibold text-slate-600 ">
+        <div className="p-4 border-b border-slate-300 dark:border-zinc-700 flex items-center justify-between bg-slate-50 dark:bg-zinc-950 shrink-0">
+          <span className="text-sm font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-600 ">
             Quick Select:
           </span>
           <div className="flex gap-2">
             <button
               onClick={handleAssignAll}
-              className="text-xs px-3 py-1.5 rounded bg-rose-100 text-rose-700 hover:bg-slate-800 font-bold transition-colors"
+              className="text-xs px-3 py-1.5 rounded bg-primary-100 text-primary-700 hover:bg-slate-800 font-bold transition-colors"
             >
               Assign All
             </button>
             <button
               onClick={handleAssignNone}
-              className="text-xs px-3 py-1.5 rounded bg-gray-200 text-slate-700 hover:bg-gray-300 font-bold transition-colors"
+              className="text-xs px-3 py-1.5 rounded bg-gray-200 dark:bg-zinc-950 text-slate-700 dark:text-slate-300 hover:bg-gray-300 font-bold transition-colors"
             >
               Assign None
             </button>
@@ -67,34 +67,34 @@ export default function AssignTeamModal({
           {orgUsers.map((u) => (
             <label
               key={u.id}
-              className="flex items-center gap-3 p-3 hover:bg-slate-50 border border-transparent hover:border-slate-300 cursor-pointer transition-all"
+              className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:bg-zinc-950 border border-transparent hover:border-slate-300 dark:border-zinc-700 cursor-pointer transition-all"
             >
               <input
                 type="checkbox"
                 checked={assignedIds.has(u.id)}
                 onChange={() => handleToggle(u.id)}
-                className="w-5 h-5 text-rose-600 rounded border-slate-300 focus:ring-slate-900 bg-white"
+                className="w-5 h-5 text-primary-600 rounded border-slate-300 dark:border-zinc-700 focus:ring-slate-900 bg-white dark:bg-zinc-900"
               />
               <div className="flex flex-col">
-                <span className="font-bold text-slate-900 text-sm">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                   {u.firstName} {u.lastName}
                 </span>
-                <span className="text-xs text-slate-500 ">{u.email}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-500 ">{u.email}</span>
               </div>
             </label>
           ))}
           {orgUsers.length === 0 && (
-            <p className="text-center text-slate-500 text-sm py-4">
+            <p className="text-center text-slate-500 dark:text-slate-500 text-sm py-4">
               No team members found in this organization.
             </p>
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-300 flex justify-end gap-3 bg-slate-50 shrink-0">
+        <div className="p-6 border-t border-slate-300 dark:border-zinc-700 flex justify-end gap-3 bg-slate-50 dark:bg-zinc-950 shrink-0">
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="px-4 py-2 font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+            className="px-4 py-2 font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 transition-colors"
           >
             Cancel
           </button>

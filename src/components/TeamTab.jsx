@@ -58,8 +58,8 @@ export default function TeamTab({
 
   if (!orgUsers || orgUsers.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 bg-white transition-colors">
-        <h2 className="text-xl font-bold text-slate-400 ">
+      <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 transition-colors">
+        <h2 className="text-xl font-bold text-slate-400 dark:text-slate-600 ">
           No team members found.
         </h2>
       </div>
@@ -69,10 +69,10 @@ export default function TeamTab({
   return (
     <div className="p-8 max-w-6xl mx-auto w-full h-full overflow-auto no-scrollbar flex flex-col">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
           Team Management
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
           Manage team members, default rates, and view hours by project.
         </p>
       </div>
@@ -85,36 +85,36 @@ export default function TeamTab({
           return (
             <div
               key={u.id}
-              className="bg-white border border-slate-300 overflow-hidden flex flex-col md:flex-row transition-colors"
+              className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden flex flex-col md:flex-row transition-colors"
             >
               {/* Left Side: Member Info & Rates */}
-              <div className="p-6 md:w-1/2 border-b md:border-b-0 md:border-r border-slate-300 bg-slate-50/50 flex flex-col justify-between transition-colors">
+              <div className="p-6 md:w-1/2 border-b md:border-b-0 md:border-r border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 flex flex-col justify-between transition-colors">
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="font-bold text-xl text-slate-900 ">
+                    <span className="font-bold text-xl text-slate-900 dark:text-slate-100 ">
                       {u.firstName} {u.lastName}
                     </span>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 ">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider bg-gray-200 dark:bg-zinc-950 px-2 py-0.5 ">
                       {u.role}
                     </span>
                   </div>
-                  <div className="text-sm text-slate-500 mb-6">{u.email}</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-500 mb-6">{u.email}</div>
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-4 bg-white p-3 border border-slate-300 transition-colors">
-                    <label className="text-xs font-bold text-slate-500 uppercase">
+                  <div className="flex items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-3 border border-slate-300 dark:border-zinc-700 transition-colors">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase">
                       Default Cost / hr
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400 text-sm font-semibold">
+                      <span className="absolute left-3 top-2 text-slate-400 dark:text-slate-600 text-sm font-semibold">
                         $
                       </span>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-28 pl-7 pr-2 py-1.5 text-sm border border-slate-300 font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 bg-white text-slate-900 transition-colors"
+                        className="w-28 pl-7 pr-2 py-1.5 text-sm border border-slate-300 dark:border-zinc-700 font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 transition-colors"
                         value={rates[u.id]?.costRate ?? ""}
                         onChange={(e) =>
                           setRates({
@@ -129,19 +129,19 @@ export default function TeamTab({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 bg-white p-3 border border-slate-300 transition-colors">
-                    <label className="text-xs font-bold text-slate-500 uppercase">
+                  <div className="flex items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-3 border border-slate-300 dark:border-zinc-700 transition-colors">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase">
                       Default Bill / hr
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400 text-sm font-semibold">
+                      <span className="absolute left-3 top-2 text-slate-400 dark:text-slate-600 text-sm font-semibold">
                         $
                       </span>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-28 pl-7 pr-2 py-1.5 text-sm border border-slate-300 font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 bg-white text-slate-900 transition-colors"
+                        className="w-28 pl-7 pr-2 py-1.5 text-sm border border-slate-300 dark:border-zinc-700 font-semibold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 transition-colors"
                         value={rates[u.id]?.billingRate ?? ""}
                         onChange={(e) =>
                           setRates({
@@ -167,18 +167,18 @@ export default function TeamTab({
               </div>
 
               {/* Right Side: Hours Breakdown */}
-              <div className="p-6 md:w-1/2 bg-white flex flex-col transition-colors">
+              <div className="p-6 md:w-1/2 bg-white dark:bg-zinc-900 flex flex-col transition-colors">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">
+                  <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm uppercase tracking-wider">
                     Project Hours
                   </h3>
-                  <span className="font-black text-rose-600 bg-rose-50 px-3 py-1 text-sm border border-slate-900 ">
+                  <span className="font-black text-primary-600 bg-primary-50 px-3 py-1 text-sm border border-slate-900 ">
                     Total: {totalHours.toFixed(2)} hrs
                   </span>
                 </div>
 
                 {projectHours.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center text-slate-400 text-sm italic bg-slate-50 border border-dashed border-slate-300 ">
+                  <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 text-sm italic bg-slate-50 dark:bg-zinc-950 border border-dashed border-slate-300 dark:border-zinc-700 ">
                     No hours logged yet.
                   </div>
                 ) : (
@@ -186,12 +186,12 @@ export default function TeamTab({
                     {projectHours.map((ph) => (
                       <div
                         key={ph.projectName}
-                        className="flex justify-between items-center p-3 hover:bg-slate-50 border border-slate-300 transition-colors"
+                        className="flex justify-between items-center p-3 hover:bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 transition-colors"
                       >
-                        <span className="font-semibold text-slate-700 text-sm truncate pr-4">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm truncate pr-4">
                           {ph.projectName}
                         </span>
-                        <span className="font-bold text-slate-900 text-sm">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                           {ph.hours.toFixed(2)}
                         </span>
                       </div>

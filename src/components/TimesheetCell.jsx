@@ -120,9 +120,9 @@ export default function TimesheetCell({
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`border-b border-r border-slate-300 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-rose-50/40 
+      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-primary-50/40 
  ${isFirstInProject ? "border-l " : ""}
- ${isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-rose-50/50 z-10" : isToday ? "bg-rose-50/15" : isCurrentWeek ? "bg-rose-50/5" : "bg-transparent"}
+ ${isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
  ${displayAuditRed && !isSelected ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
  ${className}
  `}
@@ -143,7 +143,7 @@ export default function TimesheetCell({
         onBlur={onEditEnd}
         className={`w-full h-full min-h-[40px] block text-center outline-none transition-all cursor-cell bg-transparent
  ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
- ${isFuture ? "text-slate-400 " : "text-slate-900 "}
+ ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}
  ${isSelected ? "font-bold" : ""}
  `}
@@ -208,7 +208,7 @@ export default function TimesheetCell({
       {/* The Note Popover */}
       {isNoteOpen && (
         <div
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 w-56 bg-white border border-slate-300 p-3"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 w-56 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-3"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
             // Protect textarea typing from global Matrix hotkeys
@@ -216,7 +216,7 @@ export default function TimesheetCell({
             e.nativeEvent.stopImmediatePropagation();
           }}
         >
-          <div className="text-xs font-bold text-slate-700 mb-2 flex justify-between items-center">
+          <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex justify-between items-center">
             <span>Task Note</span>
             <button
               onClick={(e) => {
@@ -224,7 +224,7 @@ export default function TimesheetCell({
                 setIsNoteOpen(false);
                 inputRef.current?.focus();
               }}
-              className="text-slate-400 hover:text-red-500 text-base leading-none"
+              className="text-slate-400 dark:text-slate-600 hover:text-red-500 text-base leading-none"
             >
               &times;
             </button>
@@ -247,7 +247,7 @@ export default function TimesheetCell({
               }
             }}
             placeholder="What did you work on?"
-            className="w-full text-sm p-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none h-20 bg-slate-50 text-slate-900 "
+            className="w-full text-sm p-2 border border-slate-300 dark:border-zinc-700 rounded focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none h-20 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-slate-100 "
           />
           <div className="flex justify-end mt-2">
             <button
