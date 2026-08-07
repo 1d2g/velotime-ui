@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Joyride, STATUS } from "react-joyride";
+import Joyride, { STATUS } from "react-joyride";
 
 export default function OnboardingTour({
   hasCompletedOnboarding,
