@@ -45,10 +45,10 @@ export default function OnboardingTour({
   ];
 
   const handleJoyrideCallback = (data) => {
-    const { status } = data;
+    const { status, type, action } = data;
     const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status) || type === "tour:end" || action === "close") {
       setRun(false);
       if (onComplete) onComplete();
     }

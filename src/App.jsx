@@ -1138,6 +1138,15 @@ export default function App() {
                 }}
               />
             )}
+            {dbUser && dbUser.hasCompletedOnboarding && (
+              <button
+                onClick={() => setDbUser((prev) => ({ ...prev, hasCompletedOnboarding: false }))}
+                className="fixed bottom-6 right-6 w-10 h-10 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-lg flex items-center justify-center font-bold text-lg hover:bg-primary-600 dark:hover:bg-primary-400 transition-colors z-50"
+                title="Restart Tutorial"
+              >
+                ?
+              </button>
+            )}
           </>
         )}
       </SignedIn>
