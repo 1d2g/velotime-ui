@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import TimesheetCell from "./TimesheetCell";
 import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
+import LiveTimerDisplay from "./LiveTimerDisplay";
 
 export default function TimesheetMatrix({
   dates,
@@ -20,6 +21,7 @@ export default function TimesheetMatrix({
   onToggleCollapse,
   searchQuery = "",
   onReorderProject,
+  onToggleTimer,
 }) {
   const [selectedCell, setSelectedCell] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -527,11 +529,34 @@ export default function TimesheetMatrix({
                                 <span className="text-[10px] font-bold text-primary-600 block truncate">
                                   {p.name}
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate block">
+                                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate flex items-center gap-2">
                                   {t.name}
+                                  {dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === dateObj.id && (
+                                    <span className="text-xs text-rose-500 font-bold bg-rose-50 dark:bg-rose-950/30 px-1.5 py-0.5 rounded animate-pulse inline-flex items-center gap-1">
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      <LiveTimerDisplay startTime={dbUser.activeTimerStart} />
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1.5 shrink-0">
+                                {dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === dateObj.id ? (
+                                  <button
+                                    onClick={() => onToggleTimer(t.id, dateObj.id, "stop")}
+                                    className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 hover:bg-rose-200 rounded"
+                                    title="Stop Timer"
+                                  >
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => onToggleTimer(t.id, dateObj.id, "start")}
+                                    className="p-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded transition-colors"
+                                    title="Start Timer"
+                                  >
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                                  </button>
+                                )}
                                 <input
                                   type="number"
                                   min="0"
@@ -760,9 +785,40 @@ export default function TimesheetMatrix({
                           key={t.id}
                           className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
                         >
-                          <span className="truncate block w-full">
+                          <span className="truncate flex items-center justify-center gap-1.5 w-full">
                             {t.name}
                           </span>
+                          
+                          {/* Timer UI below task name */}
+                          {(() => {
+                            const todayObj = dates.find(d => d.isToday) || dates[0];
+                            const isRunning = dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === todayObj?.id;
+                            
+                            return (
+                              <div className="mt-2 flex justify-center items-center h-6">
+                                {isRunning ? (
+                                  <button
+                                    onClick={() => onToggleTimer(t.id, todayObj?.id, "stop")}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 rounded text-[10px] font-bold animate-pulse hover:bg-rose-200 transition-colors cursor-pointer"
+                                    title="Stop Timer"
+                                  >
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+                                    <LiveTimerDisplay startTime={dbUser.activeTimerStart} />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => onToggleTimer(t.id, todayObj?.id, "start")}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-400 hover:text-emerald-500 rounded text-[10px] font-bold cursor-pointer"
+                                    title={`Start Timer for ${todayObj?.id}`}
+                                  >
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                                    Start
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
+
                           {writeAllowed && (
                             <button
                               onClick={() => onRemoveTask(p.id, t.id)}

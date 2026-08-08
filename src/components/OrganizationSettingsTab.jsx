@@ -44,6 +44,9 @@ export default function OrganizationSettingsTab({
   const [logoBase64, setLogoBase64] = useState(
     dbUser?.organization?.logoBase64 || "",
   );
+  const [timerRoundingMinutes, setTimerRoundingMinutes] = useState(
+    dbUser?.organization?.timerRoundingMinutes || 0,
+  );
   const [isSavingName, setIsSavingName] = useState(false);
   const isAdmin = dbUser?.role === "admin" || dbUser?.role === "owner";
 
@@ -67,6 +70,7 @@ export default function OrganizationSettingsTab({
         invoicePrefix,
         nextInvoiceNumber,
         logoBase64,
+        timerRoundingMinutes,
       });
       forceSync();
       alert("Invoice settings updated!");
@@ -409,6 +413,27 @@ export default function OrganizationSettingsTab({
                   invoices.
                 </p>
               </div>
+              
+              <div className="pt-4 border-t border-slate-200 dark:border-zinc-700">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Timer Rounding
+                </label>
+                <select
+                  value={timerRoundingMinutes}
+                  onChange={(e) => setTimerRoundingMinutes(Number(e.target.value))}
+                  disabled={!isAdmin}
+                  className="w-full max-w-sm px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-none focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-slate-100 disabled:opacity-50"
+                >
+                  <option value={0}>No rounding (Exact decimals)</option>
+                  <option value={1}>Round up to nearest 1 minute</option>
+                  <option value={5}>Round up to nearest 5 minutes</option>
+                  <option value={15}>Round up to nearest 15 minutes</option>
+                </select>
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
+                  When a user stops an active timer, the elapsed time will be automatically rounded up to the selected increment before adding it to their timesheet.
+                </p>
+              </div>
+
               {isAdmin && (
                 <button
                   type="submit"

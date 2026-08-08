@@ -87,6 +87,19 @@ export default function App() {
   const { addToast } = useToast();
   const [isSyncing, setIsSyncing] = useState(true);
 
+  // Warn user if they try to close the tab with an active timer
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (dbUser?.activeTimerStart) {
+        e.preventDefault();
+        e.returnValue = "You have a timer running! Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [dbUser?.activeTimerStart]);
+
   const navTabs = [
     "Timesheets",
     "Projects",
@@ -521,6 +534,20 @@ export default function App() {
       });
     } catch (e) {
       console.error("Failed to save entry");
+    }
+  };
+
+  const handleToggleTimer = async (taskId, dateId, action) => {
+    try {
+      const res = await apiCall("/api/timer/toggle", "POST", { taskId, dateId, action });
+      if (res && res.user) {
+        setDbUser(res.user);
+        if (action === "stop") {
+          forceSync(); // refresh to get the updated entry hours
+        }
+      }
+    } catch (e) {
+      console.error("Failed to toggle timer", e);
     }
   };
 
@@ -1039,6 +1066,7 @@ export default function App() {
                             viewUserId={viewUserId || dbUser?.id}
                             timeframe={timeframe}
                             onCellChange={handleCellChange}
+                            onToggleTimer={handleToggleTimer}
                             onNoteChange={handleNoteChange}
                             onAddTask={handleAddTask}
                             onRemoveTask={handleRemoveTask}
