@@ -984,10 +984,10 @@ export default function TimesheetMatrix({
               const rowTotal = getRowTotal(dateObj.id);
               let totalColor =
                 rowTotal === 0
-                  ? "bg-red-200 dark:bg-red-900/50"
+                  ? "bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200"
                   : rowTotal < 8
-                    ? "bg-green-100 dark:bg-green-900/30"
-                    : "bg-green-300 dark:bg-green-900/70";
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200"
+                    : "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-900 dark:text-indigo-200";
               if (dateObj.isFuture) totalColor = "bg-gray-200 dark:bg-zinc-950 text-slate-400 dark:text-slate-600";
 
               let rowBg = "hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300";
