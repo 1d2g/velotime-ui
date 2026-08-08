@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import LiveTimerDisplay from "./LiveTimerDisplay";
 
 export default function TimesheetCell({
   rowId,
@@ -19,6 +20,8 @@ export default function TimesheetCell({
   timeframe = "month",
   isToday,
   isCurrentWeek,
+  onToggleTimer,
+  dbUser,
   className = "",
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
@@ -178,6 +181,38 @@ export default function TimesheetCell({
           title={note}
         />
       )}
+
+      {/* THE TIMER ICON: Top Left */}
+      <div className="absolute top-0.5 left-1 z-20 flex items-center gap-1">
+        {dbUser?.activeTimerTaskId === taskId && dbUser?.activeTimerDateId === dateId ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onToggleTimer) onToggleTimer(taskId, dateId, "stop");
+            }}
+            className="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-black text-[10px] animate-pulse"
+            title="Stop Timer"
+          >
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onToggleTimer) onToggleTimer(taskId, dateId, "start");
+            }}
+            className="text-slate-300 hover:text-emerald-500 dark:text-slate-700 font-black text-[10px] transition-colors"
+            title="Start Timer"
+          >
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+          </button>
+        )}
+        {dbUser?.activeTimerTaskId === taskId && dbUser?.activeTimerDateId === dateId && isHovered && (
+          <span className="text-[9px] text-rose-500 font-bold tabular-nums">
+            <LiveTimerDisplay startTime={dbUser.activeTimerStart} />
+          </span>
+        )}
+      </div>
 
       {/* THE RED PLUS: Shows if hours exist but NO note exists */}
       {!note && hasHours && !isNoteOpen && (

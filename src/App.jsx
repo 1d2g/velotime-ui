@@ -196,7 +196,7 @@ export default function App() {
       const monday = new Date(currentDate);
       monday.setDate(currentDate.getDate() + offset);
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
         resultDates.push(buildDateObject(d));
@@ -230,14 +230,14 @@ export default function App() {
       const offset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
       const monday = new Date(currentDate);
       monday.setDate(currentDate.getDate() + offset);
-      const friday = new Date(monday);
-      friday.setDate(monday.getDate() + 4);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
 
       const startLabel = monday.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       });
-      const endLabel = friday.toLocaleDateString("en-US", {
+      const endLabel = sunday.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -682,14 +682,6 @@ export default function App() {
                 </nav>
               </div>
               <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
-                <button
-                  onClick={cycleColorTheme}
-                  className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-zinc-700 shadow-sm transition-transform hover:scale-110 flex items-center justify-center relative overflow-hidden group bg-primary-500"
-                  title="Cycle Color Theme"
-                  aria-label="Cycle Color Theme"
-                >
-                  <span className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                </button>
                 <button
                   onClick={() =>
                     setTheme((prev) => (prev === "light" ? "dark" : "light"))

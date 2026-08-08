@@ -5,7 +5,7 @@ import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 
 export default function TimesheetMatrix({
-  dates,
+  dates: propDates,
   projects,
   entries,
   notes = {},
@@ -30,6 +30,16 @@ export default function TimesheetMatrix({
   const [isAddingProject, setIsAddingProject] = useState(false);
 
   const [showMissingNotes, setShowMissingNotes] = useState(false);
+  const [showWeekends, setShowWeekends] = useState(false);
+
+  const dates = useMemo(() => {
+    return propDates.filter(d => {
+      if (timeframe !== 'week') return true;
+      if (showWeekends) return true;
+      const day = new Date(d.id).getDay();
+      return day !== 0 && day !== 6;
+    });
+  }, [propDates, timeframe, showWeekends]);
 
   // Dynamic Height Measuring
   const containerRef = useRef(null);
@@ -664,8 +674,19 @@ export default function TimesheetMatrix({
                 className="sticky top-0 left-0 z-50 bg-white dark:bg-zinc-900 h-16 border-b border-r border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] "
                 colSpan={3}
               >
-                <div className="flex items-center justify-center h-full w-full px-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-zinc-950 hover:bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 border border-slate-300 dark:border-zinc-700 transition-colors w-full justify-center">
+                <div className="flex items-center gap-4">
+                  {timeframe === "week" && (
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-3.5 h-3.5 text-blue-500 focus:ring-blue-500 border-slate-300 dark:border-zinc-700 rounded cursor-pointer bg-transparent"
+                        checked={showWeekends}
+                        onChange={(e) => setShowWeekends(e.target.checked)}
+                      />
+                      <span>Weekends</span>
+                    </label>
+                  )}
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
                     <input
                       type="checkbox"
                       className="w-3.5 h-3.5 text-red-500 focus:ring-red-500 border-slate-300 dark:border-zinc-700 rounded cursor-pointer bg-transparent"
@@ -785,39 +806,9 @@ export default function TimesheetMatrix({
                           key={t.id}
                           className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
                         >
-                          <span className="truncate flex items-center justify-center gap-1.5 w-full">
+                          <span className="truncate block w-full">
                             {t.name}
                           </span>
-                          
-                          {/* Timer UI below task name */}
-                          {(() => {
-                            const todayObj = dates.find(d => d.isToday) || dates[0];
-                            const isRunning = dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === todayObj?.id;
-                            
-                            return (
-                              <div className="mt-2 flex justify-center items-center h-6">
-                                {isRunning ? (
-                                  <button
-                                    onClick={() => onToggleTimer(t.id, todayObj?.id, "stop")}
-                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 rounded text-[10px] font-bold animate-pulse hover:bg-rose-200 transition-colors cursor-pointer"
-                                    title="Stop Timer"
-                                  >
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
-                                    <LiveTimerDisplay startTime={dbUser.activeTimerStart} />
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => onToggleTimer(t.id, todayObj?.id, "start")}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-400 hover:text-emerald-500 rounded text-[10px] font-bold cursor-pointer"
-                                    title={`Start Timer for ${todayObj?.id}`}
-                                  >
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                                    Start
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })()}
 
                           {writeAllowed && (
                             <button
@@ -993,10 +984,10 @@ export default function TimesheetMatrix({
               const rowTotal = getRowTotal(dateObj.id);
               let totalColor =
                 rowTotal === 0
-                  ? "bg-red-200"
+                  ? "bg-red-200 dark:bg-red-900/50"
                   : rowTotal < 8
-                    ? "bg-green-100"
-                    : "bg-green-300";
+                    ? "bg-green-100 dark:bg-green-900/30"
+                    : "bg-green-300 dark:bg-green-900/70";
               if (dateObj.isFuture) totalColor = "bg-gray-200 dark:bg-zinc-950 text-slate-400 dark:text-slate-600";
 
               let rowBg = "hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300";
@@ -1091,6 +1082,8 @@ export default function TimesheetMatrix({
                                 isFuture={dateObj.isFuture}
                                 isToday={dateObj.isToday}
                                 isCurrentWeek={dateObj.isCurrentWeek}
+                                onToggleTimer={onToggleTimer}
+                                dbUser={dbUser}
                                 isSelected={
                                   selectedCell?.r === rIndex &&
                                   selectedCell?.c === cIndex
