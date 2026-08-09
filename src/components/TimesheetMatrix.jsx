@@ -553,18 +553,18 @@ export default function TimesheetMatrix({
                                 {dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === dateObj.id ? (
                                   <button
                                     onClick={() => onToggleTimer(t.id, dateObj.id, "stop")}
-                                    className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 hover:bg-rose-200 rounded"
+                                    className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 hover:bg-rose-200 rounded animate-pulse"
                                     title="Stop Timer"
                                   >
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1" /></svg>
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => onToggleTimer(t.id, dateObj.id, "start")}
-                                    className="p-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded transition-colors"
+                                    className="p-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-400 hover:text-emerald-500 rounded"
                                     title="Start Timer"
                                   >
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1" /></svg>
                                   </button>
                                 )}
                                 <input
@@ -810,27 +810,57 @@ export default function TimesheetMatrix({
                             {t.name}
                           </span>
 
-                          {writeAllowed && (
-                            <button
-                              onClick={() => onRemoveTask(p.id, t.id)}
-                              title="Delete Task (Ctrl+Backspace)"
-                              className="absolute top-1 right-1 text-slate-400 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 dark:bg-zinc-950 rounded"
-                            >
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                          <div className="absolute top-1 right-1 flex items-center gap-1">
+                            {/* Timer UI */}
+                            {(() => {
+                              const todayObj = dates.find(d => d.isToday) || dates[0];
+                              const isRunning = dbUser?.activeTimerTaskId === t.id && dbUser?.activeTimerDateId === todayObj?.id;
+                              
+                              if (isRunning) {
+                                return (
+                                  <button
+                                    onClick={() => onToggleTimer(t.id, todayObj?.id, "stop")}
+                                    className="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-black text-[10px] animate-pulse p-0.5"
+                                    title="Stop Timer"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1" /></svg>
+                                  </button>
+                                );
+                              }
+                              return (
+                                <button
+                                  onClick={() => onToggleTimer(t.id, todayObj?.id, "start")}
+                                  className="text-slate-300 hover:text-emerald-500 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-all font-black text-[10px] p-0.5"
+                                  title="Start Timer"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1" /></svg>
+                                </button>
+                              );
+                            })()}
+
+                            {/* Delete Button */}
+                            {writeAllowed && (
+                              <button
+                                onClick={() => onRemoveTask(p.id, t.id)}
+                                title="Delete Task (Ctrl+Backspace)"
+                                className="text-slate-400 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 dark:bg-zinc-950 rounded"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M6 18L18 6M6 6l12 12"
-                                ></path>
-                              </svg>
-                            </button>
-                          )}
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  ></path>
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                         </th>
                       ))}
                       <AddTaskPopover
