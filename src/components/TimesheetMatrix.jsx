@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import TimesheetCell from "./TimesheetCell";
 import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
@@ -35,6 +36,8 @@ export default function TimesheetMatrix({
 
   const [showMissingNotes, setShowMissingNotes] = useState(false);
   const [showWeekends, setShowWeekends] = useState(false);
+
+  const { t } = useTranslation();
 
   const dates = useMemo(() => {
     return propDates.filter(d => {
@@ -511,18 +514,18 @@ export default function TimesheetMatrix({
         className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto bg-slate-50 dark:bg-zinc-950 text-xs"
       >
         {/* Mobile Capacity Progress Indicator */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex items-center justify-between shrink-0">
+        <div className={`border border-slate-300 dark:border-zinc-700 p-4 flex items-center justify-between shrink-0 transition-colors ${totalHours > capacityGoal ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700/50" : "bg-white dark:bg-zinc-900"}`}>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
-              Weekly Progress
+            <span className={`text-[10px] font-bold uppercase tracking-wider block ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"}`}>
+              {totalHours > capacityGoal ? "Overtime Alert" : "Weekly Progress"}
             </span>
-            <span className="text-lg font-black text-slate-900 dark:text-slate-100 ">
+            <span className={`text-lg font-black ${totalHours > capacityGoal ? "text-amber-900 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
               {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
             </span>
           </div>
           <div className="text-right">
             <span
-              className={`px-2.5 py-1 text-[10px] font-bold ${totalHours >= capacityGoal ? "bg-emerald-100 text-emerald-700 " : "bg-primary-100 text-primary-700 "}`}
+              className={`px-2.5 py-1 text-[10px] font-bold ${totalHours > capacityGoal ? "bg-amber-200 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 animate-pulse" : totalHours === capacityGoal ? "bg-emerald-100 text-emerald-700 " : "bg-primary-100 text-primary-700 "}`}
             >
               {totalHours >= capacityGoal
                 ? "100% Achieved"
@@ -1261,14 +1264,14 @@ export default function TimesheetMatrix({
       {["day", "week"].includes(timeframe) && (
         <div className="bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 p-5 flex gap-5 shrink-0 h-44 select-none overflow-hidden text-xs transition-colors">
           {/* Card 1: Capacity Goal Progress */}
-          <div className="w-72 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex items-center gap-4 transition-colors">
+          <div className={`w-72 border border-slate-300 dark:border-zinc-700 p-4 flex items-center gap-4 transition-colors ${totalHours > capacityGoal ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700/50" : "bg-white dark:bg-zinc-900"}`}>
             <div className="relative flex items-center justify-center shrink-0">
               <svg width="60" height="60" className="transform -rotate-90">
                 <circle
                   cx="30"
                   cy="30"
                   r="26"
-                  stroke="#F3F4F6"
+                  stroke={totalHours > capacityGoal ? "rgba(245, 158, 11, 0.2)" : "#F3F4F6"}
                   strokeWidth="5"
                   fill="transparent"
                 />
@@ -1276,7 +1279,7 @@ export default function TimesheetMatrix({
                   cx="30"
                   cy="30"
                   r="26"
-                  stroke="#3B82F6"
+                  stroke={totalHours > capacityGoal ? "#D97706" : "#3B82F6"}
                   strokeWidth="5"
                   fill="transparent"
                   strokeDasharray="163.36"
@@ -1292,7 +1295,7 @@ export default function TimesheetMatrix({
                   className="transition-all duration-500 ease-out"
                 />
               </svg>
-              <span className="absolute text-[11px] font-black text-slate-700 dark:text-slate-300">
+              <span className={`absolute text-[11px] font-black ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-700 dark:text-slate-300"}`}>
                 {Math.round(
                   (capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100,
                 )}
@@ -1301,13 +1304,17 @@ export default function TimesheetMatrix({
             </div>
 
             <div className="space-y-0.5">
-              <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
-                Capacity Goal
+              <span className={`text-[9px] font-bold uppercase tracking-wider block ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"}`}>
+                {totalHours > capacityGoal ? "OVERTIME ALERT" : "Capacity Goal"}
               </span>
-              <span className="text-sm font-black text-slate-900 dark:text-slate-100 block">
+              <span className={`text-sm font-black block ${totalHours > capacityGoal ? "text-amber-900 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
                 {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
               </span>
-              {totalHours >= capacityGoal ? (
+              {totalHours > capacityGoal ? (
+                <span className="text-[10px] font-bold text-amber-600 block flex items-center gap-1 animate-pulse">
+                  <span>Capacity Exceeded ⚠️</span>
+                </span>
+              ) : totalHours === capacityGoal ? (
                 <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
                   <span>Goal achieved! 🎉</span>
                 </span>
