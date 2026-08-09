@@ -153,7 +153,7 @@ export default function TimesheetCell({
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}
  ${isSelected ? "font-bold" : ""}
- ${!isSelected && value ? "text-transparent" : ""}
+ ${!isSelected && value ? "text-transparent dark:text-transparent" : ""}
  `}
       />
 
