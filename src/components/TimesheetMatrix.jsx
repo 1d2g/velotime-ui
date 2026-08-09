@@ -806,11 +806,11 @@ export default function TimesheetMatrix({
                           key={t.id}
                           className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
                         >
-                          <span className="truncate block w-full">
+                          <span className="truncate block w-full px-2">
                             {t.name}
                           </span>
 
-                          <div className="absolute top-1 right-1 flex items-center gap-1">
+                          <div className="absolute top-1 left-1 flex items-center gap-1">
                             {/* Timer UI */}
                             {(() => {
                               const todayObj = dates.find(d => d.isToday) || dates[0];
@@ -830,37 +830,37 @@ export default function TimesheetMatrix({
                               return (
                                 <button
                                   onClick={() => onToggleTimer(t.id, todayObj?.id, "start")}
-                                  className="text-slate-300 hover:text-emerald-500 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-all font-black text-[10px] p-0.5"
+                                  className="text-slate-400 hover:text-emerald-500 dark:text-slate-500 transition-all font-black text-[10px] p-0.5"
                                   title="Start Timer"
                                 >
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1" /></svg>
                                 </button>
                               );
                             })()}
-
-                            {/* Delete Button */}
-                            {writeAllowed && (
-                              <button
-                                onClick={() => onRemoveTask(p.id, t.id)}
-                                title="Delete Task (Ctrl+Backspace)"
-                                className="text-slate-400 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 dark:bg-zinc-950 rounded"
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                  ></path>
-                                </svg>
-                              </button>
-                            )}
                           </div>
+
+                          {/* Delete Button */}
+                          {writeAllowed && (
+                            <button
+                              onClick={() => onRemoveTask(p.id, t.id)}
+                              title="Delete Task (Ctrl+Backspace)"
+                              className="absolute top-1 right-1 text-slate-400 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-50 dark:bg-zinc-950 rounded"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M6 18L18 6M6 6l12 12"
+                                ></path>
+                              </svg>
+                            </button>
+                          )}
                         </th>
                       ))}
                       <AddTaskPopover
