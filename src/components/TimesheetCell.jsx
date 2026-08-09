@@ -149,8 +149,21 @@ export default function TimesheetCell({
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}
  ${isSelected ? "font-bold" : ""}
+ ${!isSelected && value ? "text-transparent" : ""}
  `}
       />
+
+      {/* h:mm Formatted Display Overlay */}
+      {!isSelected && parseFloat(value) > 0 && (
+        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none ${isFuture ? "text-slate-400 dark:text-slate-600" : "text-slate-900 dark:text-slate-100"} ${displayAuditRed ? "text-red-700 font-semibold" : ""}`}>
+          {(() => {
+            const num = parseFloat(value);
+            const h = Math.floor(num);
+            const m = Math.round((num - h) * 60);
+            return `${h}:${m.toString().padStart(2, '0')}`;
+          })()}
+        </div>
+      )}
 
       {/* THE BLUE TRIANGLE: Shows if a note exists */}
       {note && (
