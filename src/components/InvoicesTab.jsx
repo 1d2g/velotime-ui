@@ -229,8 +229,12 @@ export default function InvoicesTab({
   };
 
   if (activeInvoice) {
-    const totalAmount =
+    const subtotal =
       activeInvoice.lineItems?.reduce((sum, li) => sum + li.amount, 0) || 0;
+    const taxAmount = activeInvoice.taxRate
+      ? subtotal * (activeInvoice.taxRate / 100)
+      : 0;
+    const totalAmount = subtotal + taxAmount;
     const hourlyData = liIsHourly ? calculateHourlyData() : null;
 
     return (
@@ -259,51 +263,42 @@ export default function InvoicesTab({
               </svg>
               Back to Invoices
             </button>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleExportExcel}
-                className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center gap-1"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="flex gap-4">
+              <div className="flex items-center">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await apiCall(`/api/invoices/${activeInvoice.id}/export-qbo`, "POST");
+                      if (res.success) alert("Invoice successfully exported to QuickBooks!");
+                    } catch (e) {
+                      alert("Failed to export to QuickBooks. Please make sure you are connected in Settings.");
+                    }
+                  }}
+                  className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-green-600 font-semibold text-sm mr-2 pr-4 border-r border-slate-300 dark:border-zinc-700"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                Export Excel
-              </button>
-              <button
-                onClick={handleExportPDF}
-                className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-1"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  Export to QBO
+                </button>
+                <a
+                  href={`http://localhost:8080/api/invoices/${activeInvoice.id}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-semibold text-sm mr-2 pr-4 border-r border-slate-300 dark:border-zinc-700"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                Export PDF
-              </button>
-              <button
-                onClick={handleDeleteInvoice}
-                className="text-red-500 hover:text-red-600 font-semibold text-sm ml-2 border-l border-slate-300 dark:border-zinc-700 pl-4"
-              >
-                Delete Invoice
-              </button>
+                  Download PDF
+                </a>
+                <button
+                  onClick={handleExportExcel}
+                  className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-semibold text-sm"
+                >
+                  Export Excel
+                </button>
+                <button
+                  onClick={handleDeleteInvoice}
+                  className="text-red-500 hover:text-red-600 font-semibold text-sm ml-2 border-l border-slate-300 dark:border-zinc-700 pl-4"
+                >
+                  Delete Invoice
+                </button>
+              </div>
             </div>
           </div>
 
@@ -467,6 +462,35 @@ export default function InvoicesTab({
                       <option value="paid">Paid</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
+                      Tax Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. VAT"
+                      value={headerForm.taxName || ""}
+                      onChange={(e) =>
+                        setHeaderForm({ ...headerForm, taxName: e.target.value })
+                      }
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
+                      Tax Rate (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={headerForm.taxRate || ""}
+                      onChange={(e) =>
+                        setHeaderForm({ ...headerForm, taxRate: parseFloat(e.target.value) || 0 })
+                      }
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Notes & Terms (Legal / Disclaimer)
@@ -605,8 +629,18 @@ export default function InvoicesTab({
                   </div>
                 )}
               </div>
-              <div className="w-full md:w-64 border-t-2 border-slate-300 dark:border-zinc-700 pt-4">
-                <div className="flex justify-between items-center text-lg font-bold text-slate-900 dark:text-slate-100">
+              <div className="w-full md:w-64 border-t-2 border-slate-300 dark:border-zinc-700 pt-4 text-right">
+                <div className="flex justify-between items-center text-sm font-semibold text-slate-500 dark:text-slate-500 mb-2">
+                  <span>Subtotal</span>
+                  <span>{formatMoney(subtotal)}</span>
+                </div>
+                {activeInvoice.taxRate > 0 && (
+                  <div className="flex justify-between items-center text-sm font-semibold text-slate-500 dark:text-slate-500 mb-2">
+                    <span>{activeInvoice.taxName || 'Tax'} ({activeInvoice.taxRate}%)</span>
+                    <span>{formatMoney(taxAmount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center text-lg font-bold text-slate-900 dark:text-slate-100 mt-2 border-t border-slate-200 dark:border-zinc-700 pt-2">
                   <span>Total</span>
                   <span>{formatMoney(totalAmount)}</span>
                 </div>

@@ -36,11 +36,13 @@ export default function TimesheetCell({
     }
   }, [isSelected, isNoteOpen]);
 
-  useEffect(() => {
+  const [prevIsSelected, setPrevIsSelected] = useState(isSelected);
+  if (isSelected !== prevIsSelected) {
     if (!isSelected) {
       setIsNoteOpen(false);
     }
-  }, [isSelected]);
+    setPrevIsSelected(isSelected);
+  }
 
   useEffect(() => {
     const handleSpaceKeyDown = (e) => {
@@ -78,9 +80,11 @@ export default function TimesheetCell({
       window.removeEventListener("keydown", handleSpaceKeyDown, true);
   }, [isHovered, isSelected, isNoteOpen, onSelect, timeframe]);
 
-  useEffect(() => {
+  const [prevNote, setPrevNote] = useState(note || "");
+  if (note !== prevNote) {
     setLocalNote(note || "");
-  }, [note]);
+    setPrevNote(note);
+  }
 
   const hasHours = parseFloat(value) > 0;
   const isMissingNote = hasHours && (!note || note.trim() === "");

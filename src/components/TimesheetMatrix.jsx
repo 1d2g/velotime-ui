@@ -3,6 +3,7 @@ import TimesheetCell from "./TimesheetCell";
 import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
+import { useToast } from "../contexts/ToastContext";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -11,6 +12,9 @@ export default function TimesheetMatrix({
   notes = {},
   dbUser,
   orgUsers,
+  submissions = [],
+  apiCall,
+  forceSync,
   viewUserId,
   timeframe = "month",
   onCellChange,
@@ -40,6 +44,39 @@ export default function TimesheetMatrix({
       return day !== 0 && day !== 6;
     });
   }, [propDates, timeframe, showWeekends]);
+
+  // Compute if the current view is locked
+  const isLocked = useMemo(() => {
+    if (timeframe !== 'week' || !propDates.length) return false;
+    // propDates[0] is always the Monday when timeframe is 'week'
+    const weekStart = propDates[0].id; 
+    const sub = submissions.find(s => s.weekStartDate === weekStart && s.userId === viewUserId);
+    return sub && (sub.status === 'submitted' || sub.status === 'approved');
+  }, [timeframe, propDates, submissions, viewUserId]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addToast } = useToast();
+
+  const handleSubmitWeek = async () => {
+    if (!apiCall) return;
+    setIsSubmitting(true);
+    try {
+      const weekStart = propDates[0].id;
+      const res = await apiCall('/api/timesheet-submissions', {
+        method: 'POST',
+        body: JSON.stringify({ weekStartDate: weekStart })
+      });
+      if (res.ok) {
+        forceSync();
+      } else {
+        console.error('Failed to submit');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Dynamic Height Measuring
   const containerRef = useRef(null);
@@ -134,11 +171,11 @@ export default function TimesheetMatrix({
       });
     });
     return count;
-  }, [dates, projects, entries, notes]);
+  }, [dates, projects, entries, notes, viewUserId]);
 
   const writeAllowed = dbUser
-    ? dbUser.role === "admin" || dbUser.role === "manager"
-    : true;
+    ? (dbUser.role === "admin" || dbUser.role === "manager") && !isLocked
+    : !isLocked;
 
   const gridRows = useMemo(() => {
     const rows = [];
@@ -434,8 +471,9 @@ export default function TimesheetMatrix({
     activeTaskPopover,
     isAddingProject,
     projects,
-    onRemoveTask,
     onToggleCollapse,
+    onCellChange,
+    viewUserId,
     timeframe,
     gridRows,
   ]);
@@ -698,6 +736,21 @@ export default function TimesheetMatrix({
                     </span>
                   </label>
                 </div>
+                {timeframe === "week" && (
+                  <div className="mt-2">
+                    {isLocked ? (
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Week Locked</span>
+                    ) : (
+                      <button
+                        onClick={handleSubmitWeek}
+                        disabled={isSubmitting || totalHours === 0}
+                        className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-3 py-1.5 rounded transition-colors"
+                      >
+                        {isSubmitting ? "Submitting..." : "Submit for Approval"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </th>
               <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
 
@@ -1410,9 +1463,12 @@ function TimesheetNoteCell({
   const [localValue, setLocalValue] = useState(value || "");
   const textareaRef = useRef(null);
 
-  useEffect(() => {
+  const [prevValue, setPrevValue] = useState(value || "");
+
+  if (value !== prevValue) {
     setLocalValue(value || "");
-  }, [value]);
+    setPrevValue(value);
+  }
 
   const handleBlur = () => {
     if (localValue !== value) {

@@ -163,6 +163,11 @@ export default function ProjectsTab({
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
 
+  // Budget Editing State
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [budgetType, setBudgetType] = useState('NONE');
+  const [budgetLimit, setBudgetLimit] = useState(0);
+
   // Searching & Sorting State
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name-asc");
@@ -276,6 +281,7 @@ export default function ProjectsTab({
             setSelectedProjectId(null);
             setDetailProjEditing(false);
             setNewTaskName("");
+            setIsEditingBudget(false);
           }}
           className="text-primary-600 hover:text-blue-800 flex items-center gap-2 mb-6 font-semibold transition-colors w-fit"
         >
@@ -341,10 +347,27 @@ export default function ProjectsTab({
                     ✏️
                   </button>
                 )}
+                {project.budgetType !== "NONE" && (
+                  <span className="ml-4 px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold uppercase rounded">
+                    Budget: {project.budgetLimit} {project.budgetType === "CURRENCY" ? "USD" : "Hours"}
+                  </span>
+                )}
               </div>
             )}
 
             <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsEditingBudget(!isEditingBudget);
+                    setBudgetType(project.budgetType || 'NONE');
+                    setBudgetLimit(project.budgetLimit || 0);
+                  }}
+                  className="bg-white hover:bg-slate-50 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-semibold py-1.5 px-4 text-sm transition-all active:scale-[0.98]"
+                >
+                  Budget Settings
+                </button>
+              )}
               {isAdmin && (
                 <button
                   onClick={() => setAssignTeamProject(project)}
@@ -417,6 +440,53 @@ export default function ProjectsTab({
               </div>
             </div>
           </div>
+
+          {isEditingBudget && isAdmin && (
+            <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800">
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wider">Project Budget Settings</h3>
+              <div className="flex items-end gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Budget Type</label>
+                  <select 
+                    value={budgetType} 
+                    onChange={e => setBudgetType(e.target.value)}
+                    className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-48"
+                  >
+                    <option value="NONE">No Budget</option>
+                    <option value="HOURS">Total Hours</option>
+                    <option value="CURRENCY">Total Currency (USD)</option>
+                  </select>
+                </div>
+                {budgetType !== 'NONE' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1">Budget Limit</label>
+                    <input 
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={budgetLimit}
+                      onChange={e => setBudgetLimit(Number(e.target.value))}
+                      className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-32"
+                    />
+                  </div>
+                )}
+                <button
+                  onClick={async () => {
+                    try {
+                      await apiCall(`/api/projects/${project.id}`, 'PUT', { budgetType, budgetLimit });
+                      forceSync();
+                      setIsEditingBudget(false);
+                    } catch (e) {
+                      alert("Failed to save budget settings");
+                    }
+                  }}
+                  className="bg-slate-900 text-white px-4 py-2 font-semibold text-sm hover:bg-slate-800 transition-colors rounded"
+                >
+                  Save Budget
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="p-0">
             {project.tasks.length === 0 ? (

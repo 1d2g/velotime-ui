@@ -15,6 +15,7 @@ import ReportsTab from "./components/ReportsTab";
 import InvoicesTab from "./components/InvoicesTab";
 import TeamTab from "./components/TeamTab";
 import OrganizationSettingsTab from "./components/OrganizationSettingsTab";
+import ApprovalsTab from "./components/ApprovalsTab";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
@@ -83,6 +84,7 @@ export default function App() {
   const [notes, setNotes] = useState({});
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
 
   const { addToast } = useToast();
   const [isSyncing, setIsSyncing] = useState(true);
@@ -104,7 +106,7 @@ export default function App() {
     "Timesheets",
     "Projects",
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
-      ? ["Team", "Reports", "Invoices"]
+      ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
     "Settings",
   ];
@@ -290,6 +292,7 @@ export default function App() {
 
         setOrgUsers(data.orgUsers || []);
         setTaskRates(data.taskRates || []);
+        setSubmissions(data.submissions || []);
 
         const dbEntries = {};
         const dbNotes = {};
@@ -1055,6 +1058,9 @@ export default function App() {
                             notes={notes}
                             dbUser={dbUser}
                             orgUsers={orgUsers}
+                            submissions={submissions}
+                            apiCall={apiCall}
+                            forceSync={forceSync}
                             viewUserId={viewUserId || dbUser?.id}
                             timeframe={timeframe}
                             onCellChange={handleCellChange}
@@ -1124,6 +1130,16 @@ export default function App() {
                     orgUsers={orgUsers}
                     apiCall={apiCall}
                     taskRates={taskRates}
+                    forceSync={forceSync}
+                  />
+                </TrialLockoutOverlay>
+              ) : activeTab === "Approvals" ? (
+                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                  <ApprovalsTab
+                    dbUser={dbUser}
+                    orgUsers={orgUsers}
+                    submissions={submissions}
+                    apiCall={apiCall}
                     forceSync={forceSync}
                   />
                 </TrialLockoutOverlay>

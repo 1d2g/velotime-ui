@@ -447,32 +447,54 @@ export default function OrganizationSettingsTab({
           </div>
         </div>
 
-        {/* Billing Card */}
+        {/* QuickBooks Integration Card */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
           <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 ">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">
-              Billing & Subscription
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              QuickBooks Online
             </h2>
           </div>
           <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 ">
-                  Current Plan:
+                  Status:
                 </h3>
-                <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 ">
-                  {dbUser?.organization?.tier?.toUpperCase() || "DEMO"}
-                </span>
+                {dbUser?.organization?.quickbooksRealmId ? (
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-green-100 text-green-700 border border-green-200 ">
+                    Connected
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 ">
+                    Not Connected
+                  </span>
+                )}
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-500 ">
-                {dbUser?.organization?.tier === "pro"
-                  ? "You are on the Pro plan with access to all premium features."
-                  : "Upgrade to Pro to unlock advanced reporting and unlimited projects."}
+                {dbUser?.organization?.quickbooksRealmId
+                  ? "Your account is linked to QuickBooks Online. You can now export finalized invoices."
+                  : "Connect your QuickBooks Online account to automatically export invoices and sync customers."}
               </p>
             </div>
-            <button className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap ">
-              Manage Billing
-            </button>
+            {isAdmin && !dbUser?.organization?.quickbooksRealmId && (
+              <a
+                href={`http://localhost:3000/api/quickbooks/auth?orgId=${dbUser?.organizationId}`}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap rounded"
+              >
+                Connect to QuickBooks
+              </a>
+            )}
+            {isAdmin && dbUser?.organization?.quickbooksRealmId && (
+              <button
+                className="bg-slate-100 text-slate-700 border border-slate-300 font-bold py-2 px-4 text-sm whitespace-nowrap cursor-not-allowed opacity-75 rounded"
+                disabled
+              >
+                Connected
+              </button>
+            )}
           </div>
         </div>
 

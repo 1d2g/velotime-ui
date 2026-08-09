@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
   if (!dbUser || !dbUser.organization) {
     return children;
@@ -64,8 +62,10 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
                 try {
                   const { url } = await apiCall("/api/stripe/checkout", "POST");
                   window.location.href = url;
-                } catch (e) {
-                  alert("Failed to initiate checkout.");
+                } catch {
+                  alert(
+                    "Failed to redirect to billing portal. Please contact support."
+                  );
                 }
               }}
               className="w-full bg-slate-900 hover:bg-slate-900 text-white font-bold py-4 px-8 transition-transform transform hover:scale-[1.02] active:scale-[0.98]"
