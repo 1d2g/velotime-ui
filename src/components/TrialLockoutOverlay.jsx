@@ -70,7 +70,7 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
               }}
               className="w-full bg-slate-900 hover:bg-slate-900 text-white font-bold py-4 px-8 transition-transform transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              Upgrade to Pro — $9/mo
+              Upgrade to Pro — $5/seat
             </button>
           ) : (
             <div className="bg-slate-100 dark:bg-zinc-800 p-4 text-slate-600 dark:text-slate-400 dark:text-slate-600 text-sm font-medium">
