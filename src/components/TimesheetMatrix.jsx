@@ -715,8 +715,8 @@ export default function TimesheetMatrix({
                 className="sticky top-0 left-0 z-50 bg-white dark:bg-zinc-900 h-16 border-b border-r border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] "
                 colSpan={3}
               >
-                <div className="flex items-center gap-4">
-                  {timeframe === "week" && (
+                <div className="flex flex-col items-center justify-center h-full w-full gap-1.5 py-1">
+                  <div className="flex items-center justify-center gap-4">
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
                       <input
                         type="checkbox"
@@ -726,34 +726,34 @@ export default function TimesheetMatrix({
                       />
                       <span>Weekends</span>
                     </label>
-                  )}
-                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
-                    <input
-                      type="checkbox"
-                      className="w-3.5 h-3.5 text-red-500 focus:ring-red-500 border-slate-300 dark:border-zinc-700 rounded cursor-pointer bg-transparent"
-                      checked={showMissingNotes}
-                      onChange={(e) => setShowMissingNotes(e.target.checked)}
-                    />
-                    <span className={showMissingNotes ? "text-red-600 " : ""}>
-                      Audit Notes
-                    </span>
-                  </label>
-                </div>
-                {timeframe === "week" && (
-                  <div className="mt-2">
-                    {isLocked ? (
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Week Locked</span>
-                    ) : (
-                      <button
-                        onClick={handleSubmitWeek}
-                        disabled={isSubmitting || totalHours === 0}
-                        className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-3 py-1.5 rounded transition-colors"
-                      >
-                        {isSubmitting ? "Submitting..." : "Submit for Approval"}
-                      </button>
-                    )}
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-3.5 h-3.5 text-red-500 focus:ring-red-500 border-slate-300 dark:border-zinc-700 rounded cursor-pointer bg-transparent"
+                        checked={showMissingNotes}
+                        onChange={(e) => setShowMissingNotes(e.target.checked)}
+                      />
+                      <span className={showMissingNotes ? "text-red-600 " : ""}>
+                        Audit Notes
+                      </span>
+                    </label>
                   </div>
-                )}
+                  {timeframe === "week" && (
+                    <div>
+                      {isLocked ? (
+                        <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">Week Locked</span>
+                      ) : (
+                        <button
+                          onClick={handleSubmitWeek}
+                          disabled={isSubmitting || totalHours === 0}
+                          className="text-[10px] font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-3 py-1 rounded transition-colors shadow-sm"
+                        >
+                          {isSubmitting ? "Submitting..." : "Submit for Approval"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </th>
               <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
 
