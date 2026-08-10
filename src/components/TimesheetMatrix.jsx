@@ -65,15 +65,13 @@ export default function TimesheetMatrix({
     setIsSubmitting(true);
     try {
       const weekStart = propDates[0].id;
-      const res = await apiCall('/api/timesheet-submissions', {
-        method: 'POST',
-        body: JSON.stringify({ weekStartDate: weekStart })
-      });
-      if (res.ok) {
-        forceSync();
-      } else {
-        console.error('Failed to submit');
-      }
+      await apiCall(
+        '/api/timesheet-submissions', 
+        'POST', 
+        { weekStartDate: weekStart },
+        'Timesheet submitted successfully!'
+      );
+      forceSync();
     } catch (e) {
       console.error(e);
     } finally {
