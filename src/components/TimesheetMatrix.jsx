@@ -5,6 +5,7 @@ import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
+import { motion } from "framer-motion";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -37,6 +38,9 @@ export default function TimesheetMatrix({
   const [showMissingNotes, setShowMissingNotes] = useState(false);
   const [showWeekends, setShowWeekends] = useState(false);
 
+  // Sorting State
+  const [sortMode, setSortMode] = useState("manual"); // 'manual', 'client', 'hours', 'az'
+
   const { t } = useTranslation();
 
   const dates = useMemo(() => {
@@ -47,6 +51,35 @@ export default function TimesheetMatrix({
       return day !== 0 && day !== 6;
     });
   }, [propDates, timeframe, showWeekends]);
+
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+    let p = [...projects];
+    if (sortMode === 'client') {
+      p.sort((a, b) => {
+        const clientA = a.client?.name?.toLowerCase() || 'zzz';
+        const clientB = b.client?.name?.toLowerCase() || 'zzz';
+        if (clientA < clientB) return -1;
+        if (clientA > clientB) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    } else if (sortMode === 'az') {
+      p.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortMode === 'hours') {
+      p.sort((a, b) => {
+        const aHours = a.tasks.reduce((sum, t) => {
+          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        }, 0);
+        const bHours = b.tasks.reduce((sum, t) => {
+          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        }, 0);
+        return bHours - aHours;
+      });
+    } else {
+      p.sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+    return p;
+  }, [projects, sortMode, dates, entries, viewUserId]);
 
   // Compute if the current view is locked
   const isLocked = useMemo(() => {
@@ -177,6 +210,24 @@ export default function TimesheetMatrix({
   const writeAllowed = dbUser
     ? (dbUser.role === "admin" || dbUser.role === "manager") && !isLocked
     : !isLocked;
+
+  const visibleColKeys = useMemo(() => {
+    const keys = [];
+    sortedProjects.forEach((p) => {
+      if (p.isCollapsed) {
+        keys.push(`proj_${p.id}`);
+      } else {
+        p.tasks.forEach((t) => {
+          keys.push(t.id);
+        });
+        keys.push(`add_task_${p.id}`);
+      }
+    });
+    keys.push("add_project");
+    return keys;
+  }, [sortedProjects]);
+
+  const filteredProjects = sortedProjects;
 
   const gridRows = useMemo(() => {
     const rows = [];
@@ -705,6 +756,28 @@ export default function TimesheetMatrix({
         ></div>
       )}
 
+      {/* Sort Control Panel */}
+      <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-zinc-950 border-b border-slate-300 dark:border-zinc-700 shrink-0">
+        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-2">Sort Projects:</span>
+        {[
+          { id: 'manual', label: 'Manual (Drag)', icon: 'M8 9h8M8 15h8' },
+          { id: 'client', label: 'Client', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+          { id: 'hours', label: 'Hours', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { id: 'az', label: 'A-Z', icon: 'M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12' }
+        ].map(mode => (
+          <button
+            key={mode.id}
+            onClick={() => setSortMode(mode.id)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${sortMode === mode.id ? "bg-primary-600 text-white shadow-sm" : "bg-white dark:bg-zinc-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-700"}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mode.icon} />
+            </svg>
+            {mode.label}
+          </button>
+        ))}
+      </div>
+
       <div className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors">
         <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
           <thead ref={theadRef}>
@@ -757,18 +830,35 @@ export default function TimesheetMatrix({
 
               {filteredProjects.map((p, pIndex) => (
                 <React.Fragment key={`tier1_${p.id}`}>
-                  <th
-                    className={`sticky top-0 border-b border-slate-300 dark:border-zinc-700 px-2 h-16 bg-primary-100 text-slate-900 dark:text-slate-100 font-semibold z-30 transition-all duration-200 ${p.isCollapsed ? "w-24 min-w-[6rem] max-w-[6rem]" : ""} ${pIndex === 0 ? "tour-project-header" : ""}`}
-                    colSpan={p.isCollapsed ? 1 : p.tasks.length}
+                  <motion.th
+                    layout
+                    draggable={sortMode === 'manual'}
+                    onDragStart={(e) => { 
+                      e.dataTransfer.setData('projectId', p.id); 
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => { 
+                      e.preventDefault(); 
+                      e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const draggedId = e.dataTransfer.getData('projectId');
+                      if (draggedId && draggedId !== p.id && onReorderProject) {
+                        onReorderProject(draggedId, p.id);
+                      }
+                    }}
+                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                    colSpan={p.isCollapsed ? 1 : p.tasks.length + 1}
                   >
-                    <div className="sticky left-[18rem] flex items-center justify-start px-2 h-full w-max max-w-full gap-2">
+                    <div className="flex items-center justify-between">
                       <button
                         onClick={() => onToggleCollapse(p.id)}
-                        className="text-primary-600 hover:text-blue-800 bg-white dark:bg-zinc-900/40 hover:bg-white dark:bg-zinc-900 rounded p-1 transition-all duration-200 flex-shrink-0 "
-                        title="Collapse Project (Ctrl+Space)"
+                        className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none p-1 rounded-sm transition-colors mr-1 shrink-0"
+                        title={p.isCollapsed ? "Expand Project" : "Collapse Project"}
                       >
                         <svg
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${p.isCollapsed ? "rotate-0" : "rotate-180"}`}
+                          className={`w-3.5 h-3.5 transform transition-transform duration-200 ${p.isCollapsed ? "-rotate-90" : "rotate-0"}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -776,19 +866,32 @@ export default function TimesheetMatrix({
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth="3"
+                            strokeWidth="2.5"
                             d="M9 5l7 7-7 7"
                           />
                         </svg>
                       </button>
                       <span
-                        className="truncate flex-1 text-left text-sm"
-                        title={p.name}
+                        className="truncate flex-1 text-left text-sm select-none"
+                        title={p.client ? `${p.client.name} | ${p.name}` : p.name}
                       >
-                        {p.name}
+                        {p.client ? (
+                          <>
+                            <span className="text-slate-400 dark:text-slate-500 font-medium mr-1.5">{p.client.name}</span>
+                            <span className="text-slate-300 dark:border-zinc-600 mr-1.5">|</span>
+                            {p.name}
+                          </>
+                        ) : (
+                          p.name
+                        )}
                       </span>
+                      {sortMode === 'manual' && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-slate-300 mx-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        </div>
+                      )}
                     </div>
-                  </th>
+                  </motion.th>
                   {!p.isCollapsed && (
                     <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
                   )}
@@ -833,12 +936,12 @@ export default function TimesheetMatrix({
               <th
                 className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
-                Client
+                Day
               </th>
               <th
                 className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
-                Project
+                Date
               </th>
               <th
                 className={`${stickyLeft3} bg-primary-50 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-primary-800 border-b border-slate-300 dark:border-zinc-700`}

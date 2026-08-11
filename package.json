@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.6",
+    "@hello-pangea/dnd": "^18.0.1",
+    "framer-motion": "^13.1.0",
     "html2pdf.js": "^0.14.0",
     "i18next": "^26.3.6",
     "lucide-react": "^1.31.0",
