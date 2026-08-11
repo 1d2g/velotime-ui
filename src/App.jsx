@@ -471,19 +471,34 @@ export default function App() {
     }
   };
 
-  const handleReorderProject = async (projectId, direction) => {
+  const handleReorderProject = async (projectId, targetOrDirection) => {
     setProjects((prev) => {
       const idx = prev.findIndex((p) => p.id === projectId);
       if (idx < 0) return prev;
-      if (direction === "left" && idx === 0) return prev;
-      if (direction === "right" && idx === prev.length - 1) return prev;
 
       const newProjects = [...prev];
-      const swapIdx = direction === "left" ? idx - 1 : idx + 1;
 
-      const temp = newProjects[idx];
-      newProjects[idx] = newProjects[swapIdx];
-      newProjects[swapIdx] = temp;
+      if (targetOrDirection === "left") {
+        if (idx === 0) return prev;
+        const temp = newProjects[idx];
+        newProjects[idx] = newProjects[idx - 1];
+        newProjects[idx - 1] = temp;
+      } else if (targetOrDirection === "right") {
+        if (idx === prev.length - 1) return prev;
+        const temp = newProjects[idx];
+        newProjects[idx] = newProjects[idx + 1];
+        newProjects[idx + 1] = temp;
+      } else {
+        // It's a targetId from drag-and-drop
+        const targetIdx = prev.findIndex((p) => p.id === targetOrDirection);
+        if (targetIdx < 0 || targetIdx === idx) return prev;
+        
+        const [movedProject] = newProjects.splice(idx, 1);
+        newProjects.splice(targetIdx, 0, movedProject);
+      }
+
+      // Re-assign sortOrder locally so they match visual order
+      newProjects.forEach((p, i) => { p.sortOrder = i; });
 
       const projectIds = newProjects.map((p) => p.id);
       apiCall("/api/projects/reorder", "PUT", { projectIds }).catch((e) =>

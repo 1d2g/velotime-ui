@@ -813,8 +813,7 @@ export default function TimesheetMatrix({
 
               {filteredProjects.map((p, pIndex) => (
                 <React.Fragment key={`tier1_${p.id}`}>
-                  <motion.th
-                    layout
+                  <th
                     draggable={sortMode === 'manual'}
                     onDragStart={(e) => { 
                       e.dataTransfer.setData('projectId', p.id); 
@@ -832,7 +831,7 @@ export default function TimesheetMatrix({
                       }
                     }}
                     className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                    colSpan={p.isCollapsed ? 1 : p.tasks.length + 1}
+                    colSpan={p.isCollapsed ? 1 : (p.tasks.length === 0 ? 1 : p.tasks.length)}
                   >
                     <div className="flex items-center justify-between">
                       <button
@@ -874,8 +873,8 @@ export default function TimesheetMatrix({
                         </div>
                       )}
                     </div>
-                  </motion.th>
-                  {!p.isCollapsed && (
+                  </th>
+                  {!p.isCollapsed && p.tasks.length > 0 && (
                     <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
                   )}
                   <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
