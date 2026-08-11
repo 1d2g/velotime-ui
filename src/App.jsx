@@ -361,7 +361,7 @@ export default function App() {
     }
   };
 
-  const handleAddProject = async (projectName) => {
+  const handleAddProject = async (projectName, clientId) => {
     if (!projectName?.trim()) {
       addToast("Project name cannot be empty", "error");
       return;
@@ -370,6 +370,7 @@ export default function App() {
     const tempProject = {
       id: tempId,
       name: projectName,
+      clientId: clientId || null,
       isCollapsed: false,
       tasks: [],
       createdAt: new Date().toISOString(),
@@ -379,7 +380,7 @@ export default function App() {
       const savedProject = await apiCall(
         "/api/projects",
         "POST",
-        { name: projectName },
+        { name: projectName, clientId: clientId || undefined },
         "Project created",
       );
       setProjects((prev) =>
