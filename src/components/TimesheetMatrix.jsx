@@ -52,35 +52,6 @@ export default function TimesheetMatrix({
     });
   }, [propDates, timeframe, showWeekends]);
 
-  const sortedProjects = useMemo(() => {
-    if (!projects) return [];
-    let p = [...projects];
-    if (sortMode === 'client') {
-      p.sort((a, b) => {
-        const clientA = a.client?.name?.toLowerCase() || 'zzz';
-        const clientB = b.client?.name?.toLowerCase() || 'zzz';
-        if (clientA < clientB) return -1;
-        if (clientA > clientB) return 1;
-        return a.name.localeCompare(b.name);
-      });
-    } else if (sortMode === 'az') {
-      p.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortMode === 'hours') {
-      p.sort((a, b) => {
-        const aHours = a.tasks.reduce((sum, t) => {
-          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
-        }, 0);
-        const bHours = b.tasks.reduce((sum, t) => {
-          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
-        }, 0);
-        return bHours - aHours;
-      });
-    } else {
-      p.sort((a, b) => a.sortOrder - b.sortOrder);
-    }
-    return p;
-  }, [projects, sortMode, dates, entries, viewUserId]);
-
   // Compute if the current view is locked
   const isLocked = useMemo(() => {
     if (timeframe !== 'week' || !propDates.length) return false;
@@ -211,23 +182,7 @@ export default function TimesheetMatrix({
     ? (dbUser.role === "admin" || dbUser.role === "manager") && !isLocked
     : !isLocked;
 
-  const visibleColKeys = useMemo(() => {
-    const keys = [];
-    sortedProjects.forEach((p) => {
-      if (p.isCollapsed) {
-        keys.push(`proj_${p.id}`);
-      } else {
-        p.tasks.forEach((t) => {
-          keys.push(t.id);
-        });
-        keys.push(`add_task_${p.id}`);
-      }
-    });
-    keys.push("add_project");
-    return keys;
-  }, [sortedProjects]);
 
-  const filteredProjects = sortedProjects;
 
   const gridRows = useMemo(() => {
     const rows = [];
@@ -243,19 +198,47 @@ export default function TimesheetMatrix({
   const rowKeys = gridRows.map((r) => r.id);
 
   const filteredProjects = useMemo(() => {
-    if (!searchQuery) return projects;
-    const lowerQ = searchQuery.toLowerCase();
-    return projects.filter((p) => p.name.toLowerCase().includes(lowerQ));
-  }, [projects, searchQuery]);
+    let p = [...projects];
+    if (searchQuery) {
+      const lowerQ = searchQuery.toLowerCase();
+      p = p.filter((proj) => proj.name.toLowerCase().includes(lowerQ));
+    }
+    if (sortMode === 'client') {
+      p.sort((a, b) => {
+        const clientA = a.client?.name?.toLowerCase() || 'zzz';
+        const clientB = b.client?.name?.toLowerCase() || 'zzz';
+        if (clientA < clientB) return -1;
+        if (clientA > clientB) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    } else if (sortMode === 'az') {
+      p.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortMode === 'hours') {
+      p.sort((a, b) => {
+        const aHours = a.tasks.reduce((sum, t) => {
+          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        }, 0);
+        const bHours = b.tasks.reduce((sum, t) => {
+          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        }, 0);
+        return bHours - aHours;
+      });
+    } else {
+      p.sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+    return p;
+  }, [projects, searchQuery, sortMode, dates, entries, viewUserId]);
 
-  const visibleColKeys = [
-    ...filteredProjects.flatMap((p) =>
-      p.isCollapsed
-        ? [`proj_${p.id}`]
-        : [...p.tasks.map((t) => t.id), `add_task_${p.id}`],
-    ),
-    "add_project",
-  ];
+  const visibleColKeys = useMemo(() => {
+    return [
+      ...filteredProjects.flatMap((p) =>
+        p.isCollapsed
+          ? [`proj_${p.id}`]
+          : [...p.tasks.map((t) => t.id), `add_task_${p.id}`],
+      ),
+      "add_project",
+    ];
+  }, [filteredProjects]);
 
   // Helper to determine if a specific date row is the active one
   const activeDateId = useMemo(() => {
