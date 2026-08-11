@@ -358,10 +358,27 @@ export default function ProjectsTab({
                     </button>
                   )}
                 </div>
-                {project.client && (
-                  <div className="text-xs text-slate-500 dark:text-slate-400 italic">
-                    {project.client.name}
+                {writeAllowed ? (
+                  <div className="mt-1">
+                    <select
+                      value={project.clientId || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const selectedClient = clients?.find(c => c.id === val) || null;
+                        onUpdateProject(project.id, { clientId: val || null, client: selectedClient });
+                      }}
+                      className="px-2 py-1 text-xs border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 w-48"
+                    >
+                      <option value="">No Client Assigned</option>
+                      {clients?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
                   </div>
+                ) : (
+                  project.client && (
+                    <div className="text-xs text-slate-500 dark:text-slate-400 italic">
+                      {project.client.name}
+                    </div>
+                  )
                 )}
               </div>
             )}
@@ -481,21 +498,6 @@ export default function ProjectsTab({
                     />
                   </div>
                 )}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Client</label>
-                  <select
-                    value={project.clientId || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const selectedClient = clients?.find(c => c.id === val) || null;
-                      onUpdateProject(project.id, { clientId: val || null, client: selectedClient });
-                    }}
-                    className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 text-sm w-48"
-                  >
-                    <option value="">No Client</option>
-                    {clients?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
                 <button
                   onClick={async () => {
                     try {
