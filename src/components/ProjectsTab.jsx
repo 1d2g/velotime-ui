@@ -161,6 +161,7 @@ export default function ProjectsTab({
   onEditTaskName,
   clients,
   onAddClient,
+  onUpdateProject,
 }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
@@ -179,6 +180,8 @@ export default function ProjectsTab({
   const [isCreatingProj, setIsCreatingProj] = useState(false);
   const [newProjName, setNewProjName] = useState("");
   const [newProjClientId, setNewProjClientId] = useState("");
+  const [isCreatingInlineClient, setIsCreatingInlineClient] = useState(false);
+  const [newInlineClientName, setNewInlineClientName] = useState("");
 
   const [newClientName, setNewClientName] = useState("");
 
@@ -337,26 +340,28 @@ export default function ProjectsTab({
                 </form>
               </div>
             ) : (
-              <div className="flex items-center gap-3 group">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                  {project.name}
-                </h2>
-                {writeAllowed && (
-                  <button
-                    onClick={() => {
-                      setDetailProjEditing(true);
-                      setDetailProjName(project.name);
-                    }}
-                    className="text-sm opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-slate-600 hover:text-primary-600 p-1"
-                    title="Click to edit project name"
-                  >
-                    ✏️
-                  </button>
-                )}
-                {project.budgetType !== "NONE" && (
-                  <span className="ml-4 px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold uppercase rounded">
-                    Budget: {project.budgetLimit} {project.budgetType === "CURRENCY" ? "USD" : "Hours"}
-                  </span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3 group">
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                    {project.name}
+                  </h2>
+                  {writeAllowed && (
+                    <button
+                      onClick={() => {
+                        setDetailProjEditing(true);
+                        setDetailProjName(project.name);
+                      }}
+                      className="text-sm opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-slate-600 hover:text-primary-600 p-1"
+                      title="Click to edit project name"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                </div>
+                {project.client && (
+                  <div className="text-xs text-slate-500 dark:text-slate-400 italic">
+                    {project.client.name}
+                  </div>
                 )}
               </div>
             )}
@@ -476,6 +481,21 @@ export default function ProjectsTab({
                     />
                   </div>
                 )}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Client</label>
+                  <select
+                    value={project.clientId || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const selectedClient = clients?.find(c => c.id === val) || null;
+                      onUpdateProject(project.id, { clientId: val || null, client: selectedClient });
+                    }}
+                    className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 text-sm w-48"
+                  >
+                    <option value="">No Client</option>
+                    {clients?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
                 <button
                   onClick={async () => {
                     try {
@@ -837,16 +857,65 @@ export default function ProjectsTab({
                     className="w-full px-3 py-1.5 border border-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 mb-2"
                     autoFocus
                   />
-                  <select
-                    value={newProjClientId}
-                    onChange={(e) => setNewProjClientId(e.target.value)}
-                    className="w-full px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300"
-                  >
-                    <option value="">No Client</option>
-                    {clients?.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  {!isCreatingInlineClient ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={newProjClientId}
+                        onChange={(e) => setNewProjClientId(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300"
+                      >
+                        <option value="">No Client</option>
+                        {clients?.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setIsCreatingInlineClient(true)}
+                        className="text-xs text-primary-600 hover:text-blue-800 font-bold whitespace-nowrap"
+                      >
+                        + New
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-950 p-1.5 border border-slate-300 dark:border-zinc-700">
+                      <input
+                        type="text"
+                        placeholder="Client Name"
+                        value={newInlineClientName}
+                        onChange={(e) => setNewInlineClientName(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter" && newInlineClientName.trim()) {
+                            try {
+                              const nc = await onAddClient(newInlineClientName.trim());
+                              setNewProjClientId(nc.id);
+                              setIsCreatingInlineClient(false);
+                              setNewInlineClientName("");
+                            } catch (err) { }
+                          } else if (e.key === "Escape") {
+                            setIsCreatingInlineClient(false);
+                          }
+                        }}
+                        className="w-full px-2 py-1 text-xs border border-slate-300 dark:border-zinc-700 focus:outline-none bg-white dark:bg-zinc-900"
+                        autoFocus
+                      />
+                      <button 
+                        onClick={async () => {
+                          if (newInlineClientName.trim()) {
+                            try {
+                              const nc = await onAddClient(newInlineClientName.trim());
+                              setNewProjClientId(nc.id);
+                              setIsCreatingInlineClient(false);
+                              setNewInlineClientName("");
+                            } catch (err) { }
+                          }
+                        }}
+                        className="text-xs font-bold text-slate-900 dark:text-slate-100"
+                      >
+                        Save
+                      </button>
+                      <button onClick={() => setIsCreatingInlineClient(false)} className="text-xs text-slate-500">Cancel</button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button

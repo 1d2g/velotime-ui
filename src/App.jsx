@@ -419,6 +419,20 @@ export default function App() {
     }
   };
 
+  const handleUpdateProject = async (projectId, data) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, ...data } : p)),
+    );
+    try {
+      const updated = await apiCall(`/api/projects/${projectId}`, "PUT", data);
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? updated : p)),
+      );
+    } catch (e) {
+      forceSync();
+    }
+  };
+
   const handleDeleteProject = async (projectId) => {
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
     if (projectId.startsWith("temp_")) return;
@@ -1122,6 +1136,7 @@ export default function App() {
                     clients={clients}
                     onAddClient={handleAddClient}
                     onRenameProject={handleRenameProject}
+                    onUpdateProject={handleUpdateProject}
                     onDeleteProject={handleDeleteProject}
                     onAddProject={handleAddProject}
                     onAddTask={handleAddTask}
