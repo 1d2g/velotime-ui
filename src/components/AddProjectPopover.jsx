@@ -16,8 +16,13 @@ export default function AddProjectPopover({
   onAddProject,
   projects,
   writeAllowed,
+  clients,
+  onAddClient,
 }) {
   const [newProjectName, setNewProjectName] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
   const [error, setError] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(-1); // Tracks keyboard navigation
   const inputRef = useRef(null);
@@ -26,6 +31,9 @@ export default function AddProjectPopover({
   useEffect(() => {
     if (isActive && writeAllowed) {
       setNewProjectName("");
+      setSelectedClientId("");
+      setIsCreatingClient(false);
+      setNewClientName("");
       setError("");
       setSelectedIndex(-1);
       setTimeout(() => inputRef.current?.focus(), 10);
@@ -79,8 +87,20 @@ export default function AddProjectPopover({
       return;
     }
 
-    onAddProject(trimmed);
+    onAddProject(trimmed, selectedClientId || undefined);
     onClose();
+  };
+
+  const handleCreateClient = async () => {
+    if (!newClientName.trim()) return;
+    try {
+      const newClient = await onAddClient(newClientName.trim());
+      setSelectedClientId(newClient.id);
+      setIsCreatingClient(false);
+      setNewClientName("");
+    } catch (e) {
+      setError("Failed to create client.");
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -173,6 +193,52 @@ export default function AddProjectPopover({
             >
               Add
             </button>
+          </div>
+
+          <div className="mt-2">
+            {!isCreatingClient ? (
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedClientId}
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                  className="flex-1 px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50 dark:bg-zinc-950 text-slate-700 dark:text-slate-300"
+                >
+                  <option value="">No Client (Optional)</option>
+                  {clients?.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setIsCreatingClient(true)}
+                  className="text-xs text-primary-600 hover:text-blue-800 font-semibold"
+                >
+                  + New
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-950 p-1.5 border border-slate-300 dark:border-zinc-700">
+                <input
+                  type="text"
+                  placeholder="New Client Name"
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateClient();
+                    if (e.key === "Escape") setIsCreatingClient(false);
+                  }}
+                  className="flex-1 px-2 py-1 text-xs border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:outline-none"
+                  autoFocus
+                />
+                <button onClick={handleCreateClient} className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                  Save
+                </button>
+                <button onClick={() => setIsCreatingClient(false)} className="text-xs text-slate-500">
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
 
           <ul

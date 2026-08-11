@@ -81,6 +81,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [entries, setEntries] = useState({});
   const [rawEntries, setRawEntries] = useState([]);
+  const [clients, setClients] = useState([]);
   const [notes, setNotes] = useState({});
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
@@ -289,6 +290,7 @@ export default function App() {
 
         setDbUser(data.user);
         setProjects(data.projects);
+        setClients(data.clients || []);
 
         setOrgUsers(data.orgUsers || []);
         setTaskRates(data.taskRates || []);
@@ -385,6 +387,17 @@ export default function App() {
       );
     } catch (e) {
       setProjects((prev) => prev.filter((p) => p.id !== tempId));
+    }
+  };
+
+  const handleAddClient = async (name) => {
+    try {
+      const data = await apiCall("/api/clients", "POST", { name }, "Client created");
+      setClients((prev) => [...prev, data]);
+      return data;
+    } catch (e) {
+      console.error("Failed to add client", e);
+      throw e;
     }
   };
 
@@ -1073,6 +1086,8 @@ export default function App() {
                             notes={notes}
                             dbUser={dbUser}
                             orgUsers={orgUsers}
+                            clients={clients}
+                            onAddClient={handleAddClient}
                             submissions={submissions}
                             apiCall={apiCall}
                             forceSync={forceSync}
@@ -1103,6 +1118,8 @@ export default function App() {
                     taskRates={taskRates}
                     apiCall={apiCall}
                     forceSync={forceSync}
+                    clients={clients}
+                    onAddClient={handleAddClient}
                     onRenameProject={handleRenameProject}
                     onDeleteProject={handleDeleteProject}
                     onAddProject={handleAddProject}

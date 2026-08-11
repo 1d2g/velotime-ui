@@ -163,6 +163,8 @@ export default function ProjectsTab({
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
 
+  const [activeSubTab, setActiveSubTab] = useState("Projects");
+
   // Budget Editing State
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [budgetType, setBudgetType] = useState('NONE');
@@ -172,9 +174,11 @@ export default function ProjectsTab({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name-asc");
 
-  // New Project State
   const [isCreatingProj, setIsCreatingProj] = useState(false);
   const [newProjName, setNewProjName] = useState("");
+  const [newProjClientId, setNewProjClientId] = useState("");
+
+  const [newClientName, setNewClientName] = useState("");
 
   // Inline project renaming on Master list
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -672,12 +676,85 @@ export default function ProjectsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-            Active Projects
+            {activeSubTab === "Projects" ? "Active Projects" : "Client Directory"}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-            Manage project configurations, tasks, and track logged hours.
+            {activeSubTab === "Projects"
+              ? "Manage project configurations, tasks, and track logged hours."
+              : "Manage your organization's clients to group and filter timesheets."}
           </p>
         </div>
+
+        <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 shrink-0 rounded-full border border-slate-300 dark:border-zinc-700">
+          <button
+            onClick={() => setActiveSubTab("Projects")}
+            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${activeSubTab === "Projects" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"}`}
+          >
+            Projects
+          </button>
+          {writeAllowed && (
+            <button
+              onClick={() => setActiveSubTab("Clients")}
+              className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${activeSubTab === "Clients" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"}`}
+            >
+              Clients
+            </button>
+          )}
+        </div>
+      </div>
+
+      {activeSubTab === "Clients" ? (
+        <div className="max-w-2xl">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 mb-8">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider mb-4">Create New Client</h3>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Client Name..."
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newClientName.trim()) {
+                    onAddClient(newClientName.trim());
+                    setNewClientName("");
+                  }
+                }}
+                className="flex-1 px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm"
+              />
+              <button
+                onClick={() => {
+                  if (newClientName.trim()) {
+                    onAddClient(newClientName.trim());
+                    setNewClientName("");
+                  }
+                }}
+                className="px-6 py-2 bg-slate-900 text-white text-sm font-bold"
+              >
+                Add Client
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
+            {clients?.length > 0 ? (
+              <ul className="divide-y divide-slate-300 dark:divide-zinc-700">
+                {clients.map(client => (
+                  <li key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-zinc-950/50">
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">{client.name}</span>
+                    <span className="text-xs text-slate-500 font-medium bg-slate-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                      {client.projects?.length || 0} Projects
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-8 text-center text-slate-500 italic">No clients found.</div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 shrink-0">
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Search bar */}
@@ -746,17 +823,28 @@ export default function ProjectsTab({
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         if (newProjName.trim()) {
-                          onAddProject(newProjName.trim());
+                          onAddProject(newProjName.trim(), newProjClientId || undefined);
                           setNewProjName("");
+                          setNewProjClientId("");
                           setIsCreatingProj(false);
                         }
                       } else if (e.key === "Escape") {
                         setIsCreatingProj(false);
                       }
                     }}
-                    className="w-full px-3 py-1.5 border border-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
+                    className="w-full px-3 py-1.5 border border-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 mb-2"
                     autoFocus
                   />
+                  <select
+                    value={newProjClientId}
+                    onChange={(e) => setNewProjClientId(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="">No Client</option>
+                    {clients?.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button
@@ -771,8 +859,9 @@ export default function ProjectsTab({
                   <button
                     onClick={() => {
                       if (newProjName.trim()) {
-                        onAddProject(newProjName.trim());
+                        onAddProject(newProjName.trim(), newProjClientId || undefined);
                         setNewProjName("");
+                        setNewProjClientId("");
                         setIsCreatingProj(false);
                       }
                     }}
@@ -1006,6 +1095,8 @@ export default function ProjectsTab({
             }
           }}
         />
+      )}
+      </>
       )}
     </div>
   );

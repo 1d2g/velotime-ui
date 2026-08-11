@@ -14,6 +14,8 @@ export default function TimesheetMatrix({
   notes = {},
   dbUser,
   orgUsers,
+  clients,
+  onAddClient,
   submissions = [],
   apiCall,
   forceSync,
@@ -860,7 +862,7 @@ export default function TimesheetMatrix({
                         {p.client ? (
                           <>
                             <span className="text-slate-400 dark:text-slate-500 font-medium mr-1.5">{p.client.name}</span>
-                            <span className="text-slate-300 dark:border-zinc-600 mr-1.5">|</span>
+                            <span className="text-slate-300 dark:text-zinc-600 mr-1.5">|</span>
                             {p.name}
                           </>
                         ) : (
@@ -910,6 +912,8 @@ export default function TimesheetMatrix({
                   onAddProject={onAddProject}
                   projects={projects}
                   writeAllowed={writeAllowed}
+                  clients={clients}
+                  onAddClient={onAddClient}
                 />
               </th>
             </tr>
@@ -943,7 +947,7 @@ export default function TimesheetMatrix({
                       {p.tasks.map((t) => (
                         <th
                           key={t.id}
-                          className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
+                          className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
                         >
                           <span className="truncate block w-full px-2">
                             {t.name}
