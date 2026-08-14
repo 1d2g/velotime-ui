@@ -11,19 +11,11 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
     setIsProcessing(true);
     try {
       const note = status === 'rejected' ? rejectNote[id] : null;
-      const res = await apiCall(`/api/timesheet-submissions/${id}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status, note })
-      });
-      if (res.ok) {
-        addToast(`Timesheet ${status} successfully!`, 'success');
-        forceSync();
-      } else {
-        const err = await res.json();
-        addToast(err.error || 'Failed to update status', 'error');
-      }
+      await apiCall(`/api/timesheet-submissions/${id}/status`, 'PUT', { status, note });
+      addToast(`Timesheet ${status} successfully!`, 'success');
+      forceSync();
     } catch (e) {
-      addToast('Network error', 'error');
+      // apiCall handles error toasts internally
     } finally {
       setIsProcessing(false);
     }
