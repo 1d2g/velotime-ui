@@ -833,8 +833,7 @@ export default function TimesheetMatrix({
                         onReorderProject(draggedId, p.id);
                       }
                     }}
-                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                    colSpan={p.isCollapsed ? 1 : (p.tasks.length === 0 ? 1 : p.tasks.length)}
+                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-l border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''}`}
                   >
                     <div className="flex items-center justify-between">
                       <button
@@ -878,7 +877,7 @@ export default function TimesheetMatrix({
                     </div>
                   </th>
                   {!p.isCollapsed && p.tasks.length > 0 && (
-                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-b border-r border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
+                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
                   )}
                   <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
                 </React.Fragment>
@@ -945,10 +944,10 @@ export default function TimesheetMatrix({
                     </th>
                   ) : (
                     <>
-                      {p.tasks.map((t) => (
+                      {p.tasks.map((t, index) => (
                         <th
                           key={t.id}
-                          className="group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative"
+                          className={`group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative ${index === 0 ? "border-l" : ""}`}
                         >
                           <span className="truncate block w-full px-2">
                             {t.name}
@@ -1098,7 +1097,7 @@ export default function TimesheetMatrix({
                           />
                         ) : (
                           <>
-                            {p.tasks.map((t) => {
+                            {p.tasks.map((t, index) => {
                               const cellKey = `${viewUserId}_${dateObj.id}_${t.id}`;
                               const cIndex = visibleColKeys.indexOf(t.id);
                               const isSelected =
@@ -1107,6 +1106,7 @@ export default function TimesheetMatrix({
                               return (
                                 <TimesheetNoteCell
                                   key={`note_cell_${cellKey}`}
+                                  isFirstInProject={index === 0}
                                   rowId={gridRow.id}
                                   dateId={dateObj.id}
                                   taskId={t.id}
@@ -1554,6 +1554,7 @@ function TimesheetNoteCell({
   calculatedHeight,
   onNoteChange,
   onSelect,
+  isFirstInProject,
 }) {
   const [localValue, setLocalValue] = useState(value || "");
   const textareaRef = useRef(null);
@@ -1599,6 +1600,7 @@ function TimesheetNoteCell({
       }}
       className={`p-0 relative transition-all duration-200 cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
  ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}
+ ${isFirstInProject ? (isActive ? "border-l border-slate-300 dark:border-zinc-700" : "border-l border-transparent") : ""}
  ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/30 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-slate-50 dark:bg-zinc-950/10"}
  `}
     >

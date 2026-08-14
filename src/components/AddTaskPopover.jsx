@@ -110,7 +110,7 @@ export default function AddTaskPopover({
   return (
     // THE Z-INDEX FIX: Elevates to z-[60] when active so it naturally floats above sticky right columns
     <th
-      className={`sticky top-16 bg-white dark:bg-zinc-900 w-20 h-16 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-visible relative transition-colors ${isActive ? "z-[60]" : "z-30"}`}
+      className={`sticky top-16 bg-white dark:bg-zinc-900 w-20 h-16 border-b border-r border-slate-300 dark:border-zinc-700 animate-task-btn overflow-visible relative transition-colors ${isActive ? "z-[60]" : "z-30"}`}
     >
       <div className="absolute inset-0 w-full h-full p-1 flex items-center justify-center border-l border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 transition-colors">
         <button
