@@ -49,8 +49,9 @@ export default function TimesheetMatrix({
     return propDates.filter(d => {
       if (timeframe !== 'week') return true;
       if (showWeekends) return true;
-      const day = new Date(d.id).getDay();
-      return day !== 0 && day !== 6;
+      const dateObj = new Date(d.id + 'T12:00:00');
+      const dayOfWeek = dateObj.getDay();
+      return dayOfWeek !== 0 && dayOfWeek !== 6;
     });
   }, [propDates, timeframe, showWeekends]);
 
@@ -877,7 +878,7 @@ export default function TimesheetMatrix({
                     </div>
                   </th>
                   {!p.isCollapsed && p.tasks.length > 0 && (
-                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
+                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-b border-r border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
                   )}
                   <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
                 </React.Fragment>
