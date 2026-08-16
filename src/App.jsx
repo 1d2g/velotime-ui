@@ -1148,6 +1148,7 @@ export default function App() {
                   <ProjectsTab
                     projects={projects}
                     entries={entries}
+                    rawEntries={rawEntries}
                     dbUser={dbUser}
                     orgUsers={orgUsers}
                     taskRates={taskRates}

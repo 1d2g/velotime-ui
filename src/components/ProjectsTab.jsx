@@ -151,9 +151,10 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
 export default function ProjectsTab({
   projects,
   entries,
+  rawEntries = [],
   dbUser,
   orgUsers,
-  taskRates,
+  taskRates = [],
   apiCall,
   forceSync,
   onRenameProject,
@@ -240,12 +241,35 @@ export default function ProjectsTab({
   };
 
   const getProjectTotalHours = (project) => {
+    if (!project?.tasks) return 0;
+    if (rawEntries && rawEntries.length > 0) {
+      const taskIds = new Set(project.tasks.map((t) => t.id));
+      return rawEntries
+        .filter((e) => taskIds.has(e.taskId))
+        .reduce((sum, e) => sum + (parseFloat(e.hours) || 0), 0);
+    }
     return project.tasks.reduce((total, task) => {
       const taskHours = Object.entries(entries)
         .filter(([key]) => key.endsWith(`_${task.id}`))
         .reduce((sum, [, hours]) => sum + (parseFloat(hours) || 0), 0);
       return total + taskHours;
     }, 0);
+  };
+
+  const getProjectSpend = (project) => {
+    if (!project?.tasks) return 0;
+    if (rawEntries && rawEntries.length > 0) {
+      const taskIds = new Set(project.tasks.map((t) => t.id));
+      return rawEntries
+        .filter((e) => taskIds.has(e.taskId))
+        .reduce((sum, e) => {
+          const tRate = taskRates?.find((tr) => tr.taskId === e.taskId && tr.userId === e.userId);
+          const user = orgUsers?.find((u) => u.id === e.userId);
+          const rate = (tRate && tRate.billingRate) || (user && user.defaultBillingRate) || 0;
+          return sum + ((parseFloat(e.hours) || 0) * rate);
+        }, 0);
+    }
+    return 0;
   };
 
   const handleStartEdit = (task) => {
@@ -533,6 +557,64 @@ export default function ProjectsTab({
                   Save Budget
                 </button>
               </div>
+            </div>
+          )}
+
+          {project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE' && (
+            <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Project Budget Status
+                  </span>
+                  <div className="text-lg font-black text-slate-900 dark:text-slate-100">
+                    {(project.budgetType === 'HOURS' || project.budgetType === 'hours') ? (
+                      <>
+                        {getProjectTotalHours(project).toFixed(2)} / {project.budgetLimit} hrs
+                        <span className="text-sm font-medium text-slate-500 ml-2">
+                          ({project.budgetLimit - getProjectTotalHours(project) > 0 ? (project.budgetLimit - getProjectTotalHours(project)).toFixed(2) : '0.00'} hrs remaining)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        ${getProjectSpend(project).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${project.budgetLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        <span className="text-sm font-medium text-slate-500 ml-2">
+                          (${Math.max(0, project.budgetLimit - getProjectSpend(project)).toLocaleString('en-US', { minimumFractionDigits: 2 })} remaining)
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  {(() => {
+                    const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                      ? getProjectTotalHours(project) / project.budgetLimit
+                      : getProjectSpend(project) / project.budgetLimit;
+                    const percent = Math.round(ratio * 100);
+                    const colorClass = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+                    return (
+                      <span className={`text-2xl font-black ${colorClass}`}>
+                        {percent}%
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+              {(() => {
+                const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                  ? getProjectTotalHours(project) / project.budgetLimit
+                  : getProjectSpend(project) / project.budgetLimit;
+                const percent = Math.min(100, Math.round(ratio * 100));
+                const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
+                return (
+                  <div className="w-full bg-slate-200 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -1076,7 +1158,7 @@ export default function ProjectsTab({
                   setSelectedProjectId(project.id);
                 }
               }}
-              className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 hover: hover:border-slate-900 transition-all cursor-pointer group flex flex-col h-44 relative overflow-hidden"
+              className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 hover:border-slate-900 transition-all cursor-pointer group flex flex-col min-h-48 h-auto justify-between relative overflow-hidden"
             >
               {isConfirmingDelete ? (
                 <div
@@ -1235,13 +1317,53 @@ export default function ProjectsTab({
                     Created: {formatDate(project.createdAt)}
                   </p>
 
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-300 dark:border-zinc-700 ">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
-                      {project.tasks.length} Tasks
-                    </span>
-                    <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-gray-150 px-3 py-1 ">
-                      {totalHours.toFixed(2)} hrs
-                    </span>
+                  <div className="mt-auto pt-3 border-t border-slate-300 dark:border-zinc-700">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
+                        {project.tasks.length} Tasks
+                      </span>
+                      <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-gray-150 px-3 py-1">
+                        {totalHours.toFixed(2)} hrs
+                      </span>
+                    </div>
+                    {project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE' && (
+                      <div className="mt-2.5">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="text-slate-500 font-medium">
+                            {(project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                              ? `${totalHours.toFixed(1)} / ${project.budgetLimit} hrs`
+                              : `$${Math.round(getProjectSpend(project)).toLocaleString()} / $${Math.round(project.budgetLimit).toLocaleString()}`}
+                          </span>
+                          {(() => {
+                            const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                              ? totalHours / project.budgetLimit
+                              : getProjectSpend(project) / project.budgetLimit;
+                            const percent = Math.round(ratio * 100);
+                            const textColor = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+                            return (
+                              <span className={`font-bold ${textColor}`}>
+                                {percent}%
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {(() => {
+                          const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                            ? totalHours / project.budgetLimit
+                            : getProjectSpend(project) / project.budgetLimit;
+                          const percent = Math.min(100, Math.round(ratio * 100));
+                          const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
+                          return (
+                            <div className="w-full bg-slate-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
