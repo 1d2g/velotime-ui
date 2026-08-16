@@ -211,46 +211,116 @@ export default function InvoicesTab({
     window.print();
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!activeInvoice) return;
-    const totalAmount =
-      activeInvoice.lineItems?.reduce((sum, li) => sum + li.amount, 0) || 0;
 
-    const aoa = [
-      ["INVOICE"],
-      [],
-      ["Invoice Number:", activeInvoice.invoiceNumber || "Draft"],
-      ["Client Name:", activeInvoice.clientName || "Unspecified"],
-      ["Client Address:", activeInvoice.clientAddress || ""],
-      ["Date Issued:", formatDate(activeInvoice.dateIssued)],
-      ["Due Date:", formatDate(activeInvoice.dueDate)],
-      ["Status:", (activeInvoice.status || "draft").toUpperCase()],
-      [],
-      ["LINE ITEMS"],
-      ["Description", "Type", "Rate/Hr", "Amount"],
+    // Use exceljs for styled exports
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet('Invoice');
+
+    // Setup Columns
+    ws.columns = [
+      { width: 40 }, // Description
+      { width: 20 }, // QTY / Type
+      { width: 15 }, // Rate
+      { width: 20 }, // Amount
     ];
 
-    (activeInvoice.lineItems || []).forEach((li) => {
-      aoa.push([
-        li.description,
-        li.isHourly ? `${li.hours} hrs` : "Flat",
-        li.isHourly ? li.rate : "",
-        li.amount,
-      ]);
+    // Add INVOICE Title
+    const titleRow = ws.addRow(["INVOICE"]);
+    titleRow.font = { size: 24, bold: true, color: { argb: 'FF0F172A' } }; 
+    ws.addRow([]);
+
+    // Add Header Information
+    const addHeaderRow = (label, value) => {
+      const row = ws.addRow([label, value]);
+      row.getCell(1).font = { bold: true, size: 10, color: { argb: 'FF64748B' } }; 
+      row.getCell(2).font = { bold: true, size: 10, color: { argb: 'FF0F172A' } }; 
+    };
+
+    addHeaderRow("Invoice Number:", activeInvoice.invoiceNumber || "Draft");
+    addHeaderRow("Client Name:", activeInvoice.clientName || "Unspecified");
+    if (activeInvoice.clientAddress) addHeaderRow("Client Address:", activeInvoice.clientAddress);
+    addHeaderRow("Date Issued:", formatDate(activeInvoice.dateIssued));
+    if (activeInvoice.dueDate) addHeaderRow("Due Date:", formatDate(activeInvoice.dueDate));
+    addHeaderRow("Status:", (activeInvoice.status || "draft").toUpperCase());
+    
+    ws.addRow([]);
+
+    // Line Items Header
+    const thRow = ws.addRow(["DESCRIPTION", "QTY / TYPE", "RATE", "AMOUNT"]);
+    thRow.font = { bold: true, size: 10, color: { argb: 'FF475569' } };
+    thRow.eachCell((cell) => {
+      cell.border = { bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
     });
 
-    aoa.push([]);
-    aoa.push(["", "", "TOTAL:", totalAmount]);
+    // Line Items Data
+    (activeInvoice.lineItems || []).forEach((li) => {
+      const row = ws.addRow([
+        li.description,
+        li.isHourly ? `${parseFloat(li.hours).toFixed(2)} hrs` : "Flat",
+        li.isHourly ? li.rate : "",
+        li.amount
+      ]);
+      row.getCell(3).numFmt = '"$"#,##0.00';
+      row.getCell(4).numFmt = '"$"#,##0.00';
+      row.font = { size: 11, color: { argb: 'FF334155' } }; 
+    });
 
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws["!cols"] = [{ wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    // Subtotal, Tax, Total
+    const subtotal = activeInvoice.lineItems?.reduce((sum, li) => sum + li.amount, 0) || 0;
+    const taxAmount = activeInvoice.taxRate ? subtotal * (activeInvoice.taxRate / 100) : 0;
+    const totalAmount = subtotal + taxAmount;
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Invoice");
-    XLSX.writeFile(
-      wb,
-      `Invoice_${activeInvoice.invoiceNumber || "Draft"}.xlsx`,
-    );
+    ws.addRow([]);
+    
+    // Total block formatting
+    const totalStartRow = ws.rowCount + 1;
+    ws.getCell(`C${totalStartRow}`).value = "Subtotal";
+    ws.getCell(`D${totalStartRow}`).value = subtotal;
+    ws.getCell(`D${totalStartRow}`).numFmt = '"$"#,##0.00';
+    ws.getCell(`C${totalStartRow}`).font = { color: { argb: 'FF64748B' }, size: 10 };
+    ws.getCell(`D${totalStartRow}`).font = { color: { argb: 'FF64748B' }, size: 10 };
+
+    if (taxAmount > 0) {
+      const taxRow = ws.rowCount + 1;
+      ws.getCell(`C${taxRow}`).value = `Tax (${activeInvoice.taxRate}%)`;
+      ws.getCell(`D${taxRow}`).value = taxAmount;
+      ws.getCell(`D${taxRow}`).numFmt = '"$"#,##0.00';
+      ws.getCell(`C${taxRow}`).font = { color: { argb: 'FF64748B' }, size: 10 };
+      ws.getCell(`D${taxRow}`).font = { color: { argb: 'FF64748B' }, size: 10 };
+    }
+
+    const finalRow = ws.rowCount + 1;
+    ws.getCell(`C${finalRow}`).value = "Total";
+    ws.getCell(`D${finalRow}`).value = totalAmount;
+    ws.getCell(`D${finalRow}`).numFmt = '"$"#,##0.00';
+    
+    // Style Total
+    ws.getCell(`C${finalRow}`).font = { bold: true, size: 14, color: { argb: 'FF0F172A' } };
+    ws.getCell(`D${finalRow}`).font = { bold: true, size: 14, color: { argb: 'FF0F172A' } };
+    
+    // Add border above Total
+    ws.getCell(`C${finalRow}`).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+    ws.getCell(`D${finalRow}`).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+
+    // Notes
+    if (activeInvoice.notes) {
+      ws.addRow([]);
+      const notesRow = ws.addRow([activeInvoice.notes]);
+      notesRow.font = { italic: true, size: 10, color: { argb: 'FF94A3B8' } };
+    }
+
+    // Export the file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice_${activeInvoice.invoiceNumber || "Draft"}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (activeInvoice) {

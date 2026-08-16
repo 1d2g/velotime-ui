@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.61.6",
     "@hello-pangea/dnd": "^18.0.1",
+    "exceljs": "^4.4.0",
     "framer-motion": "^13.1.0",
     "html2pdf.js": "^0.14.0",
     "i18next": "^26.3.6",
