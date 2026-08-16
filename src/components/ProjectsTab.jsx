@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import AssignTeamModal from "./AssignTeamModal";
+import { useToast } from "../contexts/ToastContext";
 
 // Permission check helper - structured to support easy permission/role restriction in the future.
 const canPerformWriteActions = (dbUser) => {
@@ -17,6 +18,7 @@ const formatDate = (dateString) => {
 };
 
 const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
+  const { addToast } = useToast();
   const [rates, setRates] = useState({});
   const [savingUserId, setSavingUserId] = useState(null);
 
@@ -43,8 +45,9 @@ const TaskRatesPanel = ({ task, orgUsers, taskRates, apiCall, forceSync }) => {
         billingRate: rates[userId].billingRate,
       });
       forceSync();
+      addToast("Rate override saved successfully", "success");
     } catch (e) {
-      alert("Failed to save rate override");
+      addToast("Failed to save rate override", "error");
     } finally {
       setSavingUserId(null);
     }
@@ -156,9 +159,8 @@ export default function ProjectsTab({
   onRenameProject,
   onDeleteProject,
   onAddProject,
-  onAddTask,
   onRemoveTask,
-  onEditTaskName,
+  onEditTask,
   clients,
   onAddClient,
   onUpdateProject,
@@ -200,6 +202,7 @@ export default function ProjectsTab({
 
   // New Task State
   const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskBillable, setNewTaskBillable] = useState(true);
 
   // Delete project confirmation state
   const [confirmDeleteProjectId, setConfirmDeleteProjectId] = useState(null);
@@ -224,9 +227,9 @@ export default function ProjectsTab({
         billingRate,
       });
       forceSync();
-      alert("Successfully updated rate override for all users on this task.");
+      addToast("Successfully updated rate override for all users on this task.", "success");
     } catch (e) {
-      alert("Failed to bulk update rates");
+      addToast("Failed to bulk update rates", "error");
     }
   };
 
@@ -246,8 +249,8 @@ export default function ProjectsTab({
   };
 
   const handleSaveEdit = (projectId) => {
-    if (editName.trim() && editName.trim() !== "" && onEditTaskName) {
-      onEditTaskName(projectId, editingTaskId, editName.trim());
+    if (editName.trim() && editName.trim() !== "" && onEditTask) {
+      onEditTask(projectId, editingTaskId, { name: editName.trim() });
     }
     setEditingTaskId(null);
   };
@@ -422,8 +425,9 @@ export default function ProjectsTab({
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (newTaskName.trim()) {
-                      onAddTask(project.id, { name: newTaskName.trim() });
+                      onAddTask(project.id, { name: newTaskName.trim(), isBillable: newTaskBillable });
                       setNewTaskName("");
+                      setNewTaskBillable(true);
                     }
                   }}
                   className="flex items-center gap-2"
@@ -435,6 +439,15 @@ export default function ProjectsTab({
                     onChange={(e) => setNewTaskName(e.target.value)}
                     className="px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
                   />
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={newTaskBillable}
+                      onChange={(e) => setNewTaskBillable(e.target.checked)}
+                      className="w-3.5 h-3.5 text-primary-600 border-slate-300 dark:border-zinc-700 rounded focus:ring-primary-600"
+                    />
+                    Billable
+                  </label>
                   <button
                     type="submit"
                     disabled={!newTaskName.trim()}
@@ -492,8 +505,8 @@ export default function ProjectsTab({
                       type="number"
                       min="0"
                       step="0.01"
-                      value={budgetLimit}
-                      onChange={e => setBudgetLimit(Number(e.target.value))}
+                      value={budgetLimit || ""}
+                      onChange={e => setBudgetLimit(e.target.value === "" ? 0 : Number(e.target.value))}
                       className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-32"
                     />
                   </div>
@@ -504,8 +517,9 @@ export default function ProjectsTab({
                       await apiCall(`/api/projects/${project.id}`, 'PUT', { budgetType, budgetLimit });
                       forceSync();
                       setIsEditingBudget(false);
+                      addToast("Budget settings saved successfully", "success");
                     } catch (e) {
-                      alert("Failed to save budget settings");
+                      addToast("Failed to save budget settings", "error");
                     }
                   }}
                   className="bg-slate-900 text-white px-4 py-2 font-semibold text-sm hover:bg-slate-800 transition-colors rounded"
@@ -574,14 +588,33 @@ export default function ProjectsTab({
                               />
                             ) : (
                               <div className="flex items-center gap-3">
-                                <span>{task.name}</span>
+                                <span className={`flex items-center gap-2 ${task.isBillable === false ? 'text-slate-500' : ''}`}>
+                                  {task.name}
+                                  {task.isBillable === false && (
+                                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-zinc-800 text-slate-500 px-1.5 py-0.5 rounded tracking-wide uppercase">Non-Billable</span>
+                                  )}
+                                </span>
                                 {writeAllowed && (
-                                  <span
-                                    className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    title="Click to edit"
-                                  >
-                                    ✏️
-                                  </span>
+                                  <>
+                                    <span
+                                      className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Click to edit name"
+                                    >
+                                      ✏️
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onEditTask) {
+                                          onEditTask(project.id, task.id, { isBillable: task.isBillable === false ? true : false });
+                                        }
+                                      }}
+                                      className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary-600 ml-2"
+                                      title={task.isBillable === false ? "Mark as Billable" : "Mark as Non-Billable"}
+                                    >
+                                      {task.isBillable === false ? '💵' : '🚫'}
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             )}
@@ -1162,9 +1195,9 @@ export default function ProjectsTab({
                 userIds,
               });
               forceSync();
-              setAssignTeamProject(null);
-            } catch (err) {
-              alert("Failed to update assignments");
+              addToast("Assignments updated successfully", "success");
+            } catch (e) {
+              addToast("Failed to update assignments", "error");
             }
           }}
         />

@@ -16,6 +16,7 @@ import InvoicesTab from "./components/InvoicesTab";
 import TeamTab from "./components/TeamTab";
 import OrganizationSettingsTab from "./components/OrganizationSettingsTab";
 import ApprovalsTab from "./components/ApprovalsTab";
+import ExpensesTab from "./components/ExpensesTab";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
@@ -86,6 +87,7 @@ export default function App() {
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [expenses, setExpenses] = useState([]);
 
   const { addToast } = useToast();
   const [isSyncing, setIsSyncing] = useState(true);
@@ -106,6 +108,7 @@ export default function App() {
   const navTabs = [
     "Timesheets",
     "Projects",
+    "Expenses",
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
@@ -295,6 +298,7 @@ export default function App() {
         setOrgUsers(data.orgUsers || []);
         setTaskRates(data.taskRates || []);
         setSubmissions(data.submissions || []);
+        setExpenses(data.expenses || []);
 
         const dbEntries = {};
         const dbNotes = {};
@@ -449,7 +453,7 @@ export default function App() {
       return;
     }
     const tempId = `temp_${Date.now()}`;
-    const tempTask = { id: tempId, name: taskToAdd.name };
+    const tempTask = { id: tempId, name: taskToAdd.name, isBillable: taskToAdd.isBillable ?? true };
     setProjects((prev) =>
       prev.map((p) => {
         if (p.id === projectId) return { ...p, tasks: [...p.tasks, tempTask] };
@@ -460,7 +464,7 @@ export default function App() {
       const savedTask = await apiCall(
         "/api/tasks",
         "POST",
-        { name: taskToAdd.name, projectId },
+        { name: taskToAdd.name, projectId, isBillable: taskToAdd.isBillable ?? true },
         "Task created",
       );
       setProjects((prev) =>
@@ -537,7 +541,7 @@ export default function App() {
     });
   };
 
-  const handleEditTaskName = async (projectId, taskId, newName) => {
+  const handleEditTask = async (projectId, taskId, updates) => {
     // 1. Instantly update React state (Optimistic UI)
     setProjects((prev) =>
       prev.map((p) => {
@@ -545,7 +549,7 @@ export default function App() {
           return {
             ...p,
             tasks: p.tasks.map((t) =>
-              t.id === taskId ? { ...t, name: newName } : t,
+              t.id === taskId ? { ...t, ...updates } : t,
             ),
           };
         }
@@ -557,7 +561,7 @@ export default function App() {
 
     // 2. Fire the database update in the background
     try {
-      await apiCall(`/api/tasks/${taskId}`, "PUT", { name: newName });
+      await apiCall(`/api/tasks/${taskId}`, "PUT", updates);
     } catch (e) {
       console.error("Failed to edit task name");
     }
@@ -1141,7 +1145,7 @@ export default function App() {
                     onAddProject={handleAddProject}
                     onAddTask={handleAddTask}
                     onRemoveTask={handleRemoveTask}
-                    onEditTaskName={handleEditTaskName}
+                    onEditTask={handleEditTask}
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Team" ? (
@@ -1175,6 +1179,7 @@ export default function App() {
                     projects={projects}
                     entries={entries}
                     rawEntries={rawEntries}
+                    expenses={expenses}
                     orgUsers={orgUsers}
                     apiCall={apiCall}
                     taskRates={taskRates}
@@ -1187,6 +1192,16 @@ export default function App() {
                     dbUser={dbUser}
                     orgUsers={orgUsers}
                     submissions={submissions}
+                    apiCall={apiCall}
+                    forceSync={forceSync}
+                  />
+                </TrialLockoutOverlay>
+              ) : activeTab === "Expenses" ? (
+                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                  <ExpensesTab
+                    dbUser={dbUser}
+                    expenses={expenses}
+                    projects={projects}
                     apiCall={apiCall}
                     forceSync={forceSync}
                   />

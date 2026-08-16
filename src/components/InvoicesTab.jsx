@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import html2pdf from "html2pdf.js";
+import { useToast } from "../contexts/ToastContext";
 
 export default function InvoicesTab({
   dbUser,
@@ -10,7 +11,9 @@ export default function InvoicesTab({
   apiCall,
   taskRates,
   forceSync,
+  expenses = [],
 }) {
+  const { addToast } = useToast();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeInvoice, setActiveInvoice] = useState(null);
@@ -22,6 +25,8 @@ export default function InvoicesTab({
 
   // Add Line Item state
   const [liIsHourly, setLiIsHourly] = useState(false);
+  const [liIsExpense, setLiIsExpense] = useState(false);
+  const [liExpenseId, setLiExpenseId] = useState("");
   const [liDescription, setLiDescription] = useState("");
   const [liAmount, setLiAmount] = useState("");
   const [liProjectId, setLiProjectId] = useState("");
@@ -51,8 +56,9 @@ export default function InvoicesTab({
       setHeaderForm(inv);
       setIsEditingHeader(true);
       forceSync(); // updates nextInvoiceNumber in App.jsx
+      addToast("Invoice created successfully", "success");
     } catch (e) {
-      alert("Failed to create invoice");
+      addToast("Failed to create invoice", "error");
     }
   };
 
@@ -67,8 +73,9 @@ export default function InvoicesTab({
       setActiveInvoice(updated);
       setIsEditingHeader(false);
       setInvoices(invoices.map((i) => (i.id === updated.id ? updated : i)));
+      addToast("Header saved successfully", "success");
     } catch (e) {
-      alert("Failed to save header");
+      addToast("Failed to save header", "error");
     }
   };
 
@@ -114,14 +121,29 @@ export default function InvoicesTab({
           userId: liUserId,
         };
         if (hours === 0) {
-          alert("No unbilled hours found for this user and task.");
+          addToast("No unbilled hours found for this user and task.", "error");
           return;
         }
       } else {
         if (!liDescription || !liAmount) {
-          alert("Please provide description and amount");
+          addToast("Please provide description and amount", "error");
           return;
         }
+      }
+
+      if (liIsExpense) {
+        const expense = expenses.find(e => e.id === liExpenseId);
+        if (!expense) {
+          addToast("Please select an expense", "error");
+          return;
+        }
+        payload = {
+          description: liDescription || expense.description,
+          amount: expense.amount,
+          isHourly: false,
+        };
+        // Also update the expense to link it to the invoice
+        await apiCall(`/api/expenses/${expense.id}`, "PUT", { invoiceId: activeInvoice.id });
       }
 
       const updated = await apiCall(
@@ -136,13 +158,16 @@ export default function InvoicesTab({
       setLiDescription("");
       setLiAmount("");
       setLiIsHourly(false);
+      setLiIsExpense(false);
+      setLiExpenseId("");
       setLiProjectId("");
       setLiTaskId("");
       setLiUserId("");
 
-      if (liIsHourly) forceSync();
+      if (liIsHourly || liIsExpense) forceSync();
+      addToast("Line item added successfully", "success");
     } catch (e) {
-      alert("Failed to add line item");
+      addToast("Failed to add line item", "error");
     }
   };
 
@@ -157,8 +182,9 @@ export default function InvoicesTab({
       setActiveInvoice(updated);
       setInvoices(invoices.map((i) => (i.id === updated.id ? updated : i)));
       forceSync();
+      addToast("Line item deleted", "success");
     } catch (e) {
-      alert("Failed to delete line item");
+      addToast("Failed to delete line item", "error");
     }
   };
 
@@ -170,8 +196,9 @@ export default function InvoicesTab({
       setInvoices(invoices.filter((i) => i.id !== activeInvoice.id));
       setActiveInvoice(null);
       forceSync();
+      addToast("Invoice deleted", "success");
     } catch (e) {
-      alert("Failed to delete invoice");
+      addToast("Failed to delete invoice", "error");
     }
   };
 
@@ -269,9 +296,9 @@ export default function InvoicesTab({
                   onClick={async () => {
                     try {
                       const res = await apiCall(`/api/invoices/${activeInvoice.id}/export-qbo`, "POST");
-                      if (res.success) alert("Invoice successfully exported to QuickBooks!");
+                      if (res.success) addToast("Invoice successfully exported to QuickBooks!", "success");
                     } catch (e) {
-                      alert("Failed to export to QuickBooks. Please make sure you are connected in Settings.");
+                      addToast("Failed to export to QuickBooks. Please make sure you are connected in Settings.", "error");
                     }
                   }}
                   className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-green-600 font-semibold text-sm mr-2 pr-4 border-r border-slate-300 dark:border-zinc-700"
@@ -674,19 +701,34 @@ export default function InvoicesTab({
                   onSubmit={handleAddLineItem}
                   className="bg-slate-50 dark:bg-zinc-950 p-6 rounded border border-slate-300 dark:border-zinc-700"
                 >
-                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-300 dark:border-zinc-700">
+                  <div className="flex flex-wrap items-center gap-6 mb-6 pb-4 border-b border-slate-300 dark:border-zinc-700">
                     <label className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                       <input
-                        type="checkbox"
+                        type="radio"
+                        checked={!liIsHourly && !liIsExpense}
+                        onChange={() => { setLiIsHourly(false); setLiIsExpense(false); }}
+                        className="w-4 h-4 text-slate-900 dark:text-slate-100 focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
+                      />
+                      Flat Fee
+                    </label>
+                    <label className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                      <input
+                        type="radio"
                         checked={liIsHourly}
-                        onChange={(e) => setLiIsHourly(e.target.checked)}
-                        className="w-4 h-4 text-slate-900 dark:text-slate-100 rounded focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
+                        onChange={() => { setLiIsHourly(true); setLiIsExpense(false); }}
+                        className="w-4 h-4 text-slate-900 dark:text-slate-100 focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
                       />
                       Hourly Task
                     </label>
-                    <span className="text-xs text-slate-500 dark:text-slate-500 italic">
-                      Bill automatically based on timesheets
-                    </span>
+                    <label className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        checked={liIsExpense}
+                        onChange={() => { setLiIsExpense(true); setLiIsHourly(false); }}
+                        className="w-4 h-4 text-slate-900 dark:text-slate-100 focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
+                      />
+                      Unbilled Expense
+                    </label>
                   </div>
 
                   {liIsHourly ? (
@@ -780,6 +822,45 @@ export default function InvoicesTab({
                           className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                         />
                       </div>
+                    </div>
+                  ) : liIsExpense ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
+                          Select Unbilled Expense
+                        </label>
+                        <select
+                          value={liExpenseId}
+                          onChange={(e) => setLiExpenseId(e.target.value)}
+                          className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                        >
+                          <option value="">-- Choose Expense --</option>
+                          {expenses
+                            .filter(e => e.isBillable && !e.invoiceId)
+                            .map((e) => (
+                              <option key={e.id} value={e.id}>
+                                {new Date(e.date).toLocaleDateString()} - {e.description} (${e.amount})
+                              </option>
+                            ))}
+                        </select>
+                        {expenses.filter(e => e.isBillable && !e.invoiceId).length === 0 && (
+                          <div className="text-xs text-amber-600 mt-2">No unbilled expenses found. Log some in the Expenses tab.</div>
+                        )}
+                      </div>
+                      {liExpenseId && (
+                        <div className="md:col-span-2 mt-2">
+                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
+                            Optional Description Override
+                          </label>
+                          <input
+                            type="text"
+                            value={liDescription}
+                            onChange={(e) => setLiDescription(e.target.value)}
+                            placeholder="Leave blank to use default"
+                            className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

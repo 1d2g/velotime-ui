@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 export default function OrganizationSettingsTab({
   dbUser,
@@ -6,6 +7,7 @@ export default function OrganizationSettingsTab({
   apiCall,
   forceSync,
 }) {
+  const { addToast } = useToast();
   const [orgName, setOrgName] = useState(dbUser?.organization?.name || "");
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [roleSaves, setRoleSaves] = useState({});
@@ -73,10 +75,10 @@ export default function OrganizationSettingsTab({
         timerRoundingMinutes,
       });
       forceSync();
-      alert("Invoice settings updated!");
+      addToast("Invoice settings updated!", "success");
     } catch (err) {
       console.error(err);
-      alert("Failed to update invoice settings");
+      addToast("Failed to update invoice settings", "error");
     } finally {
       setIsSavingName(false);
     }
@@ -87,7 +89,7 @@ export default function OrganizationSettingsTab({
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("Logo file must be smaller than 2MB.");
+      addToast("Logo file must be smaller than 2MB.", "error");
       return;
     }
 
@@ -105,7 +107,7 @@ export default function OrganizationSettingsTab({
       forceSync();
     } catch (e) {
       console.error("Failed to update role", e);
-      alert("Failed to update role. You cannot demote the last admin.");
+      addToast("Failed to update role. You cannot demote the last admin.", "error");
     } finally {
       setRoleSaves((prev) => ({ ...prev, [userId]: false }));
     }
@@ -164,7 +166,7 @@ export default function OrganizationSettingsTab({
                         );
                         window.location.href = url;
                       } catch (e) {
-                        alert("Failed to load billing portal.");
+                        addToast("Failed to load billing portal.", "error");
                       }
                     }}
                     className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 text-sm font-bold transition-colors"
@@ -242,7 +244,7 @@ export default function OrganizationSettingsTab({
                           );
                           window.location.href = url;
                         } catch (e) {
-                          alert("Failed to initiate checkout.");
+                          addToast("Failed to initiate checkout.", "error");
                         }
                       }}
                       className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-sm font-bold transition-colors"
@@ -254,10 +256,10 @@ export default function OrganizationSettingsTab({
                         onClick={async () => {
                           try {
                             await apiCall("/api/dev/upgrade", "POST");
-                            forceSync();
-                            alert("Dev Override Successful: Upgraded to Pro!");
+                            addToast("Dev Override Successful: Upgraded to Pro!", "success");
+                            window.location.reload();
                           } catch (e) {
-                            alert("Failed to force dev upgrade.");
+                            addToast("Failed to force dev upgrade.", "error");
                           }
                         }}
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm font-bold transition-colors"

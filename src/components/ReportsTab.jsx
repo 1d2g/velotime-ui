@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useToast } from "../contexts/ToastContext";
 import * as XLSX from "xlsx";
 
 export default function ReportsTab({
@@ -11,6 +12,7 @@ export default function ReportsTab({
   taskRates = [],
 }) {
   const isPremium = dbUser?.organization?.tier === "premium";
+  const { addToast } = useToast();
 
   // State: 'menu', 'configuring', 'viewing'
   const [reportPhase, setReportPhase] = useState("menu");
@@ -131,8 +133,10 @@ export default function ReportsTab({
       const taskRateOverride = taskRates.find(
         (tr) => tr.taskId === e.taskId && tr.userId === e.userId,
       );
-      const rate =
-        taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
+      const billingRate = taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;
+      const costRate = taskRateOverride?.costRate || userObj.defaultCostRate || 0;
+      const isBillable = taskObj ? taskObj.isBillable !== false : true;
+
       const fName =
         userObj.firstName && userObj.firstName !== "null"
           ? userObj.firstName
@@ -151,8 +155,13 @@ export default function ReportsTab({
         projectName: projectObj ? projectObj.name : "Unknown Project",
         projectId: projectObj ? projectObj.id : null,
         taskName: taskObj ? taskObj.name : "Unknown Task",
-        rate: rate,
-        amount: e.hours * rate,
+        isBillable,
+        billingRate,
+        costRate,
+        rate: billingRate,
+        amount: isBillable ? e.hours * billingRate : 0,
+        cost: e.hours * costRate,
+        revenue: isBillable ? e.hours * billingRate : 0,
       };
     });
   }, [parsedEntries, orgUsers, projects, taskRates]);
@@ -266,6 +275,11 @@ export default function ReportsTab({
       const remaining = Math.max(0, budgetLimit - projHours);
       const burnPercentage = (projHours / budgetLimit) * 100;
 
+      const projRevenue = projEntries.reduce((sum, e) => sum + e.revenue, 0);
+      const projCost = projEntries.reduce((sum, e) => sum + e.cost, 0);
+      const projProfit = projRevenue - projCost;
+      const profitMargin = projRevenue > 0 ? (projProfit / projRevenue) * 100 : 0;
+
       return {
         id: p.id,
         name: p.name,
@@ -274,6 +288,10 @@ export default function ReportsTab({
         remaining,
         burnPercentage,
         billableValue,
+        projRevenue,
+        projCost,
+        projProfit,
+        profitMargin,
       };
     });
 
@@ -385,14 +403,20 @@ export default function ReportsTab({
       const userHours = enrichedEntries
         .filter((e) => e.userId === u.id)
         .reduce((sum, e) => sum + e.hours, 0);
+      const billableHours = enrichedEntries
+        .filter((e) => e.userId === u.id && e.isBillable)
+        .reduce((sum, e) => sum + e.hours, 0);
       const capacity = 40; // 40 hours per week
       const utilization = (userHours / capacity) * 100;
+      const realization = userHours > 0 ? (billableHours / userHours) * 100 : 0;
       return {
         id: u.id,
         name: `${u.firstName} ${u.lastName}`,
         hours: userHours,
+        billableHours,
         capacity,
         utilization,
+        realization,
       };
     });
 
@@ -456,7 +480,7 @@ export default function ReportsTab({
   const [invoicedProjects, setInvoicedProjects] = useState([]);
   const handleMarkInvoiced = (projectId) => {
     setInvoicedProjects((prev) => [...prev, projectId]);
-    alert("Hours marked as invoiced. (Mock action updated in local state)");
+    addToast("Hours marked as invoiced. (Mock action updated in local state)", "success");
   };
 
   const handleBack = () => {
@@ -909,9 +933,15 @@ export default function ReportsTab({
                 </th>
                 <th
                   onClick={() => handleSort("burnPercentage")}
-                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 cursor-pointer hover:bg-slate-200 transition-colors group select-none"
                 >
                   Burn Status <SortIcon columnKey="burnPercentage" />
+                </th>
+                <th
+                  onClick={() => handleSort("profitMargin")}
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
+                  Margin <SortIcon columnKey="profitMargin" />
                 </th>
               </tr>
             </thead>
@@ -961,6 +991,9 @@ export default function ReportsTab({
                           {Math.round(p.burnPercentage)}%
                         </span>
                       </div>
+                    </td>
+                    <td className={`border-b border-slate-300 dark:border-zinc-700 p-2 text-sm font-black text-right ${p.profitMargin < 0 ? 'text-red-600' : p.profitMargin > 30 ? 'text-emerald-600' : 'text-yellow-600'}`}>
+                      {p.profitMargin.toFixed(1)}%
                     </td>
                   </tr>
                 );
@@ -1027,6 +1060,12 @@ export default function ReportsTab({
                 >
                   Utilization <SortIcon columnKey="utilization" />
                 </th>
+                <th
+                  onClick={() => handleSort("realization")}
+                  className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-32 text-right cursor-pointer hover:bg-slate-200 transition-colors group select-none"
+                >
+                  Realization <SortIcon columnKey="realization" />
+                </th>
                 <th className="sticky top-0 bg-slate-100 dark:bg-zinc-800 z-50 border-b border-slate-300 dark:border-zinc-700 p-2 text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-48 text-center">
                   Status
                 </th>
@@ -1074,6 +1113,9 @@ export default function ReportsTab({
                           {Math.round(u.utilization)}%
                         </span>
                       </div>
+                    </td>
+                    <td className={`border-b border-r border-slate-300 dark:border-zinc-700 p-2 text-sm font-black text-right ${u.realization < 50 ? 'text-red-600' : u.realization > 75 ? 'text-emerald-600' : 'text-yellow-600'}`}>
+                      {u.realization.toFixed(1)}%
                     </td>
                     <td className="border-b border-slate-300 dark:border-zinc-700 p-2 text-center align-middle">
                       <span

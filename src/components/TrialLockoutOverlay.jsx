@@ -1,4 +1,7 @@
+import { useToast } from "../contexts/ToastContext";
+
 export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
+  const { addToast } = useToast();
   if (!dbUser || !dbUser.organization) {
     return children;
   }
@@ -63,8 +66,8 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
                   const { url } = await apiCall("/api/stripe/checkout", "POST");
                   window.location.href = url;
                 } catch {
-                  alert(
-                    "Failed to redirect to billing portal. Please contact support."
+                  addToast(
+                    "Failed to redirect to billing portal. Please contact support.", "error"
                   );
                 }
               }}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 export default function TeamTab({
   dbUser,
@@ -9,6 +10,7 @@ export default function TeamTab({
   apiCall,
   forceSync,
 }) {
+  const { addToast } = useToast();
   const [rates, setRates] = useState({});
   const [savingUserId, setSavingUserId] = useState(null);
 
@@ -31,8 +33,9 @@ export default function TeamTab({
         defaultBillingRate: rates[userId].billingRate,
       });
       forceSync();
+      addToast("Default rate saved successfully", "success");
     } catch (e) {
-      alert("Failed to save default rate");
+      addToast("Failed to save default rate", "error");
     } finally {
       setSavingUserId(null);
     }
