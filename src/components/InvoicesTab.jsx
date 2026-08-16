@@ -493,26 +493,44 @@ export default function InvoicesTab({
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Client Name
                     </label>
-                    <input
-                      type="text"
-                      list="client-options"
-                      value={headerForm.clientName || ""}
+                    <select
+                      value={clients?.find(c => c.name === headerForm.clientName) ? headerForm.clientName : (headerForm.clientName ? "custom" : "")}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const matchedClient = clients?.find(c => c.name === val);
-                        setHeaderForm(prev => ({
-                          ...prev,
-                          clientName: val,
-                          ...(matchedClient && { clientAddress: matchedClient.address || "" })
-                        }));
+                        if (val === "custom") {
+                          setHeaderForm(prev => ({ ...prev, clientName: "Custom Client" }));
+                        } else {
+                          const matchedClient = clients?.find(c => c.name === val);
+                          setHeaderForm(prev => ({
+                            ...prev,
+                            clientName: val,
+                            clientAddress: matchedClient ? (matchedClient.address || "") : prev.clientAddress
+                          }));
+                        }
                       }}
-                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
-                    />
-                    <datalist id="client-options">
+                      className={`w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 ${(!clients?.find(c => c.name === headerForm.clientName) && headerForm.clientName) ? 'mb-2' : ''}`}
+                    >
+                      <option value="">-- Select Client --</option>
                       {clients?.map(c => (
-                        <option key={c.id} value={c.name} />
+                        <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
-                    </datalist>
+                      <option value="custom">Custom / Other...</option>
+                    </select>
+                    {(!clients?.find(c => c.name === headerForm.clientName) && headerForm.clientName) && (
+                      <input
+                        type="text"
+                        value={headerForm.clientName === "Custom Client" ? "" : headerForm.clientName}
+                        onChange={(e) =>
+                          setHeaderForm(prev => ({
+                            ...prev,
+                            clientName: e.target.value,
+                          }))
+                        }
+                        placeholder="Enter custom client name..."
+                        className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                        autoFocus
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
