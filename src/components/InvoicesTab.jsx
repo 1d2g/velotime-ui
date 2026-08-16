@@ -124,14 +124,7 @@ export default function InvoicesTab({
           addToast("No unbilled hours found for this user and task.", "error");
           return;
         }
-      } else {
-        if (!liDescription || !liAmount) {
-          addToast("Please provide description and amount", "error");
-          return;
-        }
-      }
-
-      if (liIsExpense) {
+      } else if (liIsExpense) {
         const expense = expenses.find(e => e.id === liExpenseId);
         if (!expense) {
           addToast("Please select an expense", "error");
@@ -144,6 +137,11 @@ export default function InvoicesTab({
         };
         // Also update the expense to link it to the invoice
         await apiCall(`/api/expenses/${expense.id}`, "PUT", { invoiceId: activeInvoice.id });
+      } else {
+        if (!liDescription || !liAmount) {
+          addToast("Please provide description and amount", "error");
+          return;
+        }
       }
 
       const updated = await apiCall(
