@@ -186,6 +186,11 @@ export default function ProjectsTab({
   const [newInlineClientName, setNewInlineClientName] = useState("");
 
   const [newClientName, setNewClientName] = useState("");
+  const [newClientAddress, setNewClientAddress] = useState("");
+
+  const [editingClientId, setEditingClientId] = useState(null);
+  const [editClientName, setEditClientName] = useState("");
+  const [editClientAddress, setEditClientAddress] = useState("");
 
   // Inline project renaming on Master list
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -764,28 +769,31 @@ export default function ProjectsTab({
         <div className="max-w-2xl">
           <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-6 mb-8">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider mb-4">Create New Client</h3>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
               <input
                 type="text"
                 placeholder="Client Name..."
                 value={newClientName}
                 onChange={(e) => setNewClientName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newClientName.trim()) {
-                    onAddClient(newClientName.trim());
-                    setNewClientName("");
-                  }
-                }}
-                className="flex-1 px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm"
+              />
+              <textarea
+                placeholder="Client Address (Optional)..."
+                value={newClientAddress}
+                onChange={(e) => setNewClientAddress(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm resize-none"
               />
               <button
                 onClick={() => {
                   if (newClientName.trim()) {
-                    onAddClient(newClientName.trim());
+                    onAddClient(newClientName.trim(), newClientAddress.trim());
                     setNewClientName("");
+                    setNewClientAddress("");
                   }
                 }}
-                className="px-6 py-2 bg-slate-900 text-white text-sm font-bold"
+                disabled={!newClientName.trim()}
+                className="px-6 py-2 bg-slate-900 text-white text-sm font-bold self-end disabled:opacity-50"
               >
                 Add Client
               </button>
@@ -796,11 +804,75 @@ export default function ProjectsTab({
             {clients?.length > 0 ? (
               <ul className="divide-y divide-slate-300 dark:divide-zinc-700">
                 {clients.map(client => (
-                  <li key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-zinc-950/50">
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{client.name}</span>
-                    <span className="text-xs text-slate-500 font-medium bg-slate-100 dark:bg-zinc-800 px-2 py-1 rounded">
-                      {client.projects?.length || 0} Projects
-                    </span>
+                  <li key={client.id} className="p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4 hover:bg-slate-50 dark:hover:bg-zinc-950/50">
+                    {editingClientId === client.id ? (
+                      <div className="flex-1 flex flex-col gap-2">
+                        <input
+                          type="text"
+                          value={editClientName}
+                          onChange={(e) => setEditClientName(e.target.value)}
+                          className="w-full px-2 py-1 border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+                        />
+                        <textarea
+                          value={editClientAddress}
+                          onChange={(e) => setEditClientAddress(e.target.value)}
+                          rows={3}
+                          className="w-full px-2 py-1 border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm resize-none"
+                        />
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            onClick={() => {
+                              if (editClientName.trim()) {
+                                onUpdateClient(client.id, {
+                                  name: editClientName.trim(),
+                                  address: editClientAddress.trim()
+                                });
+                                setEditingClientId(null);
+                              }
+                            }}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingClientId(null)}
+                            className="px-3 py-1 bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">{client.name}</span>
+                            <span className="text-xs text-slate-500 font-medium bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                              {client.projects?.length || 0} Projects
+                            </span>
+                          </div>
+                          {client.address && (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 whitespace-pre-wrap">
+                              {client.address}
+                            </div>
+                          )}
+                        </div>
+                        {onUpdateClient && (
+                          <button
+                            onClick={() => {
+                              setEditingClientId(client.id);
+                              setEditClientName(client.name);
+                              setEditClientAddress(client.address || "");
+                            }}
+                            className="text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                        )}
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>

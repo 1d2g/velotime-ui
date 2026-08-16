@@ -207,6 +207,22 @@ export default function InvoicesTab({
       currency: "USD",
     }).format(m || 0);
 
+  const handleDownloadPDF = async () => {
+    try {
+      addToast("Generating PDF...", "success");
+      const blob = await apiCall(`/api/invoices/${activeInvoice.id}/pdf`, "GET", null, "", { blob: true });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_${activeInvoice.invoiceNumber || "Draft"}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      addToast("Failed to download PDF", "error");
+    }
+  };
+
   const handleExportPDF = () => {
     window.print();
   };
@@ -242,12 +258,23 @@ export default function InvoicesTab({
     };
 
     addHeaderRow("Invoice Number:", activeInvoice.invoiceNumber || "Draft");
-    addHeaderRow("Client Name:", activeInvoice.clientName || "Unspecified");
-    if (activeInvoice.clientAddress) addHeaderRow("Client Address:", activeInvoice.clientAddress);
     addHeaderRow("Date Issued:", formatDate(activeInvoice.dateIssued));
     if (activeInvoice.dueDate) addHeaderRow("Due Date:", formatDate(activeInvoice.dueDate));
     addHeaderRow("Status:", (activeInvoice.status || "draft").toUpperCase());
     
+    ws.addRow([]);
+
+    // Client Info on the left
+    ws.addRow(["Bill To:"]).font = { bold: true, size: 10, color: { argb: 'FF64748B' } };
+    ws.addRow([activeInvoice.clientName || "Unspecified"]).font = { bold: true, size: 12, color: { argb: 'FF0F172A' } };
+    if (activeInvoice.clientAddress) {
+      const addressRow = ws.addRow([activeInvoice.clientAddress]);
+      addressRow.font = { size: 10, color: { argb: 'FF334155' } };
+      addressRow.getCell(1).alignment = { wrapText: true };
+      const lines = activeInvoice.clientAddress.split('\\n').length;
+      addressRow.height = lines * 15;
+    }
+
     ws.addRow([]);
 
     // Line Items Header
@@ -375,14 +402,12 @@ export default function InvoicesTab({
                 >
                   Export to QBO
                 </button>
-                <a
-                  href={`${import.meta.env.VITE_API_URL || ""}/api/invoices/${activeInvoice.id}/pdf`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={handleDownloadPDF}
                   className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-semibold text-sm mr-2 pr-4 border-r border-slate-300 dark:border-zinc-700"
                 >
                   Download PDF
-                </a>
+                </button>
                 <button
                   onClick={handleExportExcel}
                   className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-semibold text-sm"
@@ -483,8 +508,7 @@ export default function InvoicesTab({
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">
                       Client Address
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       value={headerForm.clientAddress || ""}
                       onChange={(e) =>
                         setHeaderForm({
@@ -492,7 +516,8 @@ export default function InvoicesTab({
                           clientAddress: e.target.value,
                         })
                       }
-                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                      rows={3}
+                      className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 resize-none"
                     />
                   </div>
                   <div>

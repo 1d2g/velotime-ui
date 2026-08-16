@@ -329,7 +329,7 @@ export default function App() {
     triggerSync,
   ]);
 
-  const apiCall = async (endpoint, method, body, successMessage = "") => {
+  const apiCall = async (endpoint, method, body, successMessage = "", options = {}) => {
     const isWrite = ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
     if (isWrite) {
       setActiveSaves((prev) => prev + 1);
@@ -354,6 +354,7 @@ export default function App() {
       if (successMessage) {
         addToast(successMessage, "success");
       }
+      if (options.blob) return await res.blob();
       return await res.json();
     } catch (error) {
       addToast(error.message || "An error occurred", "error");
@@ -395,13 +396,28 @@ export default function App() {
     }
   };
 
-  const handleAddClient = async (name) => {
+  const handleAddClient = async (name, address) => {
     try {
-      const data = await apiCall("/api/clients", "POST", { name }, "Client created");
+      const data = await apiCall("/api/clients", "POST", { name, address }, "Client created");
       setClients((prev) => [...prev, data]);
       return data;
     } catch (e) {
       console.error("Failed to add client", e);
+      throw e;
+    }
+  };
+
+  const handleUpdateClient = async (clientId, data) => {
+    setClients((prev) =>
+      prev.map((c) => (c.id === clientId ? { ...c, ...data } : c)),
+    );
+    try {
+      const updated = await apiCall(`/api/clients/${clientId}`, "PUT", data, "Client updated");
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? updated : c)),
+      );
+    } catch (e) {
+      forceSync();
       throw e;
     }
   };
@@ -1139,6 +1155,7 @@ export default function App() {
                     forceSync={forceSync}
                     clients={clients}
                     onAddClient={handleAddClient}
+                    onUpdateClient={handleUpdateClient}
                     onRenameProject={handleRenameProject}
                     onUpdateProject={handleUpdateProject}
                     onDeleteProject={handleDeleteProject}
