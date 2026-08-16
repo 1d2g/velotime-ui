@@ -221,7 +221,7 @@ export default function InvoicesTab({
 
     // Setup Columns
     ws.columns = [
-      { width: 40 }, // Description
+      { width: 30 }, // Description
       { width: 20 }, // QTY / Type
       { width: 15 }, // Rate
       { width: 20 }, // Amount
@@ -234,9 +234,11 @@ export default function InvoicesTab({
 
     // Add Header Information
     const addHeaderRow = (label, value) => {
-      const row = ws.addRow([label, value]);
-      row.getCell(1).font = { bold: true, size: 10, color: { argb: 'FF64748B' } }; 
-      row.getCell(2).font = { bold: true, size: 10, color: { argb: 'FF0F172A' } }; 
+      const row = ws.addRow(["", "", label, value]);
+      row.getCell(3).font = { bold: true, size: 10, color: { argb: 'FF64748B' } }; 
+      row.getCell(4).font = { bold: true, size: 10, color: { argb: 'FF0F172A' } }; 
+      row.getCell(3).alignment = { horizontal: 'right' };
+      row.getCell(4).alignment = { horizontal: 'right' };
     };
 
     addHeaderRow("Invoice Number:", activeInvoice.invoiceNumber || "Draft");
