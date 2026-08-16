@@ -12,6 +12,7 @@ export default function InvoicesTab({
   taskRates,
   forceSync,
   expenses = [],
+  clients = [],
 }) {
   const { addToast } = useToast();
   const [invoices, setInvoices] = useState([]);
@@ -494,15 +495,24 @@ export default function InvoicesTab({
                     </label>
                     <input
                       type="text"
+                      list="client-options"
                       value={headerForm.clientName || ""}
-                      onChange={(e) =>
-                        setHeaderForm({
-                          ...headerForm,
-                          clientName: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const matchedClient = clients?.find(c => c.name === val);
+                        setHeaderForm(prev => ({
+                          ...prev,
+                          clientName: val,
+                          ...(matchedClient && { clientAddress: matchedClient.address || "" })
+                        }));
+                      }}
                       className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     />
+                    <datalist id="client-options">
+                      {clients?.map(c => (
+                        <option key={c.id} value={c.name} />
+                      ))}
+                    </datalist>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-500 uppercase mb-1">

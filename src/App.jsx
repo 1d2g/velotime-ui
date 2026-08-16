@@ -1201,6 +1201,7 @@ export default function App() {
                     apiCall={apiCall}
                     taskRates={taskRates}
                     forceSync={forceSync}
+                    clients={clients}
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Approvals" ? (
