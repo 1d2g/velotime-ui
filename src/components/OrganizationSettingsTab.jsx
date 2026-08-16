@@ -483,7 +483,7 @@ export default function OrganizationSettingsTab({
             </div>
             {isAdmin && !dbUser?.organization?.quickbooksRealmId && (
               <a
-                href={`http://localhost:3000/api/quickbooks/auth?orgId=${dbUser?.organizationId}`}
+                href={`${import.meta.env.VITE_API_URL || ""}/api/quickbooks/auth?orgId=${dbUser?.organizationId}`}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap rounded"
               >
                 Connect to QuickBooks

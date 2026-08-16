@@ -304,7 +304,7 @@ export default function InvoicesTab({
                   Export to QBO
                 </button>
                 <a
-                  href={`http://localhost:8080/api/invoices/${activeInvoice.id}/pdf`}
+                  href={`${import.meta.env.VITE_API_URL || ""}/api/invoices/${activeInvoice.id}/pdf`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-slate-600 dark:text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:text-slate-100 font-semibold text-sm mr-2 pr-4 border-r border-slate-300 dark:border-zinc-700"
