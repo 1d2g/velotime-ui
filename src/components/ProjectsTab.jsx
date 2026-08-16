@@ -163,6 +163,7 @@ export default function ProjectsTab({
   onEditTask,
   clients,
   onAddClient,
+  onUpdateClient,
   onUpdateProject,
 }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
