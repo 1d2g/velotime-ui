@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "../contexts/ToastContext";
 
 export default function OrganizationSettingsTab({
@@ -11,6 +11,22 @@ export default function OrganizationSettingsTab({
   const [orgName, setOrgName] = useState(dbUser?.organization?.name || "");
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [roleSaves, setRoleSaves] = useState({});
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.split("?")[1] || "");
+    const stripeStatus = params.get("stripe_status") || hashParams.get("stripe_status");
+    const stripeError = params.get("stripe_error") || hashParams.get("stripe_error");
+
+    if (stripeStatus === "connected") {
+      addToast("Stripe connected successfully! Online invoice payments are now active.", "success");
+      forceSync();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (stripeError) {
+      addToast(`Stripe connection failed: ${stripeError}`, "error");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   if (dbUser?.role !== "admin") {
     return (
