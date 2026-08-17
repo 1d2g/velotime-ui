@@ -25,17 +25,17 @@ if (!PUBLISHABLE_KEY) {
 }
 
 const path = window.location.pathname;
-const isLegalPage = [
+const isPublicPage = [
   "/privacy",
   "/contact",
   "/cookies",
   "/tos",
   "/data-removal",
-].includes(path);
+].includes(path) || path.startsWith("/invoice/") || path.startsWith("/pay/");
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {isLegalPage ? (
+    {isPublicPage ? (
       <LegalPages path={path} />
     ) : (
       <ClerkProvider

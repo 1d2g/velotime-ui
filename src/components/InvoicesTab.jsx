@@ -416,6 +416,20 @@ export default function InvoicesTab({
                   Export Excel
                 </button>
                 <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/invoice/${activeInvoice.id}`;
+                    navigator.clipboard.writeText(url);
+                    addToast("Client payment link copied to clipboard!", "success");
+                  }}
+                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-semibold text-sm ml-2 pl-4 border-l border-slate-300 dark:border-zinc-700 flex items-center gap-1.5"
+                  title="Copy public link for client to view & pay online"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Copy Payment Link
+                </button>
+                <button
                   onClick={handleDeleteInvoice}
                   className="text-red-500 hover:text-red-600 font-semibold text-sm ml-2 border-l border-slate-300 dark:border-zinc-700 pl-4"
                 >
@@ -468,7 +482,25 @@ export default function InvoicesTab({
                   <span className="text-slate-900 dark:text-slate-100">
                     {formatDate(activeInvoice.dueDate)}
                   </span>
+
+                  <span className="font-semibold text-slate-500 dark:text-slate-500">
+                    Status:
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
+                      activeInvoice.status === 'paid' 
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                    }`}>
+                      {activeInvoice.status || 'draft'}
+                    </span>
+                  </span>
                 </div>
+                {activeInvoice.status === 'paid' && activeInvoice.paidAt && (
+                  <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-2 text-right">
+                    ✓ Paid on {formatDate(activeInvoice.paidAt)} {activeInvoice.paymentMethod ? `via ${activeInvoice.paymentMethod}` : ""}
+                  </div>
+                )}
               </div>
             </div>
 

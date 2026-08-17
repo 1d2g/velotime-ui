@@ -50,7 +50,38 @@ export default function OrganizationSettingsTab({
     dbUser?.organization?.timerRoundingMinutes || 0,
   );
   const [isSavingName, setIsSavingName] = useState(false);
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [isDisconnectingStripe, setIsDisconnectingStripe] = useState(false);
   const isAdmin = dbUser?.role === "admin" || dbUser?.role === "owner";
+
+  const handleConnectStripe = async () => {
+    setIsConnectingStripe(true);
+    try {
+      const res = await apiCall("/api/stripe-connect/oauth", "GET");
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        throw new Error("Could not generate Stripe connection URL.");
+      }
+    } catch (e) {
+      addToast(e.message || "Failed to initiate Stripe Connect", "error");
+      setIsConnectingStripe(false);
+    }
+  };
+
+  const handleDisconnectStripe = async () => {
+    if (!window.confirm("Are you sure you want to disconnect Stripe? Clients will no longer be able to pay invoices online until you reconnect.")) return;
+    setIsDisconnectingStripe(true);
+    try {
+      await apiCall("/api/stripe-connect/disconnect", "POST");
+      forceSync();
+      addToast("Stripe account disconnected", "success");
+    } catch (e) {
+      addToast("Failed to disconnect Stripe", "error");
+    } finally {
+      setIsDisconnectingStripe(false);
+    }
+  };
 
   const handleSaveOrg = async () => {
     setIsSavingOrg(true);
@@ -446,6 +477,69 @@ export default function OrganizationSettingsTab({
                 </button>
               )}
             </form>
+          </div>
+        </div>
+
+        {/* Stripe Online Payments Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
+          <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <svg className="w-5 h-5 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697.5 12.52.5 7.234.5 3.36 3.273 3.36 7.641c0 4.298 3.655 5.86 6.843 7.027 2.455.9 3.284 1.543 3.284 2.502 0 .99-.86 1.498-2.28 1.498-2.316 0-5.176-1.12-6.937-2.102l-.936 5.564c1.884.978 4.795 1.536 7.872 1.536 5.568 0 9.458-2.678 9.458-7.29 0-4.48-3.413-5.918-6.684-7.226z"/>
+              </svg>
+              Stripe Online Payments
+            </h2>
+            <span className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded">
+              Credit Cards • Apple Pay • Google Pay • ACH
+            </span>
+          </div>
+          <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Status:
+                </h3>
+                {dbUser?.organization?.stripeConnectAccountId && dbUser?.organization?.stripeConnectEnabled ? (
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 rounded">
+                    Connected & Active
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 rounded">
+                    Not Connected
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                {dbUser?.organization?.stripeConnectAccountId && dbUser?.organization?.stripeConnectEnabled
+                  ? "Your Stripe account is connected. Clients can now pay your invoices online directly with 1-click checkout. Funds deposit straight into your bank account."
+                  : "Connect your Stripe account to allow clients to settle invoices online via Credit Card, Apple Pay, Google Pay, or US Bank Transfer."}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+                Platform transaction fee: 1.0% per processed invoice. Zero chargeback or PCI liability on your VeloTime account.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isAdmin && (!dbUser?.organization?.stripeConnectAccountId || !dbUser?.organization?.stripeConnectEnabled) && (
+                <button
+                  onClick={handleConnectStripe}
+                  disabled={isConnectingStripe}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 text-sm transition-all whitespace-nowrap shadow-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isConnectingStripe ? "Opening Stripe..." : "Connect with Stripe"}
+                </button>
+              )}
+
+              {isAdmin && dbUser?.organization?.stripeConnectAccountId && dbUser?.organization?.stripeConnectEnabled && (
+                <button
+                  onClick={handleDisconnectStripe}
+                  disabled={isDisconnectingStripe}
+                  className="bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-300 font-bold py-2 px-4 text-xs transition-colors whitespace-nowrap"
+                >
+                  {isDisconnectingStripe ? "Disconnecting..." : "Disconnect Stripe"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
