@@ -135,6 +135,7 @@ export default function InvoicesTab({
           description: liDescription || expense.description,
           amount: expense.amount,
           isHourly: false,
+          expenseId: expense.id,
         };
         // Also update the expense to link it to the invoice
         await apiCall(`/api/expenses/${expense.id}`, "PUT", { invoiceId: activeInvoice.id });
