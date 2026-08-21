@@ -71,15 +71,15 @@ input[type="number"] {
 }
 
 /* =========================================================================
-   PRINT STYLES FOR INVOICE PDF EXPORT
+   CLEAN ZERO-HEADER / ZERO-FOOTER PRINT STYLES
    ========================================================================= */
 @page {
   size: letter portrait;
-  margin: 12mm;
+  margin: 0 !important; /* Strips browser header (date/title) and footer (URL/page#) */
 }
 
 @media print {
-  /* Hide ALL app UI chrome */
+  /* Hide ALL application chrome, sidebars, toolbars, toast overlays */
   header,
   nav,
   aside,
@@ -89,25 +89,30 @@ input[type="number"] {
   #toast-container,
   .toast-container,
   .sidebar,
-  .app-sidebar {
+  .app-sidebar,
+  div[style*="z-index: 9999"],
+  div[style*="zIndex: 9999"] {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  body {
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
     font-size: 11pt !important;
   }
 
-  /* Show only the invoice container as full page */
+  /* Invoice Paper is the sole printable document */
   #invoice-preview-container {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 18mm 20mm !important; /* Professional document margins */
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
@@ -134,6 +139,10 @@ input[type="number"] {
 
   th, td {
     border-bottom: 1px solid #cbd5e1 !important;
+  }
+
+  .border-none {
+    border: none !important;
   }
 }
 

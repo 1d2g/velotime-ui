@@ -83,7 +83,7 @@ export default function InvoicesTab({
     setActiveInvoice(inv);
     setIsAddingLineItem(false);
 
-    const isPwp = inv.notes && inv.notes.toLowerCase().includes("pay when paid") || !inv.dueDate;
+    const isPwp = (inv.notes && inv.notes.toLowerCase().includes("pay when paid")) || !inv.dueDate;
     const tType = isPwp ? "pay_when_paid" : "net";
     setTermsType(tType);
 
@@ -130,7 +130,6 @@ export default function InvoicesTab({
     return date.toISOString().split("T")[0];
   };
 
-  // Live Auto-Save to Backend when sheetForm changes
   const saveSheetChanges = async (updatedFields) => {
     if (!activeInvoice) return;
     try {
@@ -156,7 +155,6 @@ export default function InvoicesTab({
     }, 400);
   };
 
-  // Change Project on Sheet (Auto-fills Client & Terms)
   const handleProjectSelect = (projectId) => {
     const proj = projects.find((p) => p.id === projectId);
     const assignedClient = getClientForProject(projectId);
@@ -470,7 +468,6 @@ export default function InvoicesTab({
     }
   };
 
-  // Instant Native Print-to-PDF
   const handlePrintPDF = () => {
     window.print();
   };
@@ -567,7 +564,7 @@ export default function InvoicesTab({
 
                   <div className="flex justify-between items-center text-[11px] text-slate-400">
                     <span>{formatDate(inv.dateIssued)}</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">
                       {formatMoney(invTotal + invTax)}
                     </span>
                   </div>
@@ -635,8 +632,10 @@ export default function InvoicesTab({
               className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none transition-all"
             >
               
-              {/* Document Header (WYSIWYG Editable In-Place) */}
+              {/* Document Header (WYSIWYG Editable In-Place & Perfectly Aligned) */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-200 dark:border-zinc-800">
+                
+                {/* Left Header: Title, Project, Billed To */}
                 <div className="flex-1 w-full max-w-md">
                   <div className="flex items-baseline gap-3 mb-2">
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
@@ -647,7 +646,7 @@ export default function InvoicesTab({
                     </span>
                   </div>
 
-                  {/* Associated Project (Live Selector directly on Sheet) */}
+                  {/* Associated Project */}
                   <div className="mb-4">
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold uppercase text-slate-400">Project:</span>
@@ -669,7 +668,7 @@ export default function InvoicesTab({
                     </div>
                   </div>
 
-                  {/* BILLED TO (Live Editable) */}
+                  {/* BILLED TO */}
                   <div className="mt-4 group">
                     <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider mb-1">
                       Billed To
@@ -691,90 +690,108 @@ export default function InvoicesTab({
                   </div>
                 </div>
 
-                {/* Right Metadata Block (Dates, Terms, Auto-Due Date) */}
-                <div className="w-full sm:w-auto text-left sm:text-right space-y-3 text-xs">
-                  
-                  {/* Date Issued */}
-                  <div className="flex sm:justify-end items-center gap-2">
-                    <span className="text-slate-400 font-medium">Date Issued:</span>
-                    <input
-                      type="date"
-                      value={sheetForm.dateIssued}
-                      onChange={(e) => {
-                        const newIssue = e.target.value;
-                        const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
-                        const updated = { ...sheetForm, dateIssued: newIssue, dueDate: newDue };
-                        setSheetForm(updated);
-                        saveSheetChanges(updated);
-                      }}
-                      className="bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1.5 py-0.5 outline-none cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Payment Terms & Due Date Pacing */}
-                  <div className="space-y-1.5">
-                    <div className="flex sm:justify-end items-center gap-2">
-                      <span className="text-slate-400 font-medium">Terms:</span>
-                      <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
-                        <button
-                          type="button"
-                          onClick={() => handleTermsChange("net", 30)}
-                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                            termsType === "net"
-                              ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
-                              : "text-slate-500 hover:text-slate-900"
-                          }`}
-                        >
-                          Net {netDays}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleTermsChange("pay_when_paid")}
-                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                            termsType === "pay_when_paid"
-                              ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
-                              : "text-slate-500 hover:text-slate-900"
-                          }`}
-                        >
-                          Pay When Paid
-                        </button>
-                      </div>
+                {/* Right Metadata Block (PERFECTLY ALIGNED TABLE) */}
+                <div className="w-full sm:w-auto">
+                  <table className="text-xs border-collapse ml-auto">
+                    <tbody>
                       
-                      {/* Print view for terms */}
-                      <span className="hidden print:inline font-bold text-slate-900">
-                        {termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}
-                      </span>
-                    </div>
-
-                    {/* Net Days input & Due Date preview */}
-                    {termsType === "net" ? (
-                      <div className="flex sm:justify-end items-center gap-2">
-                        <span className="text-slate-400 font-medium">Due Date:</span>
-                        <div className="flex items-center gap-1">
+                      {/* Date Issued */}
+                      <tr>
+                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                          Date Issued:
+                        </td>
+                        <td className="py-1 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
                           <input
                             type="date"
-                            value={sheetForm.dueDate || ""}
-                            onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-                            className="bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1.5 py-0.5 outline-none cursor-pointer"
+                            value={sheetForm.dateIssued}
+                            onChange={(e) => {
+                              const newIssue = e.target.value;
+                              const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
+                              const updated = { ...sheetForm, dateIssued: newIssue, dueDate: newDue };
+                              setSheetForm(updated);
+                              saveSheetChanges(updated);
+                            }}
+                            className="bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
                           />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-[11px] text-slate-400 italic">
-                        Due upon disbursement
-                      </div>
-                    )}
-                  </div>
+                        </td>
+                      </tr>
 
-                  {/* Status Indicator */}
-                  <div className="flex sm:justify-end items-center gap-2">
-                    <span className="text-slate-400 font-medium">Status:</span>
-                    <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                      {sheetForm.status}
-                    </span>
-                  </div>
+                      {/* Payment Terms */}
+                      <tr>
+                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                          Terms:
+                        </td>
+                        <td className="py-1 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
+                          <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
+                            <button
+                              type="button"
+                              onClick={() => handleTermsChange("net", 30)}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                                termsType === "net"
+                                  ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                                  : "text-slate-500 hover:text-slate-900"
+                              }`}
+                            >
+                              Net {netDays}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleTermsChange("pay_when_paid")}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                                termsType === "pay_when_paid"
+                                  ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                                  : "text-slate-500 hover:text-slate-900"
+                              }`}
+                            >
+                              Pay When Paid
+                            </button>
+                          </div>
+                          <span className="hidden print:inline font-bold text-slate-900">
+                            {termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}
+                          </span>
+                        </td>
+                      </tr>
 
+                      {/* Due Date */}
+                      {termsType === "net" ? (
+                        <tr>
+                          <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                            Due Date:
+                          </td>
+                          <td className="py-1 text-right font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap border-none">
+                            <input
+                              type="date"
+                              value={sheetForm.dueDate || ""}
+                              onChange={(e) => handleFieldChange("dueDate", e.target.value)}
+                              className="bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
+                            />
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr>
+                          <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                            Due Date:
+                          </td>
+                          <td className="py-1 text-right text-slate-500 dark:text-slate-400 italic text-[11px] whitespace-nowrap border-none">
+                            Upon Disbursement
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Status */}
+                      <tr>
+                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                          Status:
+                        </td>
+                        <td className="py-1 text-right font-bold uppercase tracking-wider text-slate-900 dark:text-white whitespace-nowrap border-none">
+                          {sheetForm.status}
+                        </td>
+                      </tr>
+
+                    </tbody>
+                  </table>
                 </div>
+
               </div>
 
               {/* Line Items Table */}
@@ -793,7 +810,7 @@ export default function InvoicesTab({
                     {(!activeInvoice.lineItems || activeInvoice.lineItems.length === 0) ? (
                       <tr>
                         <td colSpan="5" className="py-8 text-center text-slate-400 italic">
-                          No line items added yet. Use the add button below to insert milestone phases, hours, or expenses.
+                          No line items added yet. Use the button below to add milestone phases, hours, or expenses.
                         </td>
                       </tr>
                     ) : (
