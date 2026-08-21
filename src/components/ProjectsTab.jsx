@@ -387,7 +387,7 @@ export default function ProjectsTab({
                       className="text-sm opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-slate-600 hover:text-primary-600 p-1"
                       title="Click to edit project name"
                     >
-                      ✏️
+                      
                     </button>
                   )}
                 </div>
@@ -688,7 +688,7 @@ export default function ProjectsTab({
                                       className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                                       title="Click to edit name"
                                     >
-                                      ✏️
+                                      
                                     </span>
                                     <button
                                       onClick={(e) => {
@@ -700,7 +700,7 @@ export default function ProjectsTab({
                                       className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary-600 ml-2"
                                       title={task.isBillable === false ? "Mark as Billable" : "Mark as Non-Billable"}
                                     >
-                                      {task.isBillable === false ? '💵' : '🚫'}
+                                      {task.isBillable === false ? 'Billable' : 'Non-Billable'}
                                     </button>
                                   </>
                                 )}
@@ -780,7 +780,7 @@ export default function ProjectsTab({
                                 className="text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50"
                                 title="Delete Task"
                               >
-                                🗑️
+                                
                               </button>
                             </td>
                           )}
@@ -1282,7 +1282,7 @@ export default function ProjectsTab({
                             className="p-1 hover:bg-slate-100 dark:bg-zinc-800 rounded text-slate-400 dark:text-slate-600 hover:text-primary-600 transition-colors text-xs"
                             title="Rename Project"
                           >
-                            ✏️
+                            
                           </button>
                           <button
                             onClick={() =>
@@ -1291,7 +1291,7 @@ export default function ProjectsTab({
                             className="p-1 hover:bg-red-50 rounded text-slate-400 dark:text-slate-600 hover:text-red-600 transition-colors text-xs"
                             title="Delete Project"
                           >
-                            🗑️
+                            
                           </button>
                         </>
                       )}

@@ -237,7 +237,7 @@ export default function InvoicesTab({
     };
     try {
       localStorage.setItem(`velotime_project_template_${sheetForm.projectId}`, JSON.stringify(template));
-      addToast("Saved current settings as default template for this project!", "success");
+      addToast("Saved default template for this project", "success");
     } catch (e) {
       addToast("Failed to save template", "error");
     }
@@ -564,7 +564,7 @@ export default function InvoicesTab({
 
                   <div className="flex justify-between items-center text-[11px] text-slate-400">
                     <span>{formatDate(inv.dateIssued)}</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
                       {formatMoney(invTotal + invTax)}
                     </span>
                   </div>
@@ -598,7 +598,10 @@ export default function InvoicesTab({
                     onClick={handleSaveProjectTemplate}
                     className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 hover:text-primary-600 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>⭐ Save as Project Default</span>
+                    <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span>Save as Project Default</span>
                   </button>
                 )}
               </div>
@@ -635,7 +638,7 @@ export default function InvoicesTab({
               {/* Document Header (WYSIWYG Editable In-Place & Perfectly Aligned) */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-200 dark:border-zinc-800">
                 
-                {/* Left Header: Title, Project, Billed To */}
+                {/* Left Header: Title, Project, Billed To (Flush alignment) */}
                 <div className="flex-1 w-full max-w-md">
                   <div className="flex items-baseline gap-3 mb-2">
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
@@ -668,8 +671,8 @@ export default function InvoicesTab({
                     </div>
                   </div>
 
-                  {/* BILLED TO */}
-                  <div className="mt-4 group">
+                  {/* BILLED TO (Flush with invoice margin) */}
+                  <div className="mt-4">
                     <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider mb-1">
                       Billed To
                     </span>
@@ -678,29 +681,29 @@ export default function InvoicesTab({
                       value={sheetForm.clientName}
                       onChange={(e) => handleFieldChange("clientName", e.target.value)}
                       placeholder="Click to enter Client Name..."
-                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-slate-50 dark:focus:bg-zinc-800 rounded-lg px-2 py-1 -ml-2 transition-all outline-none"
+                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 transition-all outline-none"
                     />
                     <textarea
                       rows="2"
                       value={sheetForm.clientAddress}
                       onChange={(e) => handleFieldChange("clientAddress", e.target.value)}
                       placeholder="Click to enter Billing Address..."
-                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-slate-50 dark:focus:bg-zinc-800 rounded-lg px-2 py-1 -ml-2 mt-1 resize-none transition-all outline-none"
+                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 mt-1 resize-none transition-all outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Right Metadata Block (PERFECTLY ALIGNED TABLE) */}
+                {/* Right Metadata Block (PERFECTLY ALIGNED: Labels Left-Aligned, Values Right-Aligned) */}
                 <div className="w-full sm:w-auto">
                   <table className="text-xs border-collapse ml-auto">
                     <tbody>
                       
                       {/* Date Issued */}
                       <tr>
-                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
                           Date Issued:
                         </td>
-                        <td className="py-1 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
+                        <td className="py-1.5 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
                           <input
                             type="date"
                             value={sheetForm.dateIssued}
@@ -718,10 +721,10 @@ export default function InvoicesTab({
 
                       {/* Payment Terms */}
                       <tr>
-                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
-                          Terms:
+                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
+                          Payment Terms:
                         </td>
-                        <td className="py-1 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
+                        <td className="py-1.5 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
                           <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
                             <button
                               type="button"
@@ -755,10 +758,10 @@ export default function InvoicesTab({
                       {/* Due Date */}
                       {termsType === "net" ? (
                         <tr>
-                          <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                          <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
                             Due Date:
                           </td>
-                          <td className="py-1 text-right font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap border-none">
+                          <td className="py-1.5 text-right font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap border-none">
                             <input
                               type="date"
                               value={sheetForm.dueDate || ""}
@@ -769,10 +772,10 @@ export default function InvoicesTab({
                         </tr>
                       ) : (
                         <tr>
-                          <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                          <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
                             Due Date:
                           </td>
-                          <td className="py-1 text-right text-slate-500 dark:text-slate-400 italic text-[11px] whitespace-nowrap border-none">
+                          <td className="py-1.5 text-right text-slate-500 dark:text-slate-400 italic text-[11px] whitespace-nowrap border-none">
                             Upon Disbursement
                           </td>
                         </tr>
@@ -780,10 +783,10 @@ export default function InvoicesTab({
 
                       {/* Status */}
                       <tr>
-                        <td className="py-1 pr-3 text-right text-slate-400 font-medium whitespace-nowrap border-none">
+                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
                           Status:
                         </td>
-                        <td className="py-1 text-right font-bold uppercase tracking-wider text-slate-900 dark:text-white whitespace-nowrap border-none">
+                        <td className="py-1.5 text-right font-bold uppercase tracking-wider text-slate-900 dark:text-white whitespace-nowrap border-none">
                           {sheetForm.status}
                         </td>
                       </tr>
@@ -859,10 +862,10 @@ export default function InvoicesTab({
                     {/* Mode Selector */}
                     <div className="flex flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-zinc-700">
                       {[
-                        { id: "progress", label: "📊 Progress Billing (% Completion)" },
-                        { id: "hourly", label: "⏱️ Unbilled Hours (Matrix)" },
-                        { id: "expense", label: "🧾 Unbilled Expense" },
-                        { id: "flat", label: "💵 Flat Fee / Custom" }
+                        { id: "progress", label: "Progress Billing (% Completion)" },
+                        { id: "hourly", label: "Unbilled Hours (Matrix)" },
+                        { id: "expense", label: "Unbilled Expense" },
+                        { id: "flat", label: "Flat Fee / Custom" }
                       ].map((m) => (
                         <button
                           key={m.id}
