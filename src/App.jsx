@@ -13,6 +13,8 @@ import TimesheetMatrix from "./components/TimesheetMatrix";
 import ProjectsTab from "./components/ProjectsTab";
 import ReportsTab from "./components/ReportsTab";
 import InvoicesTab from "./components/InvoicesTab";
+import IntegrationsTab from "./components/IntegrationsTab";
+import { IntegrationManager } from "./services/integrations/IntegrationManager";
 import TeamTab from "./components/TeamTab";
 import OrganizationSettingsTab from "./components/OrganizationSettingsTab";
 import ApprovalsTab from "./components/ApprovalsTab";
@@ -111,6 +113,7 @@ export default function App() {
     "Timesheets",
     "Projects",
     "Expenses",
+    "Integrations",
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
@@ -1217,6 +1220,8 @@ export default function App() {
                     forceSync={forceSync}
                   />
                 </TrialLockoutOverlay>
+              ) : activeTab === "Integrations" ? (
+                <IntegrationsTab dbUser={dbUser} projects={projects} />
               ) : activeTab === "Expenses" ? (
                 <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
                   <ExpensesTab
