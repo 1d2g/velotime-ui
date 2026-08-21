@@ -7,7 +7,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BASE_URL = process.env.AUDIT_TARGET_URL || 'https://1d2g.github.io/velotime-ui/';
-// Append audit_mode=true to ensure full access to seeded test database
 const AUDIT_URL = BASE_URL.includes('?') ? `${BASE_URL}&audit_mode=true` : `${BASE_URL}?audit_mode=true`;
 
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots');
@@ -75,24 +74,23 @@ async function runAudit() {
     }
   }
 
-  // Initial Boot
-  await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.waitForTimeout(1000);
-
   // --------------------------------------------------------------------------
   // TEST 1: Weekly Timesheet Matrix Grid
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-MTX-001', 'Weekly Timesheet Matrix & Grid Geometry', 'Matrix & Grid', async (page, res) => {
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(600);
+
     // Assert navigation header branding
     const logoVisible = await page.locator('text=VELOTIME').isVisible();
     if (!logoVisible) throw new Error('VeloTime branding header missing');
 
     // Assert project columns render
-    const projExists = await page.locator('text=Acme Web Platform').isVisible();
+    const projExists = await page.locator('text=Acme Web Platform').first().isVisible();
     if (!projExists) throw new Error('Seeded project "Acme Web Platform" not rendered in matrix');
 
     // Assert tasks render
-    const taskExists = await page.locator('text=Design & Wireframes').isVisible();
+    const taskExists = await page.locator('text=Design & Wireframes').first().isVisible();
     if (!taskExists) throw new Error('Task "Design & Wireframes" missing in matrix');
 
     const snapPath = path.join(SCREENSHOTS_DIR, '01_timesheet_matrix.png');
@@ -105,21 +103,20 @@ async function runAudit() {
   // TEST 2: Invoices Engine & Auto-Population Protocol
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-INV-001', 'Invoice Auto-Population & Line Item Math', 'Invoicing', async (page, res) => {
-    // Click Invoices tab in top ribbon
-    const invoiceTab = page.locator('button:has-text("Invoices")').first();
-    if (!await invoiceTab.isVisible()) throw new Error('Invoices tab button not visible in header');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const invoiceTab = page.locator('nav button:has-text("Invoices"), button:has-text("Invoices")').first();
     await invoiceTab.click();
     await page.waitForTimeout(600);
 
-    // Assert Invoices dashboard loaded
     const createBtn = page.locator('button:has-text("Create Invoice"), button:has-text("New Invoice")').first();
     if (await createBtn.isVisible()) {
       await createBtn.click();
       await page.waitForTimeout(600);
     }
 
-    // Select Project "Acme Web Platform" to test Auto-Population
-    const projectSelect = page.locator('select:has(option:has-text("Acme Web Platform")), select').first();
+    const projectSelect = page.locator('select').first();
     if (await projectSelect.isVisible()) {
       await projectSelect.selectOption({ label: 'Acme Web Platform' });
       await page.waitForTimeout(600);
@@ -136,13 +133,14 @@ async function runAudit() {
   // TEST 3: Projects & Task Management
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-PRJ-001', 'Projects Tab & Inline Action Buttons', 'Projects & Tasks', async (page, res) => {
-    const projTab = page.locator('button:has-text("Projects")').first();
-    if (!await projTab.isVisible()) throw new Error('Projects tab button not visible');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const projTab = page.locator('nav button:has-text("Projects"), button:has-text("Projects")').first();
     await projTab.click();
     await page.waitForTimeout(600);
 
-    // Verify project card elements
-    const cardExists = await page.locator('text=Acme Web Platform').isVisible();
+    const cardExists = await page.locator('text=Acme Web Platform').first().isVisible();
     if (!cardExists) throw new Error('Project card "Acme Web Platform" missing');
 
     const snapPath = path.join(SCREENSHOTS_DIR, '03_projects_tab.png');
@@ -155,13 +153,14 @@ async function runAudit() {
   // TEST 4: Expenses Tab & Out-of-Pocket Cost Tracking
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-EXP-001', 'Expenses Tab & Out-of-Pocket Logging', 'Expenses', async (page, res) => {
-    const expTab = page.locator('button:has-text("Expenses")').first();
-    if (!await expTab.isVisible()) throw new Error('Expenses tab button not visible');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const expTab = page.locator('nav button:has-text("Expenses"), button:has-text("Expenses")').first();
     await expTab.click();
     await page.waitForTimeout(600);
 
-    // Verify seeded expense is in the table
-    const expenseRow = await page.locator('text=Cloud Infrastructure Hosting').isVisible();
+    const expenseRow = await page.locator('text=Cloud Infrastructure Hosting').first().isVisible();
     if (!expenseRow) throw new Error('Expense record "Cloud Infrastructure Hosting" not rendered');
 
     const snapPath = path.join(SCREENSHOTS_DIR, '04_expenses_tab.png');
@@ -174,12 +173,13 @@ async function runAudit() {
   // TEST 5: Reports Telemetry & 12 Financial Pillars
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-REP-001', 'Financial Telemetry & 12 Prebuilt Reports', 'Reports & Analytics', async (page, res) => {
-    const repTab = page.locator('button:has-text("Reports")').first();
-    if (!await repTab.isVisible()) throw new Error('Reports tab button not visible');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const repTab = page.locator('nav button:has-text("Reports"), button:has-text("Reports")').first();
     await repTab.click();
     await page.waitForTimeout(600);
 
-    // Verify report card is visible
     const reportCard = page.locator('text=Project Profitability & Margins').first();
     if (await reportCard.isVisible()) {
       await reportCard.click();
@@ -196,14 +196,14 @@ async function runAudit() {
   // TEST 6: Connected Integrations & Speed Layer Hub (Header Plug Icon)
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-INT-001', 'Connected Integrations & Speed Layer Hub', 'Speed Layer', async (page, res) => {
-    // Click the plug button in header
-    const plugBtn = page.locator('button[title="Connected Integrations & Speed Layer"], button[aria-label="Connected Integrations & Speed Layer"]').first();
-    if (!await plugBtn.isVisible()) throw new Error('Header Plug Icon button (🔌) not visible');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const plugBtn = page.locator('button[title*="Integrations"], button[aria-label*="Integrations"]').first();
     await plugBtn.click();
     await page.waitForTimeout(600);
 
-    // Switch to Project Destination Mapping sub-tab
-    const mappingSubTab = page.locator('button:has-text("Project Destination Mapping")');
+    const mappingSubTab = page.locator('button:has-text("Project Destination Mapping")').first();
     if (await mappingSubTab.isVisible()) {
       await mappingSubTab.click();
       await page.waitForTimeout(400);
@@ -219,13 +219,14 @@ async function runAudit() {
   // TEST 7: Organization Settings & Geometry Audit
   // --------------------------------------------------------------------------
   await executeStep('AUDIT-ORG-001', 'Organization Settings & Square Geometry Audit', 'Settings & Org', async (page, res) => {
-    const settingsTab = page.locator('button:has-text("Settings")').first();
-    if (!await settingsTab.isVisible()) throw new Error('Settings tab button not visible');
+    await page.goto(AUDIT_URL, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(400);
+
+    const settingsTab = page.locator('nav button:has-text("Settings"), button:has-text("Settings")').first();
     await settingsTab.click();
     await page.waitForTimeout(600);
 
-    // Verify Organization Profile is visible
-    const orgTitle = await page.locator('text=Organization Profile').isVisible();
+    const orgTitle = await page.locator('text=Organization Profile').first().isVisible();
     if (!orgTitle) throw new Error('Organization Profile section not found');
 
     const snapPath = path.join(SCREENSHOTS_DIR, '07_org_settings.png');
@@ -256,7 +257,6 @@ async function runAudit() {
 
   fs.writeFileSync(REPORT_FILE, JSON.stringify(reportPayload, null, 2), 'utf8');
 
-  // Generate Markdown Summary
   let md = `# VeloTime Functionality Audit Report\n\n`;
   md += `**Execution Time:** ${new Date().toLocaleString()}  \n`;
   md += `**Target System:** [${AUDIT_URL}](${AUDIT_URL})  \n`;
