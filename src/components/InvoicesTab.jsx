@@ -481,7 +481,9 @@ export default function InvoicesTab({
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -635,7 +637,7 @@ export default function InvoicesTab({
               className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none transition-all"
             >
               
-              {/* Document Header (WYSIWYG Editable In-Place & Perfectly Aligned) */}
+              {/* Document Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-200 dark:border-zinc-800">
                 
                 {/* Left Header: Title, Project, Billed To (Flush alignment) */}
@@ -671,7 +673,7 @@ export default function InvoicesTab({
                     </div>
                   </div>
 
-                  {/* BILLED TO (Flush with invoice margin) */}
+                  {/* BILLED TO */}
                   <div className="mt-4">
                     <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider mb-1">
                       Billed To
@@ -693,106 +695,94 @@ export default function InvoicesTab({
                   </div>
                 </div>
 
-                {/* Right Metadata Block (PERFECTLY ALIGNED: Labels Left-Aligned, Values Right-Aligned) */}
-                <div className="w-full sm:w-auto">
-                  <table className="text-xs border-collapse ml-auto">
-                    <tbody>
-                      
-                      {/* Date Issued */}
-                      <tr>
-                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
-                          Date Issued:
-                        </td>
-                        <td className="py-1.5 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
+                {/* Right Metadata Block (PERFECT RIGHT ALIGNMENT ON BOTH SCREEN & PRINT) */}
+                <div className="w-full sm:w-auto flex justify-end">
+                  <div className="text-xs space-y-2 w-72">
+                    
+                    {/* Date Issued */}
+                    <div className="flex justify-between items-center text-right">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">Date Issued:</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-right">
+                        <span className="hidden print:inline font-mono">{formatDate(sheetForm.dateIssued)}</span>
+                        <input
+                          type="date"
+                          value={sheetForm.dateIssued}
+                          onChange={(e) => {
+                            const newIssue = e.target.value;
+                            const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
+                            const updated = { ...sheetForm, dateIssued: newIssue, dueDate: newDue };
+                            setSheetForm(updated);
+                            saveSheetChanges(updated);
+                          }}
+                          className="print:hidden bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
+                        />
+                      </span>
+                    </div>
+
+                    {/* Payment Terms */}
+                    <div className="flex justify-between items-center text-right">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">Payment Terms:</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-right">
+                        <span className="hidden print:inline">{termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}</span>
+                        <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
+                          <button
+                            type="button"
+                            onClick={() => handleTermsChange("net", 30)}
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                              termsType === "net"
+                                ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                                : "text-slate-500 hover:text-slate-900"
+                            }`}
+                          >
+                            Net {netDays}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleTermsChange("pay_when_paid")}
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                              termsType === "pay_when_paid"
+                                ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                                : "text-slate-500 hover:text-slate-900"
+                            }`}
+                          >
+                            Pay When Paid
+                          </button>
+                        </div>
+                      </span>
+                    </div>
+
+                    {/* Due Date */}
+                    {termsType === "net" ? (
+                      <div className="flex justify-between items-center text-right">
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">Due Date:</span>
+                        <span className="font-bold text-primary-600 dark:text-primary-400 text-right">
+                          <span className="hidden print:inline text-slate-900 font-mono">{formatDate(sheetForm.dueDate)}</span>
                           <input
                             type="date"
-                            value={sheetForm.dateIssued}
-                            onChange={(e) => {
-                              const newIssue = e.target.value;
-                              const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
-                              const updated = { ...sheetForm, dateIssued: newIssue, dueDate: newDue };
-                              setSheetForm(updated);
-                              saveSheetChanges(updated);
-                            }}
-                            className="bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
+                            value={sheetForm.dueDate || ""}
+                            onChange={(e) => handleFieldChange("dueDate", e.target.value)}
+                            className="print:hidden bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
                           />
-                        </td>
-                      </tr>
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center text-right">
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">Due Date:</span>
+                        <span className="text-slate-500 dark:text-slate-400 italic text-[11px] text-right font-medium">
+                          Upon Disbursement
+                        </span>
+                      </div>
+                    )}
 
-                      {/* Payment Terms */}
-                      <tr>
-                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
-                          Payment Terms:
-                        </td>
-                        <td className="py-1.5 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap border-none">
-                          <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
-                            <button
-                              type="button"
-                              onClick={() => handleTermsChange("net", 30)}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                                termsType === "net"
-                                  ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
-                                  : "text-slate-500 hover:text-slate-900"
-                              }`}
-                            >
-                              Net {netDays}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleTermsChange("pay_when_paid")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                                termsType === "pay_when_paid"
-                                  ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
-                                  : "text-slate-500 hover:text-slate-900"
-                              }`}
-                            >
-                              Pay When Paid
-                            </button>
-                          </div>
-                          <span className="hidden print:inline font-bold text-slate-900">
-                            {termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}
-                          </span>
-                        </td>
-                      </tr>
+                    {/* Status */}
+                    <div className="flex justify-between items-center text-right">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
+                      <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white text-right">
+                        {sheetForm.status}
+                      </span>
+                    </div>
 
-                      {/* Due Date */}
-                      {termsType === "net" ? (
-                        <tr>
-                          <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
-                            Due Date:
-                          </td>
-                          <td className="py-1.5 text-right font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap border-none">
-                            <input
-                              type="date"
-                              value={sheetForm.dueDate || ""}
-                              onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-                              className="bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
-                            />
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr>
-                          <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
-                            Due Date:
-                          </td>
-                          <td className="py-1.5 text-right text-slate-500 dark:text-slate-400 italic text-[11px] whitespace-nowrap border-none">
-                            Upon Disbursement
-                          </td>
-                        </tr>
-                      )}
-
-                      {/* Status */}
-                      <tr>
-                        <td className="py-1.5 pr-6 text-left text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap border-none">
-                          Status:
-                        </td>
-                        <td className="py-1.5 text-right font-bold uppercase tracking-wider text-slate-900 dark:text-white whitespace-nowrap border-none">
-                          {sheetForm.status}
-                        </td>
-                      </tr>
-
-                    </tbody>
-                  </table>
+                  </div>
                 </div>
 
               </div>
