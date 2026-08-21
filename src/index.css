@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    background-color: #e5e7eb; /* matte light grey (gray-200) */
+    background-color: #e5e7eb;
     color: #0f172a;
     font-family: "Inter", sans-serif;
     overflow-x: hidden;
@@ -16,7 +16,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Grid Cell Architecture with Shared Collapsing Borders */
   .grid-cell {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
@@ -36,7 +35,6 @@
     border: 1px solid var(--primary-300);
   }
 
-  /* Clean Cell Input Engine */
   .cell-input {
     font-variant-numeric: tabular-nums;
     transition: all 0.12s ease;
@@ -52,7 +50,6 @@
   }
 }
 
-/* Hide number spinner arrows */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -62,7 +59,6 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Custom scrollbar for tables */
 ::-webkit-scrollbar {
   height: 6px;
   width: 6px;
@@ -74,43 +70,72 @@ input[type="number"] {
   background: #cbd5e1;
 }
 
-/* Print Styles */
+/* =========================================================================
+   PRINT STYLES FOR INVOICE PDF EXPORT
+   ========================================================================= */
+@page {
+  size: letter portrait;
+  margin: 12mm;
+}
+
 @media print {
+  /* Hide ALL app UI chrome */
   header,
   nav,
+  aside,
   button,
-  .no-print {
+  .print\:hidden,
+  .no-print,
+  #toast-container,
+  .toast-container,
+  .sidebar,
+  .app-sidebar {
     display: none !important;
   }
 
-  body,
-  .grid-cell {
-    background: white !important;
-    color: black !important;
-    border: none !important;
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 11pt !important;
   }
 
-  #invoice-print-area {
+  /* Show only the invoice container as full page */
+  #invoice-preview-container {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    box-shadow: none !important;
-    border: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #invoice-preview-container input,
+  #invoice-preview-container textarea,
+  #invoice-preview-container select {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    color: #000000 !important;
+    resize: none !important;
+    -webkit-appearance: none !important;
   }
 
   table {
-    border-collapse: collapse;
-    width: 100%;
+    border-collapse: collapse !important;
+    width: 100% !important;
   }
 
-  th,
-  td {
-    border-bottom: 1px solid #ccc !important;
+  th, td {
+    border-bottom: 1px solid #cbd5e1 !important;
   }
 }
-
 
 @theme {
   --color-primary-50: var(--primary-50);

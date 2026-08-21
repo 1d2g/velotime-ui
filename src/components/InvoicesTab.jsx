@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "../contexts/ToastContext";
 
 export default function InvoicesTab({
@@ -20,34 +20,43 @@ export default function InvoicesTab({
   const [isLoading, setIsLoading] = useState(true);
   const [activeInvoice, setActiveInvoice] = useState(null);
 
-  // Editor state
-  const [isEditingHeader, setIsEditingHeader] = useState(false);
-  const [headerForm, setHeaderForm] = useState({});
-  const [isAddingLineItem, setIsAddingLineItem] = useState(false);
+  // Live Sheet Fields State (WYSIWYG directly on invoice paper)
+  const [sheetForm, setSheetForm] = useState({
+    projectId: "",
+    clientName: "",
+    clientAddress: "",
+    dateIssued: "",
+    dueDate: "",
+    notes: "",
+    status: "draft",
+    taxName: "Tax",
+    taxRate: 0,
+  });
 
   // Terms State: 'net' or 'pay_when_paid'
   const [termsType, setTermsType] = useState("net");
   const [netDays, setNetDays] = useState(30);
 
-  // Add Line Item state
-  // Modes: 'progress', 'hourly', 'expense', 'flat'
-  const [liMode, setLiMode] = useState("progress");
+  // Add Line Item Drawer State (Inside the invoice sheet)
+  const [isAddingLineItem, setIsAddingLineItem] = useState(false);
+  const [liMode, setLiMode] = useState("progress"); // 'progress', 'hourly', 'expense', 'flat'
   const [liDescription, setLiDescription] = useState("");
   const [liAmount, setLiAmount] = useState("");
 
   // Hourly line item state
-  const [liProjectId, setLiProjectId] = useState("");
   const [liTaskId, setLiTaskId] = useState("");
   const [liUserId, setLiUserId] = useState("");
 
   // Expense line item state
   const [liExpenseId, setLiExpenseId] = useState("");
 
-  // Progress Billing (Percentage-Based Completion) State
+  // Progress Billing State
   const [pbPhaseName, setPbPhaseName] = useState("");
   const [pbContractValue, setPbContractValue] = useState("");
   const [pbCurrentPercent, setPbCurrentPercent] = useState("");
   const [pbPreviousPercent, setPbPreviousPercent] = useState("0");
+
+  const autoSaveTimerRef = useRef(null);
 
   const fetchInvoices = async () => {
     try {
@@ -55,9 +64,9 @@ export default function InvoicesTab({
       setInvoices(data);
       if (activeInvoiceId) {
         const matched = data.find((i) => i.id === activeInvoiceId);
-        if (matched) setActiveInvoice(matched);
+        if (matched) selectInvoice(matched);
       } else if (data.length > 0 && !activeInvoice) {
-        setActiveInvoice(data[0]);
+        selectInvoice(data[0]);
       }
     } catch (e) {
       console.error(e);
@@ -70,7 +79,27 @@ export default function InvoicesTab({
     fetchInvoices();
   }, [activeInvoiceId]);
 
-  // Helper to find client from project
+  const selectInvoice = (inv) => {
+    setActiveInvoice(inv);
+    setIsAddingLineItem(false);
+
+    const isPwp = inv.notes && inv.notes.toLowerCase().includes("pay when paid") || !inv.dueDate;
+    const tType = isPwp ? "pay_when_paid" : "net";
+    setTermsType(tType);
+
+    setSheetForm({
+      projectId: inv.projectId || "",
+      clientName: inv.clientName || "",
+      clientAddress: inv.clientAddress || "",
+      dateIssued: inv.dateIssued ? new Date(inv.dateIssued).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split("T")[0] : "",
+      notes: inv.notes || "",
+      status: inv.status || "draft",
+      taxName: inv.taxName || "Tax",
+      taxRate: inv.taxRate || 0,
+    });
+  };
+
   const getClientForProject = (projectId) => {
     if (!projectId) return null;
     const proj = projects.find((p) => p.id === projectId);
@@ -83,7 +112,6 @@ export default function InvoicesTab({
     return null;
   };
 
-  // Helper to get saved project template
   const getProjectTemplate = (projectId) => {
     if (!projectId) return null;
     try {
@@ -94,30 +122,6 @@ export default function InvoicesTab({
     }
   };
 
-  const handleSaveProjectTemplate = () => {
-    if (!headerForm.projectId) {
-      addToast("Please select a project before saving template", "error");
-      return;
-    }
-    const template = {
-      projectId: headerForm.projectId,
-      clientName: headerForm.clientName || "",
-      clientAddress: headerForm.clientAddress || "",
-      taxName: headerForm.taxName || "",
-      taxRate: headerForm.taxRate || 0,
-      notes: headerForm.notes || "",
-      termsType: termsType,
-      netDays: netDays,
-    };
-    try {
-      localStorage.setItem(`velotime_project_template_${headerForm.projectId}`, JSON.stringify(template));
-      addToast("Saved default invoice template for this project!", "success");
-    } catch (e) {
-      addToast("Failed to save project template", "error");
-    }
-  };
-
-  // Calculate Due Date based on dateIssued and netDays
   const calculateDueDate = (issuedDateStr, days) => {
     if (!issuedDateStr) return "";
     const date = new Date(issuedDateStr);
@@ -126,28 +130,54 @@ export default function InvoicesTab({
     return date.toISOString().split("T")[0];
   };
 
-  // Handle Project Selection in Header Editor
-  const handleSelectProject = (projectId) => {
+  // Live Auto-Save to Backend when sheetForm changes
+  const saveSheetChanges = async (updatedFields) => {
+    if (!activeInvoice) return;
+    try {
+      const updated = await apiCall(
+        `/api/invoices/${activeInvoice.id}`,
+        "PUT",
+        updatedFields,
+      );
+      setActiveInvoice(updated);
+      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    } catch (e) {
+      console.error("Auto-save failed", e);
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    const updated = { ...sheetForm, [field]: value };
+    setSheetForm(updated);
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveSheetChanges(updated);
+    }, 400);
+  };
+
+  // Change Project on Sheet (Auto-fills Client & Terms)
+  const handleProjectSelect = (projectId) => {
     const proj = projects.find((p) => p.id === projectId);
     const assignedClient = getClientForProject(projectId);
     const template = getProjectTemplate(projectId);
 
     const clientName = assignedClient?.name || template?.clientName || proj?.clientName || proj?.name?.split(" - ")[0] || "";
     const clientAddress = assignedClient?.address || template?.clientAddress || "";
-    const taxName = template?.taxName !== undefined ? template.taxName : headerForm.taxName || "";
-    const taxRate = template?.taxRate !== undefined ? template.taxRate : headerForm.taxRate || 0;
-    const notes = template?.notes !== undefined ? template.notes : headerForm.notes || "";
+    const taxName = template?.taxName !== undefined ? template.taxName : sheetForm.taxName;
+    const taxRate = template?.taxRate !== undefined ? template.taxRate : sheetForm.taxRate;
+    const notes = template?.notes !== undefined ? template.notes : sheetForm.notes;
 
     const tType = template?.termsType || termsType;
     const nDays = template?.netDays || netDays;
     setTermsType(tType);
     setNetDays(nDays);
 
-    const issueDate = headerForm.dateIssued ? new Date(headerForm.dateIssued).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+    const issueDate = sheetForm.dateIssued || new Date().toISOString().split("T")[0];
     const computedDueDate = tType === "net" ? calculateDueDate(issueDate, nDays) : null;
 
-    setHeaderForm((prev) => ({
-      ...prev,
+    const updated = {
+      ...sheetForm,
       projectId: projectId || null,
       clientName,
       clientAddress,
@@ -155,29 +185,63 @@ export default function InvoicesTab({
       taxRate,
       notes,
       dueDate: computedDueDate,
-    }));
+    };
+
+    setSheetForm(updated);
+    saveSheetChanges(updated);
+    addToast(`Linked to ${proj?.name || "project"} & client details auto-populated`, "success");
   };
 
-  // Handle Terms Mode Switch
   const handleTermsChange = (mode, customDays = netDays) => {
     setTermsType(mode);
-    const issueDate = headerForm.dateIssued ? new Date(headerForm.dateIssued).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+    const issueDate = sheetForm.dateIssued || new Date().toISOString().split("T")[0];
+
+    let newDueDate = null;
+    let newNotes = sheetForm.notes;
 
     if (mode === "pay_when_paid") {
-      setHeaderForm((prev) => ({
-        ...prev,
-        dueDate: null,
-        notes: prev.notes && !prev.notes.includes("Pay When Paid") ? prev.notes : "Payment terms: Pay When Paid.",
-      }));
+      newDueDate = null;
+      if (!newNotes || newNotes.includes("Payment is due within")) {
+        newNotes = "Payment terms: Pay When Paid.";
+      }
     } else {
       const days = parseInt(customDays || 30, 10);
       setNetDays(days);
-      const newDue = calculateDueDate(issueDate, days);
-      setHeaderForm((prev) => ({
-        ...prev,
-        dueDate: newDue,
-        notes: prev.notes && prev.notes.startsWith("Payment terms: Pay When Paid") ? `Payment is due within ${days} days of invoice date.` : prev.notes,
-      }));
+      newDueDate = calculateDueDate(issueDate, days);
+      if (!newNotes || newNotes.includes("Pay When Paid")) {
+        newNotes = `Payment is due within ${days} days of invoice date.`;
+      }
+    }
+
+    const updated = {
+      ...sheetForm,
+      dueDate: newDueDate,
+      notes: newNotes,
+    };
+    setSheetForm(updated);
+    saveSheetChanges(updated);
+  };
+
+  const handleSaveProjectTemplate = () => {
+    if (!sheetForm.projectId) {
+      addToast("Please select an associated project before saving template", "error");
+      return;
+    }
+    const template = {
+      projectId: sheetForm.projectId,
+      clientName: sheetForm.clientName || "",
+      clientAddress: sheetForm.clientAddress || "",
+      taxName: sheetForm.taxName || "",
+      taxRate: sheetForm.taxRate || 0,
+      notes: sheetForm.notes || "",
+      termsType: termsType,
+      netDays: netDays,
+    };
+    try {
+      localStorage.setItem(`velotime_project_template_${sheetForm.projectId}`, JSON.stringify(template));
+      addToast("Saved current settings as default template for this project!", "success");
+    } catch (e) {
+      addToast("Failed to save template", "error");
     }
   };
 
@@ -198,7 +262,7 @@ export default function InvoicesTab({
           projectId: targetProjectId,
           clientName: assignedClient?.name || template?.clientName || p?.clientName || p?.name?.split(" - ")[0] || "",
           clientAddress: assignedClient?.address || template?.clientAddress || "",
-          taxName: template?.taxName || "",
+          taxName: template?.taxName || "Tax",
           taxRate: template?.taxRate || 0,
           notes: template?.notes || (tType === "pay_when_paid" ? "Payment terms: Pay When Paid." : `Payment is due within ${nDays} days.`),
           dueDate: computedDueDate,
@@ -207,30 +271,29 @@ export default function InvoicesTab({
 
       const inv = await apiCall("/api/invoices", "POST", initialPayload);
       setInvoices([inv, ...invoices]);
-      setActiveInvoice(inv);
-      setHeaderForm(inv);
-      setIsEditingHeader(true);
+      selectInvoice(inv);
       forceSync();
-      addToast("Invoice created successfully", "success");
+      addToast("New invoice created", "success");
     } catch (e) {
       addToast("Failed to create invoice", "error");
     }
   };
 
-  const handleSaveHeader = async (e) => {
-    e.preventDefault();
+  const handleDeleteInvoice = async () => {
+    if (!window.confirm("Are you sure you want to delete this entire invoice?")) return;
     try {
-      const updated = await apiCall(
-        `/api/invoices/${activeInvoice.id}`,
-        "PUT",
-        headerForm,
-      );
-      setActiveInvoice(updated);
-      setIsEditingHeader(false);
-      setInvoices(invoices.map((i) => (i.id === updated.id ? updated : i)));
-      addToast("Invoice details updated successfully", "success");
+      await apiCall(`/api/invoices/${activeInvoice.id}`, "DELETE");
+      const remaining = invoices.filter((i) => i.id !== activeInvoice.id);
+      setInvoices(remaining);
+      if (remaining.length > 0) {
+        selectInvoice(remaining[0]);
+      } else {
+        setActiveInvoice(null);
+      }
+      forceSync();
+      addToast("Invoice deleted", "success");
     } catch (e) {
-      addToast("Failed to save invoice details", "error");
+      addToast("Failed to delete invoice", "error");
     }
   };
 
@@ -255,7 +318,6 @@ export default function InvoicesTab({
     return { hours: totalHours, rate, amount: totalHours * rate };
   };
 
-  // Auto-detect previous billed percentage for progress billing
   const detectPreviousBilledPercent = (phase) => {
     if (!phase || !activeInvoice?.projectId) return 0;
     const projInvoices = invoices.filter(
@@ -370,7 +432,7 @@ export default function InvoicesTab({
         payload,
       );
       setActiveInvoice(updated);
-      setInvoices(invoices.map((i) => (i.id === updated.id ? updated : i)));
+      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
       setIsAddingLineItem(false);
 
       // Reset form
@@ -378,7 +440,6 @@ export default function InvoicesTab({
       setLiAmount("");
       setLiMode("progress");
       setLiExpenseId("");
-      setLiProjectId("");
       setLiTaskId("");
       setLiUserId("");
       setPbPhaseName("");
@@ -387,7 +448,7 @@ export default function InvoicesTab({
       setPbPreviousPercent("0");
 
       if (liMode === "hourly" || liMode === "expense") forceSync();
-      addToast("Line item added successfully", "success");
+      addToast("Line item added", "success");
     } catch (e) {
       addToast("Failed to add line item", "error");
     }
@@ -401,34 +462,17 @@ export default function InvoicesTab({
         "DELETE",
       );
       setActiveInvoice(updated);
-      setInvoices(invoices.map((i) => (i.id === updated.id ? updated : i)));
+      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
       forceSync();
-      addToast("Line item deleted", "success");
+      addToast("Line item removed", "success");
     } catch (e) {
       addToast("Failed to delete line item", "error");
     }
   };
 
-  const handleDeleteInvoice = async () => {
-    if (!window.confirm("Are you sure you want to delete this entire invoice?")) return;
-    try {
-      await apiCall(`/api/invoices/${activeInvoice.id}`, "DELETE");
-      const remaining = invoices.filter((i) => i.id !== activeInvoice.id);
-      setInvoices(remaining);
-      setActiveInvoice(remaining[0] || null);
-      forceSync();
-      addToast("Invoice deleted", "success");
-    } catch (e) {
-      addToast("Failed to delete invoice", "error");
-    }
-  };
-
-  // Instant Native Print-to-PDF (Zero-freeze, 100% reliable)
-  const handleDownloadPDF = () => {
-    addToast("Opening print / Save as PDF dialog...", "info");
-    setTimeout(() => {
-      window.print();
-    }, 150);
+  // Instant Native Print-to-PDF
+  const handlePrintPDF = () => {
+    window.print();
   };
 
   const formatMoney = (amount) => {
@@ -453,17 +497,18 @@ export default function InvoicesTab({
   }, [activeInvoice]);
 
   const taxAmount = useMemo(() => {
-    if (!activeInvoice?.taxRate) return 0;
-    return (subtotal * activeInvoice.taxRate) / 100;
-  }, [subtotal, activeInvoice]);
+    const rate = parseFloat(sheetForm.taxRate) || 0;
+    if (rate <= 0) return 0;
+    return (subtotal * rate) / 100;
+  }, [subtotal, sheetForm.taxRate]);
 
   const totalAmount = subtotal + taxAmount;
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-100 dark:bg-zinc-950 overflow-hidden">
       
-      {/* SIDEBAR: INVOICES LIST */}
-      <div className="w-full md:w-80 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0">
+      {/* SIDEBAR: INVOICES LIST (Hidden on Print) */}
+      <div className="w-full md:w-80 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0 print:hidden">
         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex justify-between items-center">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">Invoices</h2>
@@ -492,11 +537,7 @@ export default function InvoicesTab({
               return (
                 <div
                   key={inv.id}
-                  onClick={() => {
-                    setActiveInvoice(inv);
-                    setIsEditingHeader(false);
-                    setIsAddingLineItem(false);
-                  }}
+                  onClick={() => selectInvoice(inv)}
                   className={`p-4 cursor-pointer transition-colors ${
                     isActive
                       ? "bg-primary-50/70 dark:bg-primary-950/40 border-l-4 border-primary-600"
@@ -537,340 +578,202 @@ export default function InvoicesTab({
         </div>
       </div>
 
-      {/* MAIN CONTENT: ACTIVE INVOICE PREVIEW & ACTIONS */}
-      <div className="flex-1 flex flex-col h-full overflow-y-auto">
+      {/* MAIN CONTENT: WHAT-YOU-SEE-IS-WHAT-YOU-GET (WYSIWYG) INVOICE PAPER */}
+      <div className="flex-1 flex flex-col h-full overflow-y-auto p-4 sm:p-8">
         {activeInvoice ? (
-          <div className="p-6 md:p-8 max-w-4xl mx-auto w-full">
+          <div className="max-w-4xl mx-auto w-full">
             
-            {/* Top Bar Actions */}
+            {/* Top Toolbar (Action Controls - Hidden on Print) */}
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6 print:hidden">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    setHeaderForm(activeInvoice);
-                    setIsEditingHeader(!isEditingHeader);
-                  }}
-                  className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 hover:border-slate-400 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  onClick={handlePrintPDF}
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
-                  <span>{isEditingHeader ? "Close Editor" : "Edit Invoice Details"}</span>
+                  <span>Print / Save as PDF</span>
                 </button>
 
-                <button
-                  onClick={handleDownloadPDF}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  <span>Download / Print PDF</span>
-                </button>
+                {sheetForm.projectId && (
+                  <button
+                    onClick={handleSaveProjectTemplate}
+                    className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 hover:text-primary-600 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>⭐ Save as Project Default</span>
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 shadow-sm">
+                  <span className="text-[11px] font-bold uppercase text-slate-400">Status:</span>
+                  <select
+                    value={sheetForm.status}
+                    onChange={(e) => handleFieldChange("status", e.target.value)}
+                    className="bg-transparent text-xs font-bold uppercase text-slate-900 dark:text-white outline-none cursor-pointer"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </div>
+
                 <button
                   onClick={handleDeleteInvoice}
-                  className="text-red-600 hover:text-red-700 text-xs font-bold px-3 py-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                  className="text-red-500 hover:text-red-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                 >
-                  Delete Invoice
+                  Delete
                 </button>
               </div>
             </div>
 
-            {/* EDIT HEADER ACCORDION */}
-            {isEditingHeader && (
-              <form onSubmit={handleSaveHeader} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-2xl p-6 mb-8 shadow-sm print:hidden">
-                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-zinc-800">
-                  <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">Edit Invoice Details</h3>
-                    <span className="text-[11px] text-slate-400">Client details auto-populate from the selected project.</span>
-                  </div>
-                  
-                  {/* Save as Project Template Button */}
-                  {headerForm.projectId && (
-                    <button
-                      type="button"
-                      onClick={handleSaveProjectTemplate}
-                      className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>⭐ Save as Project Default Template</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  
-                  {/* Project Selector */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Associated Project</label>
-                    <select
-                      value={headerForm.projectId || ""}
-                      onChange={(e) => handleSelectProject(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-semibold"
-                    >
-                      <option value="">-- No Project Linked --</option>
-                      {projects.map((p) => {
-                        const cl = getClientForProject(p.id);
-                        return (
-                          <option key={p.id} value={p.id}>
-                            {p.name} {cl ? `(${cl.name})` : ""}
-                          </option>
-                        );
-                      })}
-                    </select>
+            {/* THE UNIFIED INVOICE PAPER SHEET (#invoice-preview-container) */}
+            <div
+              id="invoice-preview-container"
+              className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none transition-all"
+            >
+              
+              {/* Document Header (WYSIWYG Editable In-Place) */}
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-200 dark:border-zinc-800">
+                <div className="flex-1 w-full max-w-md">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                      Invoice
+                    </h1>
+                    <span className="font-mono text-sm font-bold text-primary-600 dark:text-primary-400">
+                      {activeInvoice.invoiceNumber}
+                    </span>
                   </div>
 
-                  {/* Client Name (Auto-Populated) */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-                      Client Name (Auto-Filled)
-                    </label>
+                  {/* Associated Project (Live Selector directly on Sheet) */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">Project:</span>
+                      <select
+                        value={sheetForm.projectId || ""}
+                        onChange={(e) => handleProjectSelect(e.target.value)}
+                        className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                      >
+                        <option value="">-- No Project Linked --</option>
+                        {projects.map((p) => {
+                          const cl = getClientForProject(p.id);
+                          return (
+                            <option key={p.id} value={p.id}>
+                              {p.name} {cl ? `(${cl.name})` : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* BILLED TO (Live Editable) */}
+                  <div className="mt-4 group">
+                    <span className="block text-[11px] font-bold uppercase text-slate-400 tracking-wider mb-1">
+                      Billed To
+                    </span>
                     <input
                       type="text"
-                      value={headerForm.clientName || ""}
-                      onChange={(e) => setHeaderForm({ ...headerForm, clientName: e.target.value })}
-                      placeholder="e.g. Acme Corporation"
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-medium"
+                      value={sheetForm.clientName}
+                      onChange={(e) => handleFieldChange("clientName", e.target.value)}
+                      placeholder="Click to enter Client Name..."
+                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-slate-50 dark:focus:bg-zinc-800 rounded-lg px-2 py-1 -ml-2 transition-all outline-none"
                     />
-                  </div>
-
-                  {/* Billing Address (Auto-Populated) */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-                      Billing Address (Auto-Filled from Client)
-                    </label>
                     <textarea
                       rows="2"
-                      value={headerForm.clientAddress || ""}
-                      onChange={(e) => setHeaderForm({ ...headerForm, clientAddress: e.target.value })}
-                      placeholder="123 Client Way&#10;City, State 12345"
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white resize-none"
+                      value={sheetForm.clientAddress}
+                      onChange={(e) => handleFieldChange("clientAddress", e.target.value)}
+                      placeholder="Click to enter Billing Address..."
+                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-slate-50 dark:focus:bg-zinc-800 rounded-lg px-2 py-1 -ml-2 mt-1 resize-none transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Right Metadata Block (Dates, Terms, Auto-Due Date) */}
+                <div className="w-full sm:w-auto text-left sm:text-right space-y-3 text-xs">
+                  
+                  {/* Date Issued */}
+                  <div className="flex sm:justify-end items-center gap-2">
+                    <span className="text-slate-400 font-medium">Date Issued:</span>
+                    <input
+                      type="date"
+                      value={sheetForm.dateIssued}
+                      onChange={(e) => {
+                        const newIssue = e.target.value;
+                        const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
+                        const updated = { ...sheetForm, dateIssued: newIssue, dueDate: newDue };
+                        setSheetForm(updated);
+                        saveSheetChanges(updated);
+                      }}
+                      className="bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1.5 py-0.5 outline-none cursor-pointer"
                     />
                   </div>
 
-                  {/* PAYMENT TERMS TOGGLE & DUE DATE AUTO-CALCULATION */}
-                  <div className="sm:col-span-2 bg-slate-50 dark:bg-zinc-800/60 p-4 rounded-xl border border-slate-200 dark:border-zinc-700">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase">
-                        Payment Terms & Due Date Pacing
-                      </label>
-                      <div className="flex items-center gap-2">
+                  {/* Payment Terms & Due Date Pacing */}
+                  <div className="space-y-1.5">
+                    <div className="flex sm:justify-end items-center gap-2">
+                      <span className="text-slate-400 font-medium">Terms:</span>
+                      <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
                         <button
                           type="button"
                           onClick={() => handleTermsChange("net", 30)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                             termsType === "net"
-                              ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                              : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700"
+                              ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                         >
-                          Net Terms
+                          Net {netDays}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleTermsChange("pay_when_paid")}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                             termsType === "pay_when_paid"
-                              ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                              : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700"
+                              ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                         >
                           Pay When Paid
                         </button>
                       </div>
+                      
+                      {/* Print view for terms */}
+                      <span className="hidden print:inline font-bold text-slate-900">
+                        {termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}
+                      </span>
                     </div>
 
+                    {/* Net Days input & Due Date preview */}
                     {termsType === "net" ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                            Net Days (Customizable)
-                          </label>
-                          <div className="flex items-center gap-1.5">
-                            <input
-                              type="number"
-                              min="0"
-                              max="365"
-                              value={netDays}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value || 0, 10);
-                                handleTermsChange("net", val);
-                              }}
-                              className="w-20 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-mono font-bold text-slate-900 dark:text-white"
-                            />
-                            <span className="text-xs text-slate-500 font-semibold">Days</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-1">
-                          {[15, 30, 45, 60].map((d) => (
-                            <button
-                              key={d}
-                              type="button"
-                              onClick={() => handleTermsChange("net", d)}
-                              className={`px-2 py-1.5 rounded text-[11px] font-bold cursor-pointer ${
-                                netDays === d
-                                  ? "bg-primary-600 text-white"
-                                  : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700 hover:bg-slate-100"
-                              }`}
-                            >
-                              Net {d}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                            Auto-Calculated Due Date
-                          </label>
+                      <div className="flex sm:justify-end items-center gap-2">
+                        <span className="text-slate-400 font-medium">Due Date:</span>
+                        <div className="flex items-center gap-1">
                           <input
                             type="date"
-                            value={headerForm.dueDate ? new Date(headerForm.dueDate).toISOString().split("T")[0] : ""}
-                            onChange={(e) => setHeaderForm({ ...headerForm, dueDate: e.target.value })}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-bold text-primary-600 dark:text-primary-400"
+                            value={sheetForm.dueDate || ""}
+                            onChange={(e) => handleFieldChange("dueDate", e.target.value)}
+                            className="bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1.5 py-0.5 outline-none cursor-pointer"
                           />
                         </div>
                       </div>
                     ) : (
-                      <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                        ✦ <span className="font-bold">Pay When Paid Active:</span> Due date is non-fixed. Invoices will show <em>"Terms: Pay When Paid"</em> upon disbursement from client funds.
+                      <div className="text-[11px] text-slate-400 italic">
+                        Due upon disbursement
                       </div>
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date Issued</label>
-                    <input
-                      type="date"
-                      value={headerForm.dateIssued ? new Date(headerForm.dateIssued).toISOString().split("T")[0] : ""}
-                      onChange={(e) => {
-                        const newIssue = e.target.value;
-                        const newDue = termsType === "net" ? calculateDueDate(newIssue, netDays) : null;
-                        setHeaderForm({ ...headerForm, dateIssued: newIssue, dueDate: newDue });
-                      }}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Status</label>
-                    <select
-                      value={headerForm.status || "draft"}
-                      onChange={(e) => setHeaderForm({ ...headerForm, status: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-bold"
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="pending">Pending / Sent</option>
-                      <option value="paid">Paid</option>
-                    </select>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tax Name</label>
-                      <input
-                        type="text"
-                        placeholder="VAT / Sales Tax"
-                        value={headerForm.taxName || ""}
-                        onChange={(e) => setHeaderForm({ ...headerForm, taxName: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
-                      />
-                    </div>
-                    <div className="w-24">
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Rate (%)</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        placeholder="0.0"
-                        value={headerForm.taxRate || ""}
-                        onChange={(e) => setHeaderForm({ ...headerForm, taxRate: parseFloat(e.target.value) || 0 })}
-                        className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes & Terms</label>
-                    <textarea
-                      rows="2"
-                      value={headerForm.notes || ""}
-                      onChange={(e) => setHeaderForm({ ...headerForm, notes: e.target.value })}
-                      placeholder="Payment terms, wire instructions, or milestone notes..."
-                      className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingHeader(false)}
-                    className="px-4 py-2 text-xs font-semibold text-slate-500 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2 rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* INVOICE PAPER CONTAINER */}
-            <div
-              id="invoice-preview-container"
-              className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none"
-            >
-              
-              {/* Document Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-200 dark:border-zinc-800">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase mb-1">
-                    Invoice
-                  </h1>
-                  <span className="font-mono text-sm font-bold text-primary-600 dark:text-primary-400">
-                    {activeInvoice.invoiceNumber}
-                  </span>
-
-                  <div className="mt-6">
-                    <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">Billed To</span>
-                    <div className="font-bold text-base text-slate-900 dark:text-white">
-                      {activeInvoice.clientName || "Unassigned Client"}
-                    </div>
-                    {activeInvoice.clientAddress && (
-                      <div className="text-xs text-slate-500 whitespace-pre-wrap mt-0.5">
-                        {activeInvoice.clientAddress}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="text-left sm:text-right space-y-1.5 text-xs">
-                  <div>
-                    <span className="text-slate-400 font-medium mr-2">Date Issued:</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{formatDate(activeInvoice.dateIssued)}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium mr-2">Terms / Due:</span>
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      {activeInvoice.dueDate ? formatDate(activeInvoice.dueDate) : "Pay When Paid"}
+                  {/* Status Indicator */}
+                  <div className="flex sm:justify-end items-center gap-2">
+                    <span className="text-slate-400 font-medium">Status:</span>
+                    <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                      {sheetForm.status}
                     </span>
                   </div>
-                  {activeInvoice.project && (
-                    <div>
-                      <span className="text-slate-400 font-medium mr-2">Project:</span>
-                      <span className="font-bold text-slate-900 dark:text-white">{activeInvoice.project.name}</span>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-slate-400 font-medium mr-2">Status:</span>
-                    <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white">{activeInvoice.status}</span>
-                  </div>
+
                 </div>
               </div>
 
@@ -890,7 +793,7 @@ export default function InvoicesTab({
                     {(!activeInvoice.lineItems || activeInvoice.lineItems.length === 0) ? (
                       <tr>
                         <td colSpan="5" className="py-8 text-center text-slate-400 italic">
-                          No line items added to this invoice yet.
+                          No line items added yet. Use the add button below to insert milestone phases, hours, or expenses.
                         </td>
                       </tr>
                     ) : (
@@ -924,19 +827,19 @@ export default function InvoicesTab({
                 </table>
               </div>
 
-              {/* IN-BOX ADD LINE ITEM SECTION (Inside Invoice Paper, Hidden on Print) */}
-              <div className="my-4 border-t border-dashed border-slate-200 dark:border-zinc-800 pt-4 print:hidden">
+              {/* IN-BOX ADD LINE ITEM SECTION (Embedded seamlessly on sheet, hidden on print) */}
+              <div className="my-2 border-t border-dashed border-slate-200 dark:border-zinc-800 pt-4 print:hidden">
                 {!isAddingLineItem ? (
                   <button
                     onClick={() => setIsAddingLineItem(true)}
-                    className="w-full py-2.5 border border-dashed border-slate-300 dark:border-zinc-700 hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-950/20 text-slate-600 dark:text-slate-400 hover:text-primary-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-2.5 border border-dashed border-slate-300 dark:border-zinc-700 hover:border-primary-500 hover:bg-primary-50/40 dark:hover:bg-primary-950/20 text-slate-600 dark:text-slate-400 hover:text-primary-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <span>+ Add Line Item (Progress Billing %, Hourly, Expense, Flat Fee)</span>
+                    <span>+ Add Line Item (Progress Billing %, Hours, Expense, Flat Fee)</span>
                   </button>
                 ) : (
-                  <form onSubmit={handleAddLineItem} className="bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700 rounded-2xl p-5 space-y-4">
+                  <form onSubmit={handleAddLineItem} className="bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-2xl p-5 space-y-4 shadow-sm">
                     
-                    {/* Mode Selector Tabs */}
+                    {/* Mode Selector */}
                     <div className="flex flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-zinc-700">
                       {[
                         { id: "progress", label: "📊 Progress Billing (% Completion)" },
@@ -959,9 +862,9 @@ export default function InvoicesTab({
                       ))}
                     </div>
 
-                    {/* 1. PROGRESS BILLING FORM */}
+                    {/* Progress Billing Form */}
                     {liMode === "progress" && (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
@@ -1040,11 +943,10 @@ export default function InvoicesTab({
                           </div>
                         </div>
 
-                        {/* Progress Preview */}
                         {pbPhaseName && pbContractValue && pbCurrentPercent && (
                           <div className="bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-xl p-3 text-xs">
                             <span className="block font-bold text-primary-900 dark:text-primary-300 mb-0.5">
-                              Generated Line Item:
+                              Generated Line Item Preview:
                             </span>
                             <div className="font-mono font-semibold text-slate-800 dark:text-slate-200 mb-1">
                               "{pbCurrentPercent}% {pbPhaseName} | Last Billed: {pbPreviousPercent || 0}%"
@@ -1057,43 +959,25 @@ export default function InvoicesTab({
                       </div>
                     )}
 
-                    {/* 2. HOURLY FORM */}
+                    {/* Hourly Form */}
                     {liMode === "hourly" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Project</label>
-                          <select
-                            value={liProjectId}
-                            onChange={(e) => {
-                              setLiProjectId(e.target.value);
-                              setLiTaskId("");
-                            }}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
-                          >
-                            <option value="">-- Choose Project --</option>
-                            {projects.map((p) => (
-                              <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Task</label>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Task</label>
                           <select
                             value={liTaskId}
                             onChange={(e) => setLiTaskId(e.target.value)}
-                            disabled={!liProjectId}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white disabled:opacity-50"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
                           >
                             <option value="">-- Choose Task --</option>
-                            {projects.find((p) => p.id === liProjectId)?.tasks?.map((t) => (
+                            {projects.find((p) => p.id === sheetForm.projectId)?.tasks?.map((t) => (
                               <option key={t.id} value={t.id}>{t.name}</option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Team Member</label>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Team Member</label>
                           <select
                             value={liUserId}
                             onChange={(e) => setLiUserId(e.target.value)}
@@ -1108,7 +992,7 @@ export default function InvoicesTab({
                       </div>
                     )}
 
-                    {/* 3. EXPENSE FORM */}
+                    {/* Expense Form */}
                     {liMode === "expense" && (
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Unbilled Expense</label>
@@ -1127,14 +1011,14 @@ export default function InvoicesTab({
                       </div>
                     )}
 
-                    {/* 4. FLAT FEE FORM */}
+                    {/* Flat Fee Form */}
                     {liMode === "flat" && (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-2">
                           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
                           <input
                             type="text"
-                            placeholder="e.g. Consulting Retainer or Fixed Fee Phase"
+                            placeholder="e.g. Consulting Retainer or Fixed Fee"
                             value={liDescription}
                             onChange={(e) => setLiDescription(e.target.value)}
                             className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
@@ -1154,8 +1038,8 @@ export default function InvoicesTab({
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-zinc-700">
+                    {/* Actions */}
+                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-zinc-700">
                       <button
                         type="button"
                         onClick={() => setIsAddingLineItem(false)}
@@ -1175,35 +1059,60 @@ export default function InvoicesTab({
                 )}
               </div>
 
-              {/* Totals & Terms */}
+              {/* Totals & Terms Footer Block */}
               <div className="pt-6 border-t border-slate-200 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-12 gap-8 items-start">
+                
+                {/* Notes & Terms (Live WYSIWYG Editable) */}
                 <div className="sm:col-span-7">
-                  {activeInvoice.notes && (
-                    <div>
-                      <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">Notes & Terms</span>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                        {activeInvoice.notes}
-                      </p>
-                    </div>
-                  )}
+                  <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                    Notes & Legal Terms
+                  </span>
+                  <textarea
+                    rows="3"
+                    value={sheetForm.notes}
+                    onChange={(e) => handleFieldChange("notes", e.target.value)}
+                    placeholder="Click to add payment instructions, wire details, or milestone notes..."
+                    className="w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl p-3 resize-none transition-all outline-none leading-relaxed"
+                  />
                 </div>
 
-                <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-2xl p-4 border border-slate-200 dark:border-zinc-700/60 text-xs">
-                  <div className="flex justify-between py-1 text-slate-500">
+                {/* Financial Summary */}
+                <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-2xl p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2">
+                  <div className="flex justify-between py-0.5 text-slate-500">
                     <span>Subtotal:</span>
                     <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>
                   </div>
-                  {activeInvoice.taxRate > 0 && (
-                    <div className="flex justify-between py-1 text-slate-500">
-                      <span>{activeInvoice.taxName || "Tax"} ({activeInvoice.taxRate}%):</span>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(taxAmount)}</span>
+
+                  {/* Tax Row (Live Editable) */}
+                  <div className="flex justify-between items-center py-0.5 text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={sheetForm.taxName}
+                        onChange={(e) => handleFieldChange("taxName", e.target.value)}
+                        placeholder="Tax"
+                        className="w-14 bg-transparent border-b border-dashed border-slate-300 text-xs font-semibold text-slate-600 dark:text-slate-400 outline-none"
+                      />
+                      <span>(</span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={sheetForm.taxRate || ""}
+                        onChange={(e) => handleFieldChange("taxRate", parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="w-8 bg-transparent border-b border-dashed border-slate-300 text-xs font-semibold text-slate-600 dark:text-slate-400 outline-none text-right font-mono"
+                      />
+                      <span>%):</span>
                     </div>
-                  )}
-                  <div className="flex justify-between pt-2 mt-2 border-t border-slate-200 dark:border-zinc-700 text-sm font-black text-slate-900 dark:text-white">
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(taxAmount)}</span>
+                  </div>
+
+                  <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-zinc-700 text-sm font-black text-slate-900 dark:text-white">
                     <span>Total Due:</span>
                     <span className="font-mono text-base text-primary-600 dark:text-primary-400">{formatMoney(totalAmount)}</span>
                   </div>
                 </div>
+
               </div>
 
             </div>
