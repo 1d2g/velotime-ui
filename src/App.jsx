@@ -88,6 +88,77 @@ export default function App() {
   const [notes, setNotes] = useState({});
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
+
+  const isAuditMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("audit_mode") === "true";
+
+  useEffect(() => {
+    if (isAuditMode) {
+      const mockAdminUser = {
+        id: "usr_audit_admin",
+        email: "privacy@dg.tools",
+        firstName: "Audit",
+        lastName: "Admin",
+        role: "admin",
+        organization: { id: "org_audit", name: "VeloTime QA Testing Workspace", tier: "pro", invoicePrefix: "INV-", nextInvoiceNumber: 1001 }
+      };
+      setDbUser(mockAdminUser);
+      setOrgUsers([mockAdminUser, { id: "usr_2", firstName: "Sarah", lastName: "Dev", role: "employee" }]);
+      setClients([
+        { id: "c1", name: "Acme Corporation", address: "100 Tech Blvd, Silicon Valley, CA" },
+        { id: "c2", name: "Stripe Inc", address: "510 Townsend St, San Francisco, CA" }
+      ]);
+      setProjects([
+        {
+          id: "p1",
+          name: "Acme Web Platform",
+          clientName: "Acme Corporation",
+          clientId: "c1",
+          hourlyRate: 150,
+          budget: 50000,
+          budgetHours: 350,
+          sortOrder: 0,
+          tasks: [
+            { id: "t1", name: "Design & Wireframes", hourlyRate: 140 },
+            { id: "t2", name: "Frontend Development", hourlyRate: 160 },
+            { id: "t3", name: "API & Backend", hourlyRate: 175 }
+          ]
+        },
+        {
+          id: "p2",
+          name: "Mobile App V2",
+          clientName: "Stripe Inc",
+          clientId: "c2",
+          hourlyRate: 175,
+          budget: 30000,
+          budgetHours: 200,
+          sortOrder: 1,
+          tasks: [
+            { id: "t4", name: "Mobile UI Architecture", hourlyRate: 160 },
+            { id: "t5", name: "Push Notifications", hourlyRate: 150 }
+          ]
+        }
+      ]);
+      setTaskRates({ t1: 140, t2: 160, t3: 175, t4: 160, t5: 150 });
+      setEntries({
+        "usr_audit_admin_2026-08-17_t1": 8,
+        "usr_audit_admin_2026-08-18_t1": 7.5,
+        "usr_audit_admin_2026-08-19_t2": 8,
+        "usr_audit_admin_2026-08-20_t2": 6.5,
+        "usr_audit_admin_2026-08-21_t3": 8
+      });
+      setRawEntries([
+        { id: "e1", date: "2026-08-17", taskId: "t1", hours: 8, projectId: "p1", projectName: "Acme Web Platform", taskName: "Design & Wireframes", userId: "usr_audit_admin", userName: "Audit Admin", isBillable: true, isInvoiced: false },
+        { id: "e2", date: "2026-08-18", taskId: "t1", hours: 7.5, projectId: "p1", projectName: "Acme Web Platform", taskName: "Design & Wireframes", userId: "usr_audit_admin", userName: "Audit Admin", isBillable: true, isInvoiced: false },
+        { id: "e3", date: "2026-08-19", taskId: "t2", hours: 8, projectId: "p1", projectName: "Acme Web Platform", taskName: "Frontend Development", userId: "usr_audit_admin", userName: "Audit Admin", isBillable: true, isInvoiced: false },
+        { id: "e4", date: "2026-08-20", taskId: "t2", hours: 6.5, projectId: "p1", projectName: "Acme Web Platform", taskName: "Frontend Development", userId: "usr_audit_admin", userName: "Audit Admin", isBillable: true, isInvoiced: false },
+        { id: "e5", date: "2026-08-21", taskId: "t3", hours: 8, projectId: "p1", projectName: "Acme Web Platform", taskName: "API & Backend", userId: "usr_audit_admin", userName: "Audit Admin", isBillable: true, isInvoiced: false }
+      ]);
+      setExpenses([
+        { id: "exp_1", amount: "450.00", description: "Cloud Infrastructure Hosting", date: "2026-08-18", isBillable: true, projectId: "p1" }
+      ]);
+      setIsSyncing(false);
+    }
+  }, [isAuditMode]);
   const [submissions, setSubmissions] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [invoices, setInvoices] = useState([]);
