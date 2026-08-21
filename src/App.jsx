@@ -88,6 +88,8 @@ export default function App() {
   const [taskRates, setTaskRates] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [activeInvoiceId, setActiveInvoiceId] = useState(null);
 
   const { addToast } = useToast();
   const [isSyncing, setIsSyncing] = useState(true);
