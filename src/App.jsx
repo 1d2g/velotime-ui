@@ -113,7 +113,6 @@ export default function App() {
     "Timesheets",
     "Projects",
     "Expenses",
-    "Integrations",
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
@@ -753,6 +752,32 @@ export default function App() {
                 </nav>
               </div>
               <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
+                                {/* Connected Integrations & Speed Layer Button */}
+                <button
+                  onClick={() => setActiveTab("Integrations")}
+                  className={`p-1.5 rounded transition-colors cursor-pointer ${
+                    activeTab === "Integrations"
+                      ? "bg-slate-200 dark:bg-zinc-700 text-slate-900 dark:text-white"
+                      : "text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                  aria-label="Connected Integrations & Speed Layer"
+                  title="Connected Integrations & Speed Layer"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 3v4m6-4v4M5 7h14a2 2 0 012 2v3a7 7 0 01-7 7v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2a7 7 0 01-7-7V9a2 2 0 012-2z"
+                    />
+                  </svg>
+                </button>
+
                 <button
                   onClick={() =>
                     setTheme((prev) => (prev === "light" ? "dark" : "light"))
