@@ -109,7 +109,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
                 projectId: ""
               });
             }}
-            className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded font-bold shadow-sm transition-all"
+            className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-none font-bold shadow-sm transition-all"
           >
             <Plus size={18} />
             Log Expense
@@ -118,7 +118,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
 
         {/* Add/Edit Form */}
         {(isAdding || editingId) && (
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded p-6 shadow-sm">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
               {isAdding ? "Log New Expense" : "Edit Expense"}
             </h2>
@@ -189,7 +189,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
                       type="checkbox"
                       checked={formData.isBillable}
                       onChange={(e) => setFormData({ ...formData, isBillable: e.target.checked })}
-                      className="w-4 h-4 text-slate-900 dark:text-slate-100 rounded focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
+                      className="w-4 h-4 text-slate-900 dark:text-slate-100 rounded-none focus:ring-gray-900 border-slate-300 dark:border-zinc-700"
                     />
                     Billable to Client
                   </label>
@@ -205,7 +205,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
                   </button>
                   <button
                     type="submit"
-                    className="bg-gray-900 text-white px-6 py-2 font-bold rounded"
+                    className="bg-gray-900 text-white px-6 py-2 font-bold rounded-none"
                   >
                     {isAdding ? "Save Expense" : "Update Expense"}
                   </button>
@@ -217,7 +217,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
         )}
 
         {/* Expenses List */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none overflow-hidden shadow-sm">
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-slate-100 dark:bg-zinc-800">
               <tr>
@@ -250,9 +250,9 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
                       {!expense.isBillable ? (
                         <span className="text-xs font-bold uppercase text-slate-400">Non-Billable</span>
                       ) : expense.invoiceId ? (
-                        <span className="text-xs font-bold uppercase text-emerald-600 bg-emerald-100 px-2 py-1 rounded">Billed</span>
+                        <span className="text-xs font-bold uppercase text-emerald-600 bg-emerald-100 px-2 py-1 rounded-none">Billed</span>
                       ) : (
-                        <span className="text-xs font-bold uppercase text-amber-600 bg-amber-100 px-2 py-1 rounded">Unbilled</span>
+                        <span className="text-xs font-bold uppercase text-amber-600 bg-amber-100 px-2 py-1 rounded-none">Unbilled</span>
                       )}
                     </td>
                     <td className="p-3 text-right">

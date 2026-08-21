@@ -255,7 +255,7 @@ export default function OrganizationSettingsTab({
                   })()}
                 </p>
 
-                <div className="bg-primary-100/50 rounded p-3 mb-4 border border-slate-900 ">
+                <div className="bg-primary-100/50 rounded-none p-3 mb-4 border border-slate-900 ">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-semibold text-blue-900 ">
                       Seats Used
@@ -404,7 +404,7 @@ export default function OrganizationSettingsTab({
                       <img
                         src={logoBase64}
                         alt="Company Logo"
-                        className="h-16 w-auto object-contain border border-slate-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-900 p-1"
+                        className="h-16 w-auto object-contain border border-slate-300 dark:border-zinc-700 rounded-none bg-white dark:bg-zinc-900 p-1"
                       />
                       {isAdmin && (
                         <button
@@ -429,7 +429,7 @@ export default function OrganizationSettingsTab({
                       )}
                     </div>
                   ) : (
-                    <div className="h-16 w-16 flex items-center justify-center bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700 rounded text-slate-400 dark:text-slate-600 ">
+                    <div className="h-16 w-16 flex items-center justify-center bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700 rounded-none text-slate-400 dark:text-slate-600 ">
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -471,7 +471,7 @@ export default function OrganizationSettingsTab({
                   value={timerRoundingMinutes}
                   onChange={(e) => setTimerRoundingMinutes(Number(e.target.value))}
                   disabled={!isAdmin}
-                  className="w-full max-w-sm px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-none focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-slate-100 disabled:opacity-50"
+                  className="w-full max-w-sm px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-none-none focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-slate-100 disabled:opacity-50"
                 >
                   <option value={0}>No rounding (Exact decimals)</option>
                   <option value={1}>Round up to nearest 1 minute</option>
@@ -479,7 +479,7 @@ export default function OrganizationSettingsTab({
                   <option value={15}>Round up to nearest 15 minutes</option>
                 </select>
                 <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
-                  When a user stops an active timer, the elapsed time will be automatically rounded up to the selected increment before adding it to their timesheet.
+                  When a user stops an active timer, the elapsed time will be automatically rounded-none up to the selected increment before adding it to their timesheet.
                 </p>
               </div>
 
@@ -505,7 +505,7 @@ export default function OrganizationSettingsTab({
               </svg>
               Stripe Online Payments
             </h2>
-            <span className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded">
+            <span className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-none">
               Credit Cards • Apple Pay • Google Pay • ACH
             </span>
           </div>
@@ -516,11 +516,11 @@ export default function OrganizationSettingsTab({
                   Status:
                 </h3>
                 {dbUser?.organization?.stripeConnectAccountId && dbUser?.organization?.stripeConnectEnabled ? (
-                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 rounded">
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-none">
                     Connected & Active
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 rounded">
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 rounded-none">
                     Not Connected
                   </span>
                 )}
@@ -594,14 +594,14 @@ export default function OrganizationSettingsTab({
             {isAdmin && !dbUser?.organization?.quickbooksRealmId && (
               <a
                 href={`${import.meta.env.VITE_API_URL || ""}/api/quickbooks/auth?orgId=${dbUser?.organizationId}`}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap rounded"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 text-sm transition-colors whitespace-nowrap rounded-none"
               >
                 Connect to QuickBooks
               </a>
             )}
             {isAdmin && dbUser?.organization?.quickbooksRealmId && (
               <button
-                className="bg-slate-100 text-slate-700 border border-slate-300 font-bold py-2 px-4 text-sm whitespace-nowrap cursor-not-allowed opacity-75 rounded"
+                className="bg-slate-100 text-slate-700 border border-slate-300 font-bold py-2 px-4 text-sm whitespace-nowrap cursor-not-allowed opacity-75 rounded-none"
                 disabled
               >
                 Connected

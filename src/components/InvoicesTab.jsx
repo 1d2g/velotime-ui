@@ -515,7 +515,7 @@ export default function InvoicesTab({
           </div>
           <button
             onClick={() => handleCreateInvoice()}
-            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold px-3 py-1.5 rounded-none-none hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
           >
             + New Invoice
           </button>
@@ -548,7 +548,7 @@ export default function InvoicesTab({
                       {inv.invoiceNumber}
                     </span>
                     <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-none ${
                         inv.status === "paid"
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
                           : inv.status === "pending"
@@ -587,7 +587,7 @@ export default function InvoicesTab({
               <div className="flex items-center gap-3">
                 <button
                   onClick={handlePrintPDF}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-4 py-2 rounded-none-none text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -598,7 +598,7 @@ export default function InvoicesTab({
                 {sheetForm.projectId && (
                   <button
                     onClick={handleSaveProjectTemplate}
-                    className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 hover:text-primary-600 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 hover:text-primary-600 px-3.5 py-2 rounded-none-none text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                   >
                     <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -609,7 +609,7 @@ export default function InvoicesTab({
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 shadow-sm">
+                <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none px-3 py-1.5 shadow-sm">
                   <span className="text-[11px] font-bold uppercase text-slate-400">Status:</span>
                   <select
                     value={sheetForm.status}
@@ -624,7 +624,7 @@ export default function InvoicesTab({
 
                 <button
                   onClick={handleDeleteInvoice}
-                  className="text-red-500 hover:text-red-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                  className="text-red-500 hover:text-red-700 text-xs font-bold px-3 py-1.5 rounded-none-none hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                 >
                   Delete
                 </button>
@@ -634,7 +634,7 @@ export default function InvoicesTab({
             {/* THE UNIFIED INVOICE PAPER SHEET (#invoice-preview-container) */}
             <div
               id="invoice-preview-container"
-              className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none transition-all"
+              className="bg-white dark:bg-zinc-900 rounded-none-none shadow-xl border border-slate-200 dark:border-zinc-800 p-8 sm:p-12 print:p-0 print:border-none print:shadow-none transition-all"
             >
               
               {/* Document Header */}
@@ -658,7 +658,7 @@ export default function InvoicesTab({
                       <select
                         value={sheetForm.projectId || ""}
                         onChange={(e) => handleProjectSelect(e.target.value)}
-                        className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                        className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-none-none px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
                       >
                         <option value="">-- No Project Linked --</option>
                         {projects.map((p) => {
@@ -683,14 +683,14 @@ export default function InvoicesTab({
                       value={sheetForm.clientName}
                       onChange={(e) => handleFieldChange("clientName", e.target.value)}
                       placeholder="Click to enter Client Name..."
-                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 transition-all outline-none"
+                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none-none px-0 py-0.5 transition-all outline-none"
                     />
                     <textarea
                       rows="2"
                       value={sheetForm.clientAddress}
                       onChange={(e) => handleFieldChange("clientAddress", e.target.value)}
                       placeholder="Click to enter Billing Address..."
-                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 mt-1 resize-none transition-all outline-none"
+                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none-none px-0 py-0.5 mt-1 resize-none transition-all outline-none"
                     />
                   </div>
                 </div>
@@ -714,7 +714,7 @@ export default function InvoicesTab({
                             setSheetForm(updated);
                             saveSheetChanges(updated);
                           }}
-                          className="print:hidden bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
+                          className="print:hidden bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
                         />
                       </span>
                     </div>
@@ -724,11 +724,11 @@ export default function InvoicesTab({
                       <span className="text-slate-500 dark:text-slate-400 font-medium">Payment Terms:</span>
                       <span className="font-bold text-slate-900 dark:text-white text-right">
                         <span className="hidden print:inline">{termsType === "net" ? `Net ${netDays} Days` : "Pay When Paid"}</span>
-                        <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
+                        <div className="inline-flex items-center bg-slate-100 dark:bg-zinc-800 rounded-none-none p-0.5 border border-slate-200 dark:border-zinc-700 print:hidden">
                           <button
                             type="button"
                             onClick={() => handleTermsChange("net", 30)}
-                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                            className={`px-2 py-0.5 rounded-none-none text-[11px] font-bold transition-all cursor-pointer ${
                               termsType === "net"
                                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
                                 : "text-slate-500 hover:text-slate-900"
@@ -739,7 +739,7 @@ export default function InvoicesTab({
                           <button
                             type="button"
                             onClick={() => handleTermsChange("pay_when_paid")}
-                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                            className={`px-2 py-0.5 rounded-none-none text-[11px] font-bold transition-all cursor-pointer ${
                               termsType === "pay_when_paid"
                                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm"
                                 : "text-slate-500 hover:text-slate-900"
@@ -761,7 +761,7 @@ export default function InvoicesTab({
                             type="date"
                             value={sheetForm.dueDate || ""}
                             onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-                            className="print:hidden bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded px-1 text-right outline-none cursor-pointer"
+                            className="print:hidden bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
                           />
                         </span>
                       </div>
@@ -842,12 +842,12 @@ export default function InvoicesTab({
                 {!isAddingLineItem ? (
                   <button
                     onClick={() => setIsAddingLineItem(true)}
-                    className="w-full py-2.5 border border-dashed border-slate-300 dark:border-zinc-700 hover:border-primary-500 hover:bg-primary-50/40 dark:hover:bg-primary-950/20 text-slate-600 dark:text-slate-400 hover:text-primary-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-2.5 border border-dashed border-slate-300 dark:border-zinc-700 hover:border-primary-500 hover:bg-primary-50/40 dark:hover:bg-primary-950/20 text-slate-600 dark:text-slate-400 hover:text-primary-600 rounded-none-none font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <span>+ Add Line Item (Progress Billing %, Hours, Expense, Flat Fee)</span>
                   </button>
                 ) : (
-                  <form onSubmit={handleAddLineItem} className="bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-2xl p-5 space-y-4 shadow-sm">
+                  <form onSubmit={handleAddLineItem} className="bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-none-none p-5 space-y-4 shadow-sm">
                     
                     {/* Mode Selector */}
                     <div className="flex flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-zinc-700">
@@ -861,7 +861,7 @@ export default function InvoicesTab({
                           key={m.id}
                           type="button"
                           onClick={() => setLiMode(m.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-none-none text-xs font-bold transition-all cursor-pointer ${
                             liMode === m.id
                               ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
                               : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700 hover:bg-slate-100"
@@ -886,7 +886,7 @@ export default function InvoicesTab({
                               placeholder="e.g. Construction Documents"
                               value={pbPhaseName}
                               onChange={(e) => handlePhaseChange(e.target.value)}
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white font-semibold outline-none focus:ring-2 focus:ring-primary-500"
                             />
                             <datalist id="progress-phase-suggestions">
                               <option value="Schematic Design" />
@@ -910,7 +910,7 @@ export default function InvoicesTab({
                               placeholder="10000.00"
                               value={pbContractValue}
                               onChange={(e) => setPbContractValue(e.target.value)}
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
                             />
                           </div>
 
@@ -927,7 +927,7 @@ export default function InvoicesTab({
                                 placeholder="0"
                                 value={pbPreviousPercent}
                                 onChange={(e) => setPbPreviousPercent(e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
                               />
                               <span className="absolute right-3 top-2 text-slate-400 font-bold text-xs">%</span>
                             </div>
@@ -946,7 +946,7 @@ export default function InvoicesTab({
                                 placeholder="e.g. 30"
                                 value={pbCurrentPercent}
                                 onChange={(e) => setPbCurrentPercent(e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
                               />
                               <span className="absolute right-3 top-2 text-slate-400 font-bold text-xs">%</span>
                             </div>
@@ -954,7 +954,7 @@ export default function InvoicesTab({
                         </div>
 
                         {pbPhaseName && pbContractValue && pbCurrentPercent && (
-                          <div className="bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-xl p-3 text-xs">
+                          <div className="bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-none-none p-3 text-xs">
                             <span className="block font-bold text-primary-900 dark:text-primary-300 mb-0.5">
                               Generated Line Item Preview:
                             </span>
@@ -977,7 +977,7 @@ export default function InvoicesTab({
                           <select
                             value={liTaskId}
                             onChange={(e) => setLiTaskId(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                           >
                             <option value="">-- Choose Task --</option>
                             {projects.find((p) => p.id === sheetForm.projectId)?.tasks?.map((t) => (
@@ -991,7 +991,7 @@ export default function InvoicesTab({
                           <select
                             value={liUserId}
                             onChange={(e) => setLiUserId(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                           >
                             <option value="">-- Choose User --</option>
                             {orgUsers.map((u) => (
@@ -1009,7 +1009,7 @@ export default function InvoicesTab({
                         <select
                           value={liExpenseId}
                           onChange={(e) => setLiExpenseId(e.target.value)}
-                          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                         >
                           <option value="">-- Choose Unbilled Expense --</option>
                           {expenses.filter((exp) => !exp.invoiceId).map((exp) => (
@@ -1031,7 +1031,7 @@ export default function InvoicesTab({
                             placeholder="e.g. Consulting Retainer or Fixed Fee"
                             value={liDescription}
                             onChange={(e) => setLiDescription(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                           />
                         </div>
                         <div>
@@ -1042,7 +1042,7 @@ export default function InvoicesTab({
                             placeholder="1500.00"
                             value={liAmount}
                             onChange={(e) => setLiAmount(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white font-mono font-bold"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white font-mono font-bold"
                           />
                         </div>
                       </div>
@@ -1059,7 +1059,7 @@ export default function InvoicesTab({
                       </button>
                       <button
                         type="submit"
-                        className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md transition-all cursor-pointer"
+                        className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2 rounded-none-none text-xs shadow-md transition-all cursor-pointer"
                       >
                         Add to Invoice
                       </button>
@@ -1082,12 +1082,12 @@ export default function InvoicesTab({
                     value={sheetForm.notes}
                     onChange={(e) => handleFieldChange("notes", e.target.value)}
                     placeholder="Click to add payment instructions, wire details, or milestone notes..."
-                    className="w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl p-3 resize-none transition-all outline-none leading-relaxed"
+                    className="w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-none-none p-3 resize-none transition-all outline-none leading-relaxed"
                   />
                 </div>
 
                 {/* Financial Summary */}
-                <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-2xl p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2">
+                <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-none-none p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2">
                   <div className="flex justify-between py-0.5 text-slate-500">
                     <span>Subtotal:</span>
                     <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>

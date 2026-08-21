@@ -723,7 +723,7 @@ export default function ReportsTab({
                 setReportPhase("menu");
                 setSortConfig({ key: null, direction: null });
               }}
-              className="p-1.5 hover:bg-slate-100 dark:bg-zinc-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer rounded-lg"
+              className="p-1.5 hover:bg-slate-100 dark:bg-zinc-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer rounded-none-none"
               title="Back to Reports Directory"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,22 +752,22 @@ export default function ReportsTab({
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {reportPhase === "menu" ? (
-            <div className="flex items-center bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl border border-slate-300 dark:border-zinc-700 text-xs font-semibold">
+            <div className="flex items-center bg-slate-100 dark:bg-zinc-800 p-1 rounded-none-none border border-slate-300 dark:border-zinc-700 text-xs font-semibold">
               <button
                 onClick={() => setActiveTab("prebuilt")}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${activeTab === "prebuilt" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
+                className={`px-3 py-1.5 rounded-none-none transition-colors cursor-pointer ${activeTab === "prebuilt" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
               >
                 Prebuilt Library ({PREBUILT_REPORTS.length})
               </button>
               <button
                 onClick={() => setActiveTab("builder")}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${activeTab === "builder" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
+                className={`px-3 py-1.5 rounded-none-none transition-colors cursor-pointer ${activeTab === "builder" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
               >
                 Custom Builder
               </button>
               <button
                 onClick={() => setActiveTab("saved")}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${activeTab === "saved" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
+                className={`px-3 py-1.5 rounded-none-none transition-colors cursor-pointer ${activeTab === "saved" ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-sm font-bold" : "text-slate-600 dark:text-slate-400"}`}
               >
                 Saved Presets ({savedReports.length}/20)
               </button>
@@ -776,7 +776,7 @@ export default function ReportsTab({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setReportPhase("builder")}
-                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -786,14 +786,14 @@ export default function ReportsTab({
 
               <button
                 onClick={handleExportCSV}
-                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 CSV
               </button>
 
               <button
                 onClick={handleExportExcel}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -823,7 +823,7 @@ export default function ReportsTab({
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-none-none text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                       categoryFilter === cat
                         ? "bg-primary-600 text-white shadow-sm"
                         : "bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:border-slate-400"
@@ -840,7 +840,7 @@ export default function ReportsTab({
                   placeholder="Search 12 reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
+                  className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none px-3.5 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                 />
               </div>
             </div>
@@ -851,16 +851,16 @@ export default function ReportsTab({
                 <div
                   key={report.id}
                   onClick={() => selectPrebuiltReport(report)}
-                  className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-primary-500 dark:hover:border-primary-500 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                  className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-primary-500 dark:hover:border-primary-500 rounded-none-none p-6 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform">
+                      <div className="w-9 h-9 rounded-none-none bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={report.icon} />
                         </svg>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-zinc-800 text-slate-500 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-zinc-800 text-slate-500 px-2 py-0.5 rounded-none">
                         {report.badge}
                       </span>
                     </div>
@@ -889,7 +889,7 @@ export default function ReportsTab({
         {/* ----------------------------------------------------------------- */}
         {((reportPhase === "menu" && activeTab === "builder") || reportPhase === "builder") && (
           <div className="p-6 md:p-8 max-w-4xl mx-auto w-full">
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-8 shadow-sm">
               
               <div className="mb-8">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
@@ -909,7 +909,7 @@ export default function ReportsTab({
                   <select
                     value={groupBy}
                     onChange={(e) => setGroupBy(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="project">Group by Project</option>
                     <option value="user">Group by Team Member</option>
@@ -928,7 +928,7 @@ export default function ReportsTab({
                     value={subGroupBy}
                     onChange={(e) => setSubGroupBy(e.target.value)}
                     disabled={groupBy === "raw"}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
                   >
                     <option value="none">None (Single Level)</option>
                     <option value="user" disabled={groupBy === "user"}>Sub-group by Team Member</option>
@@ -950,7 +950,7 @@ export default function ReportsTab({
                     return (
                       <label
                         key={col.id}
-                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                        className={`flex items-center gap-2.5 p-3 rounded-none-none border text-xs font-semibold cursor-pointer transition-all ${
                           isSelected
                             ? "bg-primary-50 dark:bg-primary-950/40 border-primary-300 dark:border-primary-800 text-primary-900 dark:text-primary-300"
                             : "bg-slate-50 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400"
@@ -968,7 +968,7 @@ export default function ReportsTab({
                               setSelectedMetrics([...selectedMetrics, col.id]);
                             }
                           }}
-                          className="rounded text-primary-600 focus:ring-primary-500"
+                          className="rounded-none text-primary-600 focus:ring-primary-500"
                         />
                         <span>{col.label}</span>
                       </label>
@@ -984,7 +984,7 @@ export default function ReportsTab({
                   <select
                     value={selectedPeriod}
                     onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                   >
                     <option value="week">This Week</option>
                     <option value="lastWeek">Last Week</option>
@@ -1002,7 +1002,7 @@ export default function ReportsTab({
                   <select
                     value={selectedProject}
                     onChange={(e) => setSelectedProject(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                   >
                     <option value="all">All Projects ({projects.length})</option>
                     {projects.map(p => (
@@ -1016,7 +1016,7 @@ export default function ReportsTab({
                   <select
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                   >
                     <option value="all">All Team Members ({orgUsers.length})</option>
                     {orgUsers.map(u => (
@@ -1030,7 +1030,7 @@ export default function ReportsTab({
                   <select
                     value={invoicedFilter}
                     onChange={(e) => setInvoicedFilter(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs text-slate-900 dark:text-white"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                   >
                     <option value="all">All Entries</option>
                     <option value="uninvoiced">Uninvoiced Only</option>
@@ -1040,14 +1040,14 @@ export default function ReportsTab({
               </div>
 
               {selectedPeriod === "custom" && (
-                <div className="flex gap-4 p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-xl mb-8 border border-slate-200 dark:border-zinc-700">
+                <div className="flex gap-4 p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-none-none mb-8 border border-slate-200 dark:border-zinc-700">
                   <div className="flex-1">
                     <label className="block text-[11px] font-bold text-slate-400 mb-1">Start Date</label>
                     <input
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded p-2 text-xs text-slate-900 dark:text-white"
+                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none p-2 text-xs text-slate-900 dark:text-white"
                     />
                   </div>
                   <div className="flex-1">
@@ -1056,7 +1056,7 @@ export default function ReportsTab({
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded p-2 text-xs text-slate-900 dark:text-white"
+                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none p-2 text-xs text-slate-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -1070,11 +1070,11 @@ export default function ReportsTab({
                     placeholder="Save preset name (e.g. Monthly Retainers)..."
                     value={customReportName}
                     onChange={(e) => setCustomReportName(e.target.value)}
-                    className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none w-full sm:w-64"
+                    className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none px-3 py-2 text-xs text-slate-900 dark:text-white outline-none w-full sm:w-64"
                   />
                   <button
                     onClick={saveCurrentAsCustomReport}
-                    className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap cursor-pointer"
+                    className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-bold px-3 py-2 rounded-none-none text-xs whitespace-nowrap cursor-pointer"
                   >
                     Save Preset
                   </button>
@@ -1092,7 +1092,7 @@ export default function ReportsTab({
                       setReportType("custom");
                       setReportPhase("viewing");
                     }}
-                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition-all cursor-pointer"
+                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-6 py-2.5 rounded-none-none text-xs shadow-md transition-all cursor-pointer"
                   >
                     Run Custom Report &rarr;
                   </button>
@@ -1117,15 +1117,15 @@ export default function ReportsTab({
               </div>
               <button
                 onClick={() => setActiveTab("builder")}
-                className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors cursor-pointer"
+                className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-4 py-2 rounded-none-none text-xs transition-colors cursor-pointer"
               >
                 + Build New Preset
               </button>
             </div>
 
             {savedReports.length === 0 ? (
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-12 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-zinc-800 text-slate-400 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-12 text-center">
+                <div className="w-12 h-12 rounded-none-none bg-slate-100 dark:bg-zinc-800 text-slate-400 flex items-center justify-center mx-auto mb-4">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                   </svg>
@@ -1136,7 +1136,7 @@ export default function ReportsTab({
                 </p>
                 <button
                   onClick={() => setActiveTab("builder")}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold px-5 py-2 rounded-xl text-xs"
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold px-5 py-2 rounded-none-none text-xs"
                 >
                   Open Custom Builder
                 </button>
@@ -1147,11 +1147,11 @@ export default function ReportsTab({
                   <div
                     key={saved.id}
                     onClick={() => loadSavedReport(saved)}
-                    className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-primary-500 rounded-2xl p-5 shadow-sm transition-all cursor-pointer group flex flex-col justify-between"
+                    className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-primary-500 rounded-none-none p-5 shadow-sm transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-none">
                           Grouped by {saved.groupBy}
                         </span>
                         <button
@@ -1193,25 +1193,25 @@ export default function ReportsTab({
             
             {/* KPI Summary Banner */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-6">
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Hours</span>
                 <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">{kpiStats.totalHrs.toFixed(1)}h</div>
                 <span className="text-[10px] text-slate-500 font-medium">({kpiStats.billableHrs.toFixed(1)}h billable)</span>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Billable Value</span>
                 <div className="text-2xl font-black text-primary-600 dark:text-primary-400 font-mono">${kpiStats.revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                 <span className="text-[10px] text-slate-500 font-medium">Gross revenue</span>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Labor Cost</span>
                 <div className="text-2xl font-black text-slate-700 dark:text-slate-300 font-mono">${kpiStats.cost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                 <span className="text-[10px] text-slate-500 font-medium">Loaded payroll</span>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Gross Margin %</span>
                 <div className={`text-2xl font-black font-mono ${kpiStats.margin >= 40 ? 'text-emerald-600 dark:text-emerald-400' : kpiStats.margin >= 20 ? 'text-amber-500' : 'text-red-500'}`}>
                   {Math.round(kpiStats.margin)}%
@@ -1219,7 +1219,7 @@ export default function ReportsTab({
                 <span className="text-[10px] text-slate-500 font-medium">${Math.round(kpiStats.profit).toLocaleString()} profit</span>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm col-span-2 sm:col-span-1">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm col-span-2 sm:col-span-1">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Effective Rate (EHR)</span>
                 <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">${Math.round(kpiStats.ehr)}<span className="text-xs text-slate-400">/hr</span></div>
                 <span className="text-[10px] text-slate-500 font-medium">{Math.round(kpiStats.utilization)}% utilization</span>
@@ -1227,7 +1227,7 @@ export default function ReportsTab({
             </div>
 
             {/* Main Interactive Spreadsheet Grid */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                   <thead>
@@ -1307,7 +1307,7 @@ export default function ReportsTab({
                             >
                               <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 {hasSub && (
-                                  <span className="w-4 h-4 rounded bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] text-slate-500">
+                                  <span className="w-4 h-4 rounded-none bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] text-slate-500">
                                     {isExpanded ? "−" : "+"}
                                   </span>
                                 )}

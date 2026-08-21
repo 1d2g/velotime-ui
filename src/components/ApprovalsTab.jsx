@@ -24,13 +24,13 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
   const getStatusBadge = (status) => {
     switch (status) {
       case 'approved':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1"><Check size={12} /> Approved</span>;
+        return <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-none text-xs font-bold uppercase tracking-wider flex items-center gap-1"><Check size={12} /> Approved</span>;
       case 'rejected':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1"><X size={12} /> Rejected</span>;
+        return <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-none text-xs font-bold uppercase tracking-wider flex items-center gap-1"><X size={12} /> Rejected</span>;
       case 'submitted':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1"><Clock size={12} /> Pending</span>;
+        return <span className="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-none text-xs font-bold uppercase tracking-wider flex items-center gap-1"><Clock size={12} /> Pending</span>;
       default:
-        return <span className="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-slate-400 rounded text-xs font-bold uppercase tracking-wider">Draft</span>;
+        return <span className="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-slate-400 rounded-none text-xs font-bold uppercase tracking-wider">Draft</span>;
     }
   };
 
@@ -57,7 +57,7 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
         </div>
 
         {pendingSubmissions.length > 0 && (
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none overflow-hidden shadow-sm">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 bg-amber-50/50 dark:bg-amber-900/10">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <AlertTriangle className="text-amber-500" size={20} />
@@ -83,14 +83,14 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
                       <button
                         onClick={() => handleUpdateStatus(sub.id, 'approved')}
                         disabled={isProcessing}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-none-none font-semibold transition-colors disabled:opacity-50"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleUpdateStatus(sub.id, 'rejected')}
                         disabled={isProcessing}
-                        className="flex-1 bg-white hover:bg-red-50 text-red-600 border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-red-900/30 px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                        className="flex-1 bg-white hover:bg-red-50 text-red-600 border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-red-900/30 px-4 py-2 rounded-none-none font-semibold transition-colors disabled:opacity-50"
                       >
                         Reject
                       </button>
@@ -98,7 +98,7 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
                     <input
                       type="text"
                       placeholder="Reason for rejection (optional)"
-                      className="text-sm w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-zinc-800 rounded-md px-3 py-1.5 focus:outline-none focus:border-primary-500 dark:text-white"
+                      className="text-sm w-full bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-zinc-800 rounded-none-none px-3 py-1.5 focus:outline-none focus:border-primary-500 dark:text-white"
                       value={rejectNote[sub.id] || ''}
                       onChange={(e) => setRejectNote({...rejectNote, [sub.id]: e.target.value})}
                     />
@@ -109,7 +109,7 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
           </div>
         )}
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Past Submissions</h2>
           </div>

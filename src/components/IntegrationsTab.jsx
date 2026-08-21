@@ -264,10 +264,10 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 font-bold text-xs rounded-full mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 font-bold text-xs rounded-none-none mb-3">
                 <span>Front-End Speed Layer</span>
               </div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -279,10 +279,10 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
             </div>
 
             {/* Sub-Tab Navigation */}
-            <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-2xl border border-slate-200 dark:border-zinc-700 text-xs font-bold">
+            <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-none-none border border-slate-200 dark:border-zinc-700 text-xs font-bold">
               <button
                 onClick={() => setActiveSubTab("connectors")}
-                className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-none-none transition-all cursor-pointer ${
                   activeSubTab === "connectors"
                     ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs"
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -292,7 +292,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
               </button>
               <button
                 onClick={() => setActiveSubTab("mapping")}
-                className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-none-none transition-all cursor-pointer ${
                   activeSubTab === "mapping"
                     ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs"
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -302,7 +302,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
               </button>
               <button
                 onClick={() => setActiveSubTab("import_export")}
-                className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-none-none transition-all cursor-pointer ${
                   activeSubTab === "import_export"
                     ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs"
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -321,19 +321,19 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
               {providers.map((p) => (
                 <div
                   key={p.id}
-                  className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
+                  className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 shadow-sm flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
                 >
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl ${p.color} text-white flex items-center justify-center font-black text-sm shadow-md`}>
+                        <div className={`w-10 h-10 rounded-none-none ${p.color} text-white flex items-center justify-center font-black text-sm shadow-md`}>
                           {p.name.charAt(0)}
                         </div>
                         <div>
                           <h3 className="text-base font-bold text-slate-900 dark:text-white">{p.name}</h3>
                           {p.connected ? (
                             <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                              <span className="w-2 h-2 rounded-none-none bg-emerald-500 animate-pulse"></span>
                               <span>Connected ({p.account || "Active"})</span>
                             </div>
                           ) : p.comingSoon ? (
@@ -347,7 +347,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                       {p.connected && (
                         <button
                           onClick={() => handleToggleProvider(p.id)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-none-none text-xs font-bold transition-all cursor-pointer ${
                             config[p.id]?.enabled
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                               : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-slate-400"
@@ -374,7 +374,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                           <button
                             onClick={() => handleDryRunTest(p.id)}
                             disabled={dryRunRunning === p.id}
-                            className="bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 hover:bg-primary-100 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer disabled:opacity-50"
+                            className="bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 hover:bg-primary-100 px-3 py-1.5 rounded-none-none font-bold text-xs transition-all cursor-pointer disabled:opacity-50"
                             title="Sends a 0.1h sample entry to verify full end-to-end receipt in your external account"
                           >
                             {dryRunRunning === p.id ? "Pinging..." : "Verify Ping (0.1h)"}
@@ -383,7 +383,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
 
                         <button
                           onClick={p.onConnect}
-                          className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl font-bold transition-all shadow-sm cursor-pointer text-xs"
+                          className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 px-4 py-2 rounded-none-none font-bold transition-all shadow-sm cursor-pointer text-xs"
                         >
                           {p.connected ? "Configure" : p.comingSoon ? "Preview" : "Connect"}
                         </button>
@@ -395,7 +395,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
             </div>
 
             {/* Live Sync Activity Log */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
                   Live Verification & Sync Activity
@@ -412,7 +412,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   {logs.map((log) => (
                     <div key={log.id} className="py-2.5 flex justify-between items-center gap-4">
                       <div className="flex items-center gap-3">
-                        <span className={`w-2 h-2 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                        <span className={`w-2 h-2 rounded-none-none ${log.status === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                         <span className="font-bold text-slate-800 dark:text-slate-200">{log.provider}</span>
                         <span className="text-slate-500 truncate max-w-md">{log.message}</span>
                       </div>
@@ -427,7 +427,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
 
         {/* TAB 2: PROJECT & TASK DESTINATION MAPPING */}
         {activeSubTab === "mapping" && (
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-zinc-800">
               <div>
                 <h2 className="text-lg font-black text-slate-900 dark:text-white">
@@ -442,14 +442,14 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                 <button
                   onClick={() => handleFetchRemote("harvest")}
                   disabled={isFetchingRemote || !config.harvest?.enabled}
-                  className="px-3 py-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-xl font-bold text-xs hover:bg-orange-100 transition-all disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-none-none font-bold text-xs hover:bg-orange-100 transition-all disabled:opacity-40 cursor-pointer"
                 >
                   Fetch Harvest Projects
                 </button>
                 <button
                   onClick={() => handleFetchRemote("toggl")}
                   disabled={isFetchingRemote || !config.toggl?.enabled}
-                  className="px-3 py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl font-bold text-xs hover:bg-rose-100 transition-all disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-none-none font-bold text-xs hover:bg-rose-100 transition-all disabled:opacity-40 cursor-pointer"
                 >
                   Fetch Toggl Projects
                 </button>
@@ -468,7 +468,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                     <div key={proj.id} className="py-5 space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="w-3 h-3 rounded-full bg-primary-500"></span>
+                          <span className="w-3 h-3 rounded-none-none bg-primary-500"></span>
                           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                             {proj.name}
                           </h3>
@@ -476,7 +476,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-2xl text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-none-none text-xs">
                         
                         {/* TOGGL MAPPING */}
                         <div className="space-y-2">
@@ -486,7 +486,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                           <select
                             value={projMap.toggl?.remoteProjectId || "none"}
                             onChange={(e) => handleMappingChange(proj.id, "toggl", "remoteProjectId", e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
                           >
                             <option value="none">Auto-Match by Name</option>
                             {(config.toggl?.remoteProjects || []).map((tp) => (
@@ -512,7 +512,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                                 handleMappingChange(proj.id, "harvest", "remoteProjectId", pId);
                                 if (defaultTaskId) handleMappingChange(proj.id, "harvest", "remoteTaskId", defaultTaskId);
                               }}
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
                             >
                               <option value="none">Select Harvest Project...</option>
                               {(config.harvest?.remoteProjects || []).map((hp) => (
@@ -526,7 +526,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                               <select
                                 value={projMap.harvest?.remoteTaskId || ""}
                                 onChange={(e) => handleMappingChange(proj.id, "harvest", "remoteTaskId", e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
+                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 font-medium text-slate-800 dark:text-slate-200 outline-none"
                               >
                                 <option value="">Select Harvest Task...</option>
                                 {((config.harvest?.remoteProjects || []).find(p => String(p.id) === String(projMap.harvest.remoteProjectId))?.tasks || []).map((ht) => (
@@ -549,7 +549,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                             placeholder="e.g. PROJ-101 or Sprint Key"
                             value={projMap.jira?.issueKey || ""}
                             onChange={(e) => handleMappingChange(proj.id, "jira", "issueKey", e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-2 font-mono uppercase text-slate-800 dark:text-slate-200 outline-none"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 font-mono uppercase text-slate-800 dark:text-slate-200 outline-none"
                           />
                         </div>
 
@@ -564,7 +564,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
 
         {/* TAB 3: IMPORT / EXPORT PRESETS */}
         {activeSubTab === "import_export" && (
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 shadow-sm space-y-6">
             <div>
               <h2 className="text-lg font-black text-slate-900 dark:text-white">
                 Universal Payroll & Accounting Export Presets
@@ -575,53 +575,53 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-2xl flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">QuickBooks Desktop / Online</h3>
                   <p className="text-xs text-slate-500 mb-4">Standard QuickBooks IIF / CSV format for Accounts Receivable & Job Costing.</p>
                 </div>
                 <button
                   onClick={() => handleExportPreset("quickbooks")}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition-all cursor-pointer"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
                 >
                   Export QuickBooks CSV
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-2xl flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">ADP Run & Workforce</h3>
                   <p className="text-xs text-slate-500 mb-4">Pre-formatted ADP company/employee hourly batch upload file.</p>
                 </div>
                 <button
                   onClick={() => handleExportPreset("adp")}
-                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-xl text-xs transition-all cursor-pointer"
+                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
                 >
                   Export ADP Batch CSV
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-2xl flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">BambooHR Timesheets</h3>
                   <p className="text-xs text-slate-500 mb-4">BambooHR project timesheet import with email & project columns.</p>
                 </div>
                 <button
                   onClick={() => handleExportPreset("bamboohr")}
-                  className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-xl text-xs transition-all cursor-pointer"
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
                 >
                   Export BambooHR CSV
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-2xl flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">Universal Excel / CSV</h3>
                   <p className="text-xs text-slate-500 mb-4">Generic standard columns (Date, Client, Project, Task, Hours, Notes).</p>
                 </div>
                 <button
                   onClick={() => handleExportPreset("standard")}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 py-2 rounded-none-none text-xs font-bold transition-all cursor-pointer"
                 >
                   Export Standard CSV
                 </button>
@@ -635,7 +635,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
       {/* TOGGL MODAL */}
       {activeModal === "toggl" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Toggl Track</h3>
             <p className="text-xs text-slate-500 mb-6">
               Enter your Toggl API Token (found in Toggl Track Profile Settings &rarr; API Token).
@@ -652,7 +652,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="Paste your 32-character API token..."
                   value={togglForm.apiKey}
                   onChange={(e) => setTogglForm({ ...togglForm, apiKey: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -665,7 +665,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="Leave blank to use default workspace"
                   value={togglForm.workspaceId}
                   onChange={(e) => setTogglForm({ ...togglForm, workspaceId: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -675,7 +675,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   id="toggl-auto"
                   checked={togglForm.autoSync}
                   onChange={(e) => setTogglForm({ ...togglForm, autoSync: e.target.checked })}
-                  className="rounded text-primary-600 cursor-pointer"
+                  className="rounded-none text-primary-600 cursor-pointer"
                 />
                 <label htmlFor="toggl-auto" className="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                   Auto-sync entries in real-time when matrix cell is updated
@@ -693,7 +693,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                 <button
                   type="submit"
                   disabled={isTesting}
-                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isTesting ? "Testing Connection..." : "Save & Connect"}
                 </button>
@@ -706,7 +706,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
       {/* HARVEST MODAL */}
       {activeModal === "harvest" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Harvest</h3>
             <p className="text-xs text-slate-500 mb-6">
               Create a Personal Access Token in Harvest Developers (id.getharvest.com/developers).
@@ -723,7 +723,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="e.g. 1234567"
                   value={harvestForm.accountId}
                   onChange={(e) => setHarvestForm({ ...harvestForm, accountId: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -737,7 +737,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="Paste Harvest Token..."
                   value={harvestForm.token}
                   onChange={(e) => setHarvestForm({ ...harvestForm, token: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -747,7 +747,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   id="harvest-auto"
                   checked={harvestForm.autoSync}
                   onChange={(e) => setHarvestForm({ ...harvestForm, autoSync: e.target.checked })}
-                  className="rounded text-primary-600 cursor-pointer"
+                  className="rounded-none text-primary-600 cursor-pointer"
                 />
                 <label htmlFor="harvest-auto" className="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                   Auto-sync entries in real-time when matrix cell is updated
@@ -765,7 +765,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                 <button
                   type="submit"
                   disabled={isTesting}
-                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isTesting ? "Testing Connection..." : "Save & Connect"}
                 </button>
@@ -778,7 +778,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
       {/* JIRA MODAL */}
       {activeModal === "jira" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Jira Cloud</h3>
             <p className="text-xs text-slate-500 mb-6">
               Connect your Atlassian Cloud account to automatically log worklogs.
@@ -795,7 +795,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="e.g. yourcompany.atlassian.net"
                   value={jiraForm.domain}
                   onChange={(e) => setJiraForm({ ...jiraForm, domain: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -809,7 +809,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="alex@company.com"
                   value={jiraForm.email}
                   onChange={(e) => setJiraForm({ ...jiraForm, email: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -823,7 +823,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                   placeholder="Create token in id.atlassian.com/manage-profile/security/api-tokens"
                   value={jiraForm.apiToken}
                   onChange={(e) => setJiraForm({ ...jiraForm, apiToken: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 text-slate-900 dark:text-white font-mono outline-none"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
                 />
               </div>
 
@@ -838,7 +838,7 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
                 <button
                   type="submit"
                   disabled={isTesting}
-                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isTesting ? "Testing Connection..." : "Save & Connect"}
                 </button>
