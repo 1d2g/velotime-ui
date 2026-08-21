@@ -665,20 +665,22 @@ export default function App() {
  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
  `}</style>
 
-      <SignedOut>
-        <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-200 dark:bg-zinc-950">
-          <SignIn
-            routing="hash"
-            fallbackRedirectUrl="/"
-            forceRedirectUrl="/"
-            signUpFallbackRedirectUrl="/"
-            signUpForceRedirectUrl="/"
-          />
-        </div>
-      </SignedOut>
+      {!isAuditMode && (
+        <SignedOut>
+          <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-200 dark:bg-zinc-950">
+            <SignIn
+              routing="hash"
+              fallbackRedirectUrl="/"
+              forceRedirectUrl="/"
+              signUpFallbackRedirectUrl="/"
+              signUpForceRedirectUrl="/"
+            />
+          </div>
+        </SignedOut>
+      )}
 
-      <SignedIn>
-        {lockout === "seat_limit_reached" ? (
+      {(isAuditMode || isSignedIn) && (
+        lockout === "seat_limit_reached" && !isAuditMode ? (
           <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
             <div className="max-w-md w-full bg-white dark:bg-zinc-900 p-8 border border-red-200 ">
               <div className="w-16 h-16 mx-auto mb-6 bg-red-100 flex items-center justify-center">
@@ -1300,8 +1302,8 @@ export default function App() {
               </button>
             )}
           </>
-        )}
-      </SignedIn>
+        )
+      )}
     </div>
   );
 }
