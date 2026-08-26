@@ -1236,6 +1236,7 @@ export default function App() {
                             onNoteChange={handleNoteChange}
                             onAddTask={handleAddTask}
                             onRemoveTask={handleRemoveTask}
+                            onEditTask={handleEditTask}
                             onAddProject={handleAddProject}
                             onToggleCollapse={handleToggleCollapse}
                             searchQuery={searchQuery}

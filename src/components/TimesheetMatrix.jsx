@@ -950,9 +950,17 @@ export default function TimesheetMatrix({
                           key={t.id}
                           className={`group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative ${index === 0 ? "border-l" : ""}`}
                         >
-                          <span className="truncate block w-full px-2">
+                          <span className="truncate block w-full px-1">
                             {t.name}
                           </span>
+                          {t.isBillable === false && (
+                            <span 
+                              className="inline-block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-zinc-800 px-1 py-0.5 mt-0.5 rounded-none select-none"
+                              title="Non-Billable task: Hours logged here are excluded from client invoices & billing reports"
+                            >
+                              Non-Billable
+                            </span>
+                          )}
 
                           <div className="absolute top-1 left-1 flex items-center gap-1">
                             {/* Timer UI */}

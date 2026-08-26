@@ -469,15 +469,19 @@ export default function ProjectsTab({
                     onChange={(e) => setNewTaskName(e.target.value)}
                     className="px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
                   />
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
-                      checked={newTaskBillable}
-                      onChange={(e) => setNewTaskBillable(e.target.checked)}
-                      className="w-3.5 h-3.5 text-primary-600 border-slate-300 dark:border-zinc-700 rounded-none focus:ring-primary-600"
-                    />
-                    Billable
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setNewTaskBillable(!newTaskBillable)}
+                    className={`px-2.5 py-1.5 text-xs font-semibold border transition-all flex items-center gap-1.5 select-none cursor-pointer ${
+                      newTaskBillable
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                        : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-zinc-700"
+                    }`}
+                    title="Toggle billable status for new task"
+                  >
+                    <span className={`w-2 h-2 rounded-full ${newTaskBillable ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                    {newTaskBillable ? "Billable" : "Non-Billable"}
+                  </button>
                   <button
                     type="submit"
                     disabled={!newTaskName.trim()}
@@ -675,35 +679,34 @@ export default function ProjectsTab({
                                 className="w-full px-2 py-1 -ml-2 border border-slate-900 rounded-none focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                               />
                             ) : (
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center justify-between gap-3 w-full">
                                 <span className={`flex items-center gap-2 ${task.isBillable === false ? 'text-slate-500' : ''}`}>
                                   {task.name}
-                                  {task.isBillable === false && (
-                                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-zinc-800 text-slate-500 px-1.5 py-0.5 rounded-none tracking-wide uppercase">Non-Billable</span>
-                                  )}
                                 </span>
-                                {writeAllowed && (
-                                  <>
-                                    <span
-                                      className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="Click to edit name"
-                                    >
-                                      
-                                    </span>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onEditTask) {
-                                          onEditTask(project.id, task.id, { isBillable: task.isBillable === false ? true : false });
-                                        }
-                                      }}
-                                      className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary-600 ml-2"
-                                      title={task.isBillable === false ? "Mark as Billable" : "Mark as Non-Billable"}
-                                    >
-                                      {task.isBillable === false ? 'Billable' : 'Non-Billable'}
-                                    </button>
-                                  </>
-                                )}
+                                
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (writeAllowed && onEditTask) {
+                                      onEditTask(project.id, task.id, { isBillable: task.isBillable === false ? true : false });
+                                    }
+                                  }}
+                                  disabled={!writeAllowed}
+                                  title={
+                                    writeAllowed
+                                      ? `Click to mark as ${task.isBillable === false ? 'Billable' : 'Non-Billable'}`
+                                      : task.isBillable === false ? 'Non-Billable task' : 'Billable task'
+                                  }
+                                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold transition-all select-none ${
+                                    task.isBillable === false
+                                      ? "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700"
+                                      : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                                  } ${writeAllowed ? 'cursor-pointer' : 'cursor-default'}`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${task.isBillable === false ? 'bg-slate-400' : 'bg-emerald-500'}`}></span>
+                                  {task.isBillable === false ? 'Non-Billable' : 'Billable'}
+                                </button>
                               </div>
                             )}
                           </td>
