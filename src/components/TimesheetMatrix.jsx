@@ -1409,11 +1409,11 @@ export default function TimesheetMatrix({
               </span>
               {totalHours > capacityGoal ? (
                 <span className="text-[10px] font-bold text-amber-600 block flex items-center gap-1 animate-pulse">
-                  <span>Capacity Exceeded ⚠️</span>
+                  <span>Capacity Exceeded</span>
                 </span>
               ) : totalHours === capacityGoal ? (
                 <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
-                  <span>Goal achieved! 🎉</span>
+                  <span>Goal achieved</span>
                 </span>
               ) : (
                 <span className="text-[10px] font-semibold text-primary-600 block">

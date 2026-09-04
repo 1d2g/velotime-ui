@@ -1,88 +1,76 @@
-// Toggl Track API Adapter
+// Toggl Track API Adapter (Routed via backend proxy to prevent CORS issues)
+
+const getApiBase = () => {
+  return import.meta.env.VITE_API_URL || 'https://time-production-b6d9.up.railway.app';
+};
 
 export const TogglAdapter = {
-  testConnection: async (apiKey) => {
+  testConnection: async (apiKey, token = null) => {
     if (!apiKey) throw new Error('API Key is required');
-    const authHeader = 'Basic ' + btoa(apiKey + ':api_token');
-    const res = await fetch('https://api.track.toggl.com/api/v9/me', {
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (!res.ok) {
-      throw new Error(`Authentication failed (${res.status} ${res.statusText})`);
-    }
-    const user = await res.json();
-    return {
-      success: true,
-      email: user.email,
-      defaultWorkspaceId: user.default_workspace_id,
-      fullname: user.fullname
-    };
-  },
 
-  fetchRemoteStructure: async (apiKey, workspaceId) => {
-    if (!apiKey) throw new Error('API Key is required');
-    const authHeader = 'Basic ' + btoa(apiKey + ':api_token');
-    
-    // Fetch workspaces
-    const wsRes = await fetch('https://api.track.toggl.com/api/v9/workspaces', {
-      headers: { 'Authorization': authHeader }
-    });
-    if (!wsRes.ok) throw new Error('Failed to fetch Toggl workspaces');
-    const workspaces = await wsRes.json();
-    const wsId = workspaceId || (workspaces[0] ? workspaces[0].id : null);
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    let projects = [];
-    if (wsId) {
-      const pRes = await fetch(`https://api.track.toggl.com/api/v9/workspaces/${wsId}/projects`, {
-        headers: { 'Authorization': authHeader }
-      });
-      if (pRes.ok) {
-        projects = await pRes.json();
-      }
-    }
-
-    return {
-      workspaces: workspaces.map(w => ({ id: w.id, name: w.name })),
-      projects: (projects || []).map(p => ({ id: p.id, name: p.name, clientId: p.client_id, active: p.active }))
-    };
-  },
-
-  pushTimeEntry: async ({ apiKey, workspaceId, remoteProjectId, description, durationHours, date, projectName, taskName }) => {
-    if (!apiKey) throw new Error('Toggl API Key is not configured');
-    const authHeader = 'Basic ' + btoa(apiKey + ':api_token');
-    
-    const startDate = new Date(date);
-    startDate.setHours(9, 0, 0, 0);
-    const durationSeconds = Math.max(60, Math.round(durationHours * 3600));
-
-    const payload = {
-      description: description || `${projectName || ''} - ${taskName || 'Time Entry'}`.trim(),
-      start: startDate.toISOString(),
-      duration: durationSeconds,
-      workspace_id: parseInt(workspaceId, 10),
-      created_with: 'VeloTime Speed Layer'
-    };
-
-    if (remoteProjectId && remoteProjectId !== 'none') {
-      payload.project_id = parseInt(remoteProjectId, 10);
-    }
-
-    const res = await fetch(`https://api.track.toggl.com/api/v9/workspaces/${workspaceId}/time_entries`, {
+    const res = await fetch(`${getApiBase()}/api/integrations/toggl/test`, {
       method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      headers,
+      body: JSON.stringify({ apiKey })
     });
 
     if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`Failed to push to Toggl (${res.status}): ${errBody}`);
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Authentication failed (${res.status} ${res.statusText})`);
     }
+
+    return await res.json();
+  },
+
+  fetchRemoteStructure: async (apiKey, workspaceId, token = null) => {
+    if (!apiKey) throw new Error('API Key is required');
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${getApiBase()}/api/integrations/toggl/structure`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ apiKey, workspaceId })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Failed to fetch Toggl workspaces');
+    }
+
+    return await res.json();
+  },
+
+  pushTimeEntry: async ({ apiKey, workspaceId, remoteProjectId, description, durationHours, date, projectName, taskName }, token = null) => {
+    if (!apiKey) throw new Error('Toggl API Key is not configured');
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${getApiBase()}/api/integrations/toggl/time-entries`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        apiKey,
+        workspaceId,
+        remoteProjectId,
+        description,
+        durationHours,
+        date,
+        projectName,
+        taskName
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Failed to push to Toggl (${res.status})`);
+    }
+
     return await res.json();
   }
 };

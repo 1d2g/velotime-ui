@@ -613,7 +613,26 @@ export default function OrganizationSettingsTab({
         {/* Roles Card */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 overflow-hidden transition-colors">
           <div className="px-6 py-5 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/50 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">Team Roles</h2>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 ">Team Roles</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Assign administrative and management roles across your workspace members.</p>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  const teamTabBtn = document.querySelector('button[aria-label="Team"]');
+                  window.location.hash = "team";
+                  // trigger toast guidance
+                  addToast("To invite members or configure billing rates, navigate to the Team tab.", "info");
+                }}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 px-3 text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Manage In Team
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 ">
