@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Canonical workspace root
+# Primary marketing & discovery portal: https://velotime.dg.tools
