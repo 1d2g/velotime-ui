@@ -1,6 +1,7 @@
-'use client';
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "../contexts/ToastContext";
+import { FileText, TrendingUp, X } from "lucide-react";
+import InvoiceTrackingView from "./InvoiceTrackingView";
 
 export default function InvoicesTab({
   dbUser,
@@ -19,6 +20,11 @@ export default function InvoicesTab({
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeInvoice, setActiveInvoice] = useState(null);
+  const [subTab, setSubTab] = useState("editor"); // 'editor' | 'tracking'
+
+  const unpaidCount = useMemo(() => {
+    return invoices.filter((i) => i.status !== "paid").length;
+  }, [invoices]);
 
   // Live Sheet Fields State (WYSIWYG directly on invoice paper)
   const [sheetForm, setSheetForm] = useState({
@@ -504,7 +510,80 @@ export default function InvoicesTab({
   const totalAmount = subtotal + taxAmount;
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-100 dark:bg-zinc-950 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-slate-100 dark:bg-zinc-950 overflow-hidden">
+      
+      {/* Top Sub-Tab Navigation Bar */}
+      <div className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-4 sm:px-6 py-2.5 flex items-center justify-between shrink-0 print:hidden">
+        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 border border-slate-200 dark:border-zinc-700/60">
+          <button
+            type="button"
+            onClick={() => setSubTab("editor")}
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              subTab === "editor"
+                ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Invoice Editor</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab("tracking")}
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              subTab === "tracking"
+                ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Invoice Tracking & Reminders</span>
+            {unpaidCount > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400 border border-rose-300 dark:border-rose-800">
+                {unpaidCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {subTab === "editor" && (
+            <button
+              onClick={() => handleCreateInvoice()}
+              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold px-3 py-1.5 hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+            >
+              + New Invoice
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Sub-Tab View Rendering */}
+      {subTab === "tracking" ? (
+        <InvoiceTrackingView
+          invoices={invoices}
+          projects={projects}
+          clients={clients}
+          apiCall={apiCall}
+          onSelectInvoice={(inv) => {
+            selectInvoice(inv);
+            setSubTab("editor");
+          }}
+          onUpdateInvoice={(updated) => {
+            setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+            if (activeInvoice?.id === updated.id) {
+              setActiveInvoice(updated);
+            }
+          }}
+          onCreateInvoice={() => {
+            handleCreateInvoice();
+            setSubTab("editor");
+          }}
+          onSwitchToEditor={() => setSubTab("editor")}
+        />
+      ) : (
+        <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-100 dark:bg-zinc-950 overflow-hidden">
       
       {/* SIDEBAR: INVOICES LIST (Hidden on Print) */}
       <div className="w-full md:w-80 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0 print:hidden">
@@ -827,7 +906,7 @@ export default function InvoicesTab({
                               className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
                               title="Delete line item"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </td>
                         </tr>
@@ -1134,7 +1213,9 @@ export default function InvoicesTab({
           </div>
         )}
       </div>
-
     </div>
+  )}
+
+</div>
   );
 }
