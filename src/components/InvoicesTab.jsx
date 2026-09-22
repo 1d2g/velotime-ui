@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "../contexts/ToastContext";
-import { FileText, TrendingUp, X, Send, Check } from "lucide-react";
+import { FileText, TrendingUp, X, Send, Check, Calendar, Pencil } from "lucide-react";
 import InvoiceTrackingView from "./InvoiceTrackingView";
 
 export default function InvoicesTab({
@@ -301,18 +301,46 @@ export default function InvoicesTab({
     }
   };
 
+  const handleMarkAsSent = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const nDays = termsType === "net" ? netDays : 30;
+    const computedDueDate = termsType === "net" ? calculateDueDate(today, nDays) : null;
+    const updated = {
+      ...sheetForm,
+      status: "sent",
+      dateIssued: today,
+      dueDate: computedDueDate,
+    };
+    setSheetForm(updated);
+    saveSheetChanges(updated);
+    addToast("Invoice marked as Sent (date defaulted to today)", "success");
+  };
+
   const handleToggleInvoiceStatus = async (inv, targetStatus) => {
     try {
       const nextStatus = targetStatus || (inv.status === "sent" ? "draft" : "sent");
-      const updated = await apiCall(`/api/invoices/${inv.id}`, "PUT", {
-        status: nextStatus,
-      });
+      const payload = { status: nextStatus };
+      if (nextStatus === "sent") {
+        const today = new Date().toISOString().split("T")[0];
+        payload.dateIssued = today;
+        let termDays = 30;
+        if (inv.dateIssued && inv.dueDate) {
+          const origIssued = new Date(inv.dateIssued).getTime();
+          const origDue = new Date(inv.dueDate).getTime();
+          const diffDays = Math.round((origDue - origIssued) / (1000 * 60 * 60 * 24));
+          if (diffDays > 0) termDays = diffDays;
+        }
+        const due = new Date();
+        due.setDate(due.getDate() + termDays);
+        payload.dueDate = due.toISOString().split("T")[0];
+      }
+      const updated = await apiCall(`/api/invoices/${inv.id}`, "PUT", payload);
       setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
       if (activeInvoice?.id === updated.id) {
         setActiveInvoice(updated);
-        setSheetForm((prev) => ({ ...prev, status: nextStatus }));
+        setSheetForm((prev) => ({ ...prev, ...payload }));
       }
-      addToast(nextStatus === "sent" ? "Marked as Sent" : "Marked as Not Sent", "success");
+      addToast(nextStatus === "sent" ? "Marked as Sent (date defaulted to today)" : "Marked as Not Sent", "success");
     } catch (err) {
       addToast("Failed to update invoice status", "error");
     }
@@ -712,17 +740,35 @@ export default function InvoicesTab({
                 </button>
 
                 {sheetForm.status === "sent" ? (
-                  <button
-                    onClick={() => handleFieldChange("status", "draft")}
-                    className="bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:border-slate-400 text-slate-700 dark:text-slate-200 px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                    title="Click to mark invoice as Not Sent"
-                  >
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Sent (Mark Not Sent)</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleFieldChange("status", "draft")}
+                      className="bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:border-slate-400 text-slate-700 dark:text-slate-200 px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      title="Click to mark invoice as Not Sent"
+                    >
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Sent (Mark Not Sent)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const dateInput = document.getElementById("invoice-date-issued-input");
+                        if (dateInput) {
+                          dateInput.focus();
+                          if (dateInput.showPicker) dateInput.showPicker();
+                        }
+                      }}
+                      className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 hover:border-slate-400 text-slate-700 dark:text-slate-200 px-2.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      title="Edit Sent Date"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="tabular-nums">Sent: {formatDate(sheetForm.dateIssued)}</span>
+                      <Pencil className="w-3 h-3 text-slate-400 ml-0.5" />
+                    </button>
+                  </div>
                 ) : sheetForm.status !== "paid" ? (
                   <button
-                    onClick={() => handleFieldChange("status", "sent")}
+                    onClick={handleMarkAsSent}
                     className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-3.5 py-2 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
                     title="Click to mark invoice as Sent"
                   >
@@ -749,7 +795,14 @@ export default function InvoicesTab({
                   <span className="text-[11px] font-bold uppercase text-slate-400">Status:</span>
                   <select
                     value={sheetForm.status}
-                    onChange={(e) => handleFieldChange("status", e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "sent" && sheetForm.status !== "sent") {
+                        handleMarkAsSent();
+                      } else {
+                        handleFieldChange("status", val);
+                      }
+                    }}
                     className="bg-transparent text-xs font-bold uppercase text-slate-900 dark:text-white outline-none cursor-pointer"
                   >
                     <option value="draft">Not Sent (Draft)</option>
@@ -839,10 +892,13 @@ export default function InvoicesTab({
                     
                     {/* Date Issued */}
                     <div className="flex justify-between items-center text-right">
-                      <span className="text-slate-500 dark:text-slate-400 font-medium">Date Issued:</span>
-                      <span className="font-bold text-slate-900 dark:text-white text-right">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">
+                        {sheetForm.status === "sent" ? "Date Sent:" : "Date Issued:"}
+                      </span>
+                      <div className="flex items-center gap-1 font-bold text-slate-900 dark:text-white text-right">
                         <span className="hidden print:inline tabular-nums">{formatDate(sheetForm.dateIssued)}</span>
                         <input
+                          id="invoice-date-issued-input"
                           type="date"
                           value={sheetForm.dateIssued}
                           onChange={(e) => {
@@ -852,9 +908,23 @@ export default function InvoicesTab({
                             setSheetForm(updated);
                             saveSheetChanges(updated);
                           }}
-                          className="print:hidden bg-transparent font-bold tabular-nums text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
+                          className="print:hidden bg-transparent font-bold tabular-nums text-slate-900 dark:text-white border border-slate-200 dark:border-zinc-700 hover:border-slate-400 rounded-none px-1 text-right outline-none cursor-pointer"
                         />
-                      </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const dateInput = document.getElementById("invoice-date-issued-input");
+                            if (dateInput) {
+                              dateInput.focus();
+                              if (dateInput.showPicker) dateInput.showPicker();
+                            }
+                          }}
+                          className="print:hidden text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                          title="Edit Date"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Payment Terms */}
