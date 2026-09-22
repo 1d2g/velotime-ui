@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "../contexts/ToastContext";
-import { FileText, TrendingUp, X } from "lucide-react";
+import { FileText, TrendingUp, X, Send, Check } from "lucide-react";
 import InvoiceTrackingView from "./InvoiceTrackingView";
 
 export default function InvoicesTab({
@@ -298,6 +298,23 @@ export default function InvoicesTab({
       addToast("Invoice deleted", "success");
     } catch (e) {
       addToast("Failed to delete invoice", "error");
+    }
+  };
+
+  const handleToggleInvoiceStatus = async (inv, targetStatus) => {
+    try {
+      const nextStatus = targetStatus || (inv.status === "sent" ? "draft" : "sent");
+      const updated = await apiCall(`/api/invoices/${inv.id}`, "PUT", {
+        status: nextStatus,
+      });
+      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      if (activeInvoice?.id === updated.id) {
+        setActiveInvoice(updated);
+        setSheetForm((prev) => ({ ...prev, status: nextStatus }));
+      }
+      addToast(nextStatus === "sent" ? "Marked as Sent" : "Marked as Not Sent", "success");
+    } catch (err) {
+      addToast("Failed to update invoice status", "error");
     }
   };
 
@@ -623,20 +640,40 @@ export default function InvoicesTab({
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">
+                    <span className="font-bold tabular-nums text-xs text-slate-900 dark:text-white">
                       {inv.invoiceNumber}
                     </span>
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-none ${
-                        inv.status === "paid"
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
-                          : inv.status === "pending"
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400"
-                          : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-slate-400"
-                      }`}
-                    >
-                      {inv.status}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {inv.status === "paid" ? (
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                          Paid
+                        </span>
+                      ) : inv.status === "sent" ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleInvoiceStatus(inv, "draft");
+                          }}
+                          title="Click to mark as Not Sent"
+                          className="text-[10px] font-bold uppercase px-2 py-0.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-80 transition-opacity cursor-pointer shadow-xs"
+                        >
+                          Sent
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleInvoiceStatus(inv, "sent");
+                          }}
+                          title="Click to mark as Sent"
+                          className="text-[10px] font-bold uppercase px-2 py-0.5 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-zinc-800 dark:text-slate-300 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 cursor-pointer"
+                        >
+                          Not Sent
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate mb-1">
@@ -645,7 +682,7 @@ export default function InvoicesTab({
 
                   <div className="flex justify-between items-center text-[11px] text-slate-400">
                     <span>{formatDate(inv.dateIssued)}</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                    <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
                       {formatMoney(invTotal + invTax)}
                     </span>
                   </div>
@@ -674,6 +711,26 @@ export default function InvoicesTab({
                   <span>Print / Save as PDF</span>
                 </button>
 
+                {sheetForm.status === "sent" ? (
+                  <button
+                    onClick={() => handleFieldChange("status", "draft")}
+                    className="bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:border-slate-400 text-slate-700 dark:text-slate-200 px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    title="Click to mark invoice as Not Sent"
+                  >
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Sent (Mark Not Sent)</span>
+                  </button>
+                ) : sheetForm.status !== "paid" ? (
+                  <button
+                    onClick={() => handleFieldChange("status", "sent")}
+                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-3.5 py-2 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    title="Click to mark invoice as Sent"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Mark as Sent</span>
+                  </button>
+                ) : null}
+
                 {sheetForm.projectId && (
                   <button
                     onClick={handleSaveProjectTemplate}
@@ -695,8 +752,10 @@ export default function InvoicesTab({
                     onChange={(e) => handleFieldChange("status", e.target.value)}
                     className="bg-transparent text-xs font-bold uppercase text-slate-900 dark:text-white outline-none cursor-pointer"
                   >
-                    <option value="draft">Draft</option>
+                    <option value="draft">Not Sent (Draft)</option>
+                    <option value="sent">Sent</option>
                     <option value="pending">Pending</option>
+                    <option value="overdue">Overdue</option>
                     <option value="paid">Paid</option>
                   </select>
                 </div>
@@ -725,7 +784,7 @@ export default function InvoicesTab({
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
                       Invoice
                     </h1>
-                    <span className="font-mono text-sm font-bold text-primary-600 dark:text-primary-400">
+                    <span className="tabular-nums text-sm font-bold text-slate-900 dark:text-white">
                       {activeInvoice.invoiceNumber}
                     </span>
                   </div>
@@ -782,7 +841,7 @@ export default function InvoicesTab({
                     <div className="flex justify-between items-center text-right">
                       <span className="text-slate-500 dark:text-slate-400 font-medium">Date Issued:</span>
                       <span className="font-bold text-slate-900 dark:text-white text-right">
-                        <span className="hidden print:inline font-mono">{formatDate(sheetForm.dateIssued)}</span>
+                        <span className="hidden print:inline tabular-nums">{formatDate(sheetForm.dateIssued)}</span>
                         <input
                           type="date"
                           value={sheetForm.dateIssued}
@@ -793,7 +852,7 @@ export default function InvoicesTab({
                             setSheetForm(updated);
                             saveSheetChanges(updated);
                           }}
-                          className="print:hidden bg-transparent font-bold text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
+                          className="print:hidden bg-transparent font-bold tabular-nums text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
                         />
                       </span>
                     </div>
@@ -834,13 +893,13 @@ export default function InvoicesTab({
                     {termsType === "net" ? (
                       <div className="flex justify-between items-center text-right">
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Due Date:</span>
-                        <span className="font-bold text-primary-600 dark:text-primary-400 text-right">
-                          <span className="hidden print:inline text-slate-900 font-mono">{formatDate(sheetForm.dueDate)}</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-right">
+                          <span className="hidden print:inline text-slate-900 tabular-nums">{formatDate(sheetForm.dueDate)}</span>
                           <input
                             type="date"
                             value={sheetForm.dueDate || ""}
                             onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-                            className="print:hidden bg-transparent font-bold text-primary-600 dark:text-primary-400 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
+                            className="print:hidden bg-transparent font-bold tabular-nums text-slate-900 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 rounded-none px-1 text-right outline-none cursor-pointer"
                           />
                         </span>
                       </div>
@@ -857,7 +916,7 @@ export default function InvoicesTab({
                     <div className="flex justify-between items-center text-right">
                       <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
                       <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white text-right">
-                        {sheetForm.status}
+                        {sheetForm.status === "sent" ? "Sent" : sheetForm.status === "draft" ? "Not Sent" : sheetForm.status}
                       </span>
                     </div>
 
@@ -874,8 +933,8 @@ export default function InvoicesTab({
                       <th className="py-3 px-2 w-full">Description / Phase</th>
                       <th className="py-3 px-2 text-center w-24">Qty / Type</th>
                       <th className="py-3 px-2 text-right w-28">Rate</th>
-                      <th className="py-3 px-2 text-right w-28">Amount</th>
-                      <th className="py-3 px-1 w-8 print:hidden"></th>
+                      <th className="py-3 px-2 text-right w-32">Amount</th>
+                      <th className="py-3 px-1 w-10 text-center print:hidden"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium text-slate-800 dark:text-slate-200">
@@ -894,10 +953,10 @@ export default function InvoicesTab({
                           <td className="py-3.5 px-2 text-center text-slate-500">
                             {li.isHourly ? `${li.hours} hrs` : "Phase / Flat"}
                           </td>
-                          <td className="py-3.5 px-2 text-right text-slate-500 font-mono">
+                          <td className="py-3.5 px-2 text-right text-slate-500 tabular-nums">
                             {li.isHourly && li.rate ? formatMoney(li.rate) : "-"}
                           </td>
-                          <td className="py-3.5 px-2 text-right font-mono font-bold text-slate-900 dark:text-white">
+                          <td className="py-3.5 px-2 text-right tabular-nums font-bold text-slate-900 dark:text-white">
                             {formatMoney(li.amount)}
                           </td>
                           <td className="py-3.5 px-1 text-center print:hidden">
@@ -989,7 +1048,7 @@ export default function InvoicesTab({
                               placeholder="10000.00"
                               value={pbContractValue}
                               onChange={(e) => setPbContractValue(e.target.value)}
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white tabular-nums font-bold outline-none focus:ring-2 focus:ring-primary-500"
                             />
                           </div>
 
@@ -1006,7 +1065,7 @@ export default function InvoicesTab({
                                 placeholder="0"
                                 value={pbPreviousPercent}
                                 onChange={(e) => setPbPreviousPercent(e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white tabular-nums font-bold outline-none focus:ring-2 focus:ring-primary-500"
                               />
                               <span className="absolute right-3 top-2 text-slate-400 font-bold text-xs">%</span>
                             </div>
@@ -1025,7 +1084,7 @@ export default function InvoicesTab({
                                 placeholder="e.g. 30"
                                 value={pbCurrentPercent}
                                 onChange={(e) => setPbCurrentPercent(e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white font-mono font-bold outline-none focus:ring-2 focus:ring-primary-500"
+                                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 pr-8 text-xs text-slate-900 dark:text-white tabular-nums font-bold outline-none focus:ring-2 focus:ring-primary-500"
                               />
                               <span className="absolute right-3 top-2 text-slate-400 font-bold text-xs">%</span>
                             </div>
@@ -1037,11 +1096,11 @@ export default function InvoicesTab({
                             <span className="block font-bold text-primary-900 dark:text-primary-300 mb-0.5">
                               Generated Line Item Preview:
                             </span>
-                            <div className="font-mono font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                            <div className="tabular-nums font-semibold text-slate-800 dark:text-slate-200 mb-1">
                               "{pbCurrentPercent}% {pbPhaseName} | Last Billed: {pbPreviousPercent || 0}%"
                             </div>
                             <div className="text-[11px] text-primary-700 dark:text-primary-400">
-                              Amount: ({pbCurrentPercent}% − {pbPreviousPercent || 0}%) = {(parseFloat(pbCurrentPercent) || 0) - (parseFloat(pbPreviousPercent) || 0)}% of ${parseFloat(pbContractValue).toLocaleString()} = <span className="font-bold font-mono text-xs">${calculatedProgressAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              Amount: ({pbCurrentPercent}% − {pbPreviousPercent || 0}%) = {(parseFloat(pbCurrentPercent) || 0) - (parseFloat(pbPreviousPercent) || 0)}% of ${parseFloat(pbContractValue).toLocaleString()} = <span className="font-bold tabular-nums text-xs">${calculatedProgressAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </div>
                         )}
@@ -1121,7 +1180,7 @@ export default function InvoicesTab({
                             placeholder="1500.00"
                             value={liAmount}
                             onChange={(e) => setLiAmount(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white font-mono font-bold"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white tabular-nums font-bold"
                           />
                         </div>
                       </div>
@@ -1169,7 +1228,7 @@ export default function InvoicesTab({
                 <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-none-none p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2">
                   <div className="flex justify-between py-0.5 text-slate-500">
                     <span>Subtotal:</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>
+                    <span className="tabular-nums font-bold text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>
                   </div>
 
                   {/* Tax Row (Live Editable) */}
@@ -1189,16 +1248,16 @@ export default function InvoicesTab({
                         value={sheetForm.taxRate || ""}
                         onChange={(e) => handleFieldChange("taxRate", parseFloat(e.target.value) || 0)}
                         placeholder="0"
-                        className="w-8 bg-transparent border-b border-dashed border-slate-300 text-xs font-semibold text-slate-600 dark:text-slate-400 outline-none text-right font-mono"
+                        className="w-8 bg-transparent border-b border-dashed border-slate-300 text-xs font-semibold text-slate-600 dark:text-slate-400 outline-none text-right tabular-nums"
                       />
                       <span>%):</span>
                     </div>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">{formatMoney(taxAmount)}</span>
+                    <span className="tabular-nums font-bold text-slate-900 dark:text-white">{formatMoney(taxAmount)}</span>
                   </div>
 
                   <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-zinc-700 text-sm font-black text-slate-900 dark:text-white">
                     <span>Total Due:</span>
-                    <span className="font-mono text-base text-primary-600 dark:text-primary-400">{formatMoney(totalAmount)}</span>
+                    <span className="tabular-nums text-base font-bold text-slate-900 dark:text-white">{formatMoney(totalAmount)}</span>
                   </div>
                 </div>
 

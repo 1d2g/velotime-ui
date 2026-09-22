@@ -24,6 +24,7 @@ export default function PaymentReminderModal({
   clientEmail = "",
   onClose,
   onRecordReminder,
+  onUpdateStatus,
 }) {
   const { addToast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -113,6 +114,9 @@ Accounts Receivable`,
     addToast("Reminder email copied to clipboard", "success");
     setTimeout(() => setCopied(false), 2000);
     if (onRecordReminder) onRecordReminder(invoice.id, tone);
+    if (invoice.status === "draft" && onUpdateStatus) {
+      onUpdateStatus(invoice.id, "sent");
+    }
   };
 
   const handleMailto = () => {
@@ -121,7 +125,17 @@ Accounts Receivable`,
     )}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, "_blank");
     if (onRecordReminder) onRecordReminder(invoice.id, tone);
+    if (invoice.status === "draft" && onUpdateStatus) {
+      onUpdateStatus(invoice.id, "sent");
+    }
     addToast("Opened in default email client", "success");
+  };
+
+  const handleToggleSent = () => {
+    const nextStatus = invoice.status === "sent" ? "draft" : "sent";
+    if (onUpdateStatus) {
+      onUpdateStatus(invoice.id, nextStatus);
+    }
   };
 
   return (
@@ -132,20 +146,23 @@ Accounts Receivable`,
         <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex justify-between items-start bg-slate-50/70 dark:bg-zinc-800/40">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-sm font-bold text-slate-900 dark:text-white">
+              <span className="text-sm font-bold tabular-nums text-slate-900 dark:text-white">
                 {invNumber}
               </span>
               {invoice.isOverdue ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 px-2 py-0.5">
-                  <AlertTriangle className="w-3 h-3" />
-                  {daysOverdue} Days Overdue
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2 py-0.5">
+                  <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                  <span className="text-red-600 dark:text-red-400 font-bold tabular-nums">{daysOverdue}</span> Days Overdue
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 px-2 py-0.5">
-                  <Calendar className="w-3 h-3" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2 py-0.5">
+                  <Calendar className="w-3 h-3 text-slate-400" />
                   Due {dueDateStr}
                 </span>
               )}
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 border border-slate-200 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300">
+                {invoice.status === "sent" ? "Status: Sent" : invoice.status === "draft" ? "Status: Not Sent" : `Status: ${invoice.status}`}
+              </span>
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
               Payment Reminder Generator
@@ -179,7 +196,7 @@ Accounts Receivable`,
           </div>
           <div>
             <span className="block text-[10px] font-bold uppercase text-slate-400">Outstanding Balance</span>
-            <span className="font-mono font-bold text-rose-600 dark:text-rose-400 block">
+            <span className="tabular-nums font-bold text-red-600 dark:text-red-400 block">
               {totalStr}
             </span>
           </div>
@@ -224,7 +241,7 @@ Accounts Receivable`,
               onClick={() => handleToneChange("urgent")}
               className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 tone === "urgent"
-                  ? "bg-rose-600 text-white shadow-xs"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -268,18 +285,30 @@ Accounts Receivable`,
               rows={9}
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="w-full text-xs font-mono bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 p-3 outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white resize-none transition-colors leading-relaxed"
+              className="w-full text-xs font-sans bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 p-3 outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white resize-none transition-colors leading-relaxed"
             />
           </div>
         </div>
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/40 flex flex-wrap justify-between items-center gap-3">
-          <span className="text-[11px] text-slate-500">
-            {invoice.reminderInfo?.lastSentAt
-              ? `Last sent: ${formatDate(invoice.reminderInfo.lastSentAt)} (${invoice.reminderInfo.count || 1} reminders sent)`
-              : "No previous reminder recorded"}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-slate-500">
+              {invoice.reminderInfo?.lastSentAt
+                ? `Last sent: ${formatDate(invoice.reminderInfo.lastSentAt)} (${invoice.reminderInfo.count || 1} reminders sent)`
+                : "No previous reminder recorded"}
+            </span>
+
+            {onUpdateStatus && (
+              <button
+                type="button"
+                onClick={handleToggleSent}
+                className="text-[11px] font-bold underline text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                {invoice.status === "sent" ? "Mark as Not Sent (Draft)" : "Mark as Sent"}
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <button
