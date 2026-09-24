@@ -10,9 +10,12 @@ import { PostHogProvider } from "posthog-js/react";
 
 import LegalPages from "./components/LegalPages.jsx";
 
-if (typeof window !== "undefined" && import.meta.env.VITE_POSTHOG_KEY) {
-  posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-    api_host: import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com",
+const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_xrWAkajTPLpTYFqgkS6L28qrLcgHnBjuRqz6YFN4UXCA";
+const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
+
+if (typeof window !== "undefined" && POSTHOG_KEY) {
+  posthog.init(POSTHOG_KEY, {
+    api_host: POSTHOG_HOST,
     person_profiles: "identified_only",
   });
 }
