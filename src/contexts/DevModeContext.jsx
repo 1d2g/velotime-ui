@@ -39,18 +39,6 @@ export function DevModeProvider({ children }) {
       return { isAuthorized: true, reason: 'Database user role is developer' };
     }
 
-    // Explicit URL query param override: ?dev=true or ?dev_unlock=true
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('dev') === 'true' || params.get('dev_unlock') === 'true' || params.get('dev') === '1') {
-        localStorage.setItem('velotime_url_dev_override', 'true');
-        return { isAuthorized: true, reason: 'URL Developer Unlock Token (?dev=true)' };
-      }
-      if (localStorage.getItem('velotime_url_dev_override') === 'true') {
-        return { isAuthorized: true, reason: 'Session Developer Unlock Token' };
-      }
-    }
-
     return { isAuthorized: false, reason: null };
   }, [user, dbUser]);
 
