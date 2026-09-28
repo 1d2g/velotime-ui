@@ -833,7 +833,7 @@ export default function TimesheetMatrix({
                         onReorderProject(draggedId, p.id);
                       }
                     }}
-                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-l border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-l border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''} ${pIndex === 0 ? 'tour-project-header' : ''}`}
                     colSpan={p.isCollapsed ? 1 : (p.tasks.length === 0 ? 1 : p.tasks.length)}
                   >
                     <div className="flex items-center justify-between">

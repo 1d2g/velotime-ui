@@ -382,6 +382,9 @@ export default function App() {
         }
 
         setDbUser(data.user);
+        if (data.user && !data.user.hasCompletedOnboarding) {
+          setShowTutorial(true);
+        }
         setProjects(data.projects);
         setClients(data.clients || []);
 
