@@ -31,29 +31,6 @@ export default function App() {
   const { organization, membership, isLoaded: isOrgLoaded } = useOrganization();
   const posthog = usePostHog();
 
-  // Developer Mode Authorization: strictly via Clerk publicMetadata or local development
-  const isAuthorizedDev = useMemo(() => {
-    if (import.meta.env.DEV) return true;
-    const publicMeta = user?.publicMetadata || {};
-    if (publicMeta.isDev === true || publicMeta.dev === true) return true;
-    if (publicMeta.role === "developer" || publicMeta.role === "dev") return true;
-    if (dbUser?.role === "developer") return true;
-    return false;
-  }, [user, dbUser]);
-
-  const [isDevModeActive, setIsDevModeActive] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("velotime_dev_mode_active");
-    return stored !== null ? stored === "true" : true;
-  });
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("velotime_dev_mode_active", isDevModeActive ? "true" : "false");
-    }
-  }, [isDevModeActive]);
-
-  const isDevActive = isAuthorizedDev && isDevModeActive;
 
   useEffect(() => {
     if (user) {
@@ -220,6 +197,30 @@ export default function App() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [dbUser?.activeTimerStart]);
+
+  // Developer Mode Authorization: strictly via Clerk publicMetadata or local development
+  const isAuthorizedDev = useMemo(() => {
+    if (import.meta.env.DEV) return true;
+    const publicMeta = user?.publicMetadata || {};
+    if (publicMeta.isDev === true || publicMeta.dev === true) return true;
+    if (publicMeta.role === "developer" || publicMeta.role === "dev") return true;
+    if (dbUser?.role === "developer") return true;
+    return false;
+  }, [user, dbUser]);
+
+  const [isDevModeActive, setIsDevModeActive] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const stored = localStorage.getItem("velotime_dev_mode_active");
+    return stored !== null ? stored === "true" : true;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("velotime_dev_mode_active", isDevModeActive ? "true" : "false");
+    }
+  }, [isDevModeActive]);
+
+  const isDevActive = isAuthorizedDev && isDevModeActive;
 
   const navTabs = [
     "Timesheets",
