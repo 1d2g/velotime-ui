@@ -22,12 +22,22 @@ import ExpensesTab from "./components/ExpensesTab";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
+import { useDevMode } from "./contexts/DevModeContext";
+import DevModeBadge from "./components/DevModeBadge";
+import ImportWizardTab from "./components/ImportWizardTab";
 
 export default function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { getToken, isSignedIn } = useAuth();
   const { organization, membership, isLoaded: isOrgLoaded } = useOrganization();
   const posthog = usePostHog();
+  const { isDevModeActive, setDbUserContext } = useDevMode();
+
+  useEffect(() => {
+    if (dbUser) {
+      setDbUserContext(dbUser);
+    }
+  }, [dbUser, setDbUserContext]);
 
   useEffect(() => {
     if (user) {
@@ -202,6 +212,7 @@ export default function App() {
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
+    ...(isDevModeActive ? ["Migration (Dev)"] : []),
     "Settings",
   ];
 
@@ -840,7 +851,10 @@ export default function App() {
                 </nav>
               </div>
               <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
-                                {/* Connected Integrations & Speed Layer Button */}
+                {/* Developer Mode Console Badge */}
+                <DevModeBadge user={user} dbUser={dbUser} />
+
+                {/* Connected Integrations & Speed Layer Button */}
                 <button
                   onClick={() => setActiveTab("Integrations")}
                   className={`p-1.5 rounded transition-colors cursor-pointer ${
@@ -1346,6 +1360,14 @@ export default function App() {
                     forceSync={forceSync}
                   />
                 </TrialLockoutOverlay>
+              ) : activeTab === "Migration (Dev)" && isDevModeActive ? (
+                <ImportWizardTab
+                  dbUser={dbUser}
+                  clients={clients}
+                  projects={projects}
+                  apiCall={apiCall}
+                  forceSync={forceSync}
+                />
               ) : activeTab === "Settings" ? (
                 <OrganizationSettingsTab
                   dbUser={dbUser}
