@@ -30,11 +30,26 @@ export default function App() {
   const posthog = usePostHog();
 
   useEffect(() => {
-    if (user && posthog) {
-      posthog.identify(user.id, {
-        email: user.primaryEmailAddress?.emailAddress,
-        name: user.fullName,
-      });
+    if (user) {
+      if (posthog) {
+        posthog.identify(user.id, {
+          email: user.primaryEmailAddress?.emailAddress,
+          name: user.fullName,
+        });
+      }
+
+      // Track Google Ads Sign-up Conversion (fire once per user)
+      const convKey = `velotime_gtag_conv_${user.id}`;
+      if (!localStorage.getItem(convKey)) {
+        if (typeof window !== "undefined" && typeof window.gtag === "function") {
+          window.gtag("event", "conversion", {
+            send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
+            value: 1.0,
+            currency: "USD",
+          });
+        }
+        localStorage.setItem(convKey, "true");
+      }
     }
   }, [user, posthog]);
 
