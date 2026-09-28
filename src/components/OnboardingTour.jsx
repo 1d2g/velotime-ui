@@ -6,16 +6,8 @@ export default function OnboardingTour({
   projects,
   onComplete,
 }) {
-  const [run, setRun] = useState(false);
-
-  useEffect(() => {
-    // Only run if they haven't completed it, AND they have at least one project so the matrix is visible
-    if (!hasCompletedOnboarding && projects.length > 0) {
-      // Small timeout to allow the matrix DOM elements to render fully
-      const timer = setTimeout(() => setRun(true), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [hasCompletedOnboarding, projects]);
+  // Feature paused until database completion state persistence is reviewed
+  return null;
 
   const steps = [
     {

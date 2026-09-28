@@ -382,9 +382,6 @@ export default function App() {
         }
 
         setDbUser(data.user);
-        if (data.user && !data.user.hasCompletedOnboarding) {
-          setShowTutorial(true);
-        }
         setProjects(data.projects);
         setClients(data.clients || []);
 
@@ -1364,33 +1361,7 @@ export default function App() {
                 </div>
               )}
             </main>
-            {dbUser && showTutorial && (
-              <OnboardingTour
-                hasCompletedOnboarding={false}
-                projects={projects}
-                onComplete={async () => {
-                  setShowTutorial(false);
-                  try {
-                    await apiCall("/api/user/complete-onboarding", "POST");
-                    setDbUser((prev) => ({
-                      ...prev,
-                      hasCompletedOnboarding: true,
-                    }));
-                  } catch (e) {
-                    console.error("Failed to complete onboarding", e);
-                  }
-                }}
-              />
-            )}
-            {dbUser && (
-              <button
-                onClick={() => setShowTutorial(true)}
-                className="fixed bottom-6 right-6 w-10 h-10 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-lg flex items-center justify-center font-bold text-lg hover:bg-primary-600 dark:hover:bg-primary-400 transition-colors z-50"
-                title="Restart Tutorial"
-              >
-                ?
-              </button>
-            )}
+            {/* Onboarding Tour paused pending review */}
           </>
         )
       )}
