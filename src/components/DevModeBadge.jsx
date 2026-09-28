@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
-import { useDevMode } from '../contexts/DevModeContext';
 
-export default function DevModeBadge({ user, dbUser }) {
-  const {
-    isAuthorizedDev,
-    isDevModeActive,
-    toggleDevMode,
-    devFlags,
-    setDevFlag,
-    authReason
-  } = useDevMode();
-
+export default function DevModeBadge({
+  isAuthorizedDev,
+  isDevModeActive,
+  onToggle,
+  user,
+  dbUser
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!isAuthorizedDev) return null;
@@ -49,7 +45,7 @@ export default function DevModeBadge({ user, dbUser }) {
                   Developer Mode Console
                 </div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                  Restricted Access: Internal & Dev Only
+                  Restricted: Clerk Cryptographic Identity
                 </div>
               </div>
               <button
@@ -65,9 +61,9 @@ export default function DevModeBadge({ user, dbUser }) {
 
             {/* Auth Authorization Context */}
             <div className="bg-slate-50 dark:bg-zinc-800/60 p-2.5 rounded border border-slate-200 dark:border-zinc-700 mb-3 text-[11px]">
-              <div className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Authorization Context:</div>
+              <div className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Authenticated Account:</div>
               <div className="text-slate-600 dark:text-slate-400 font-mono text-[10px] break-words">
-                {authReason || 'Authorized'}
+                {user?.primaryEmailAddress?.emailAddress || user?.id || 'Authenticated Developer'}
               </div>
             </div>
 
@@ -77,7 +73,7 @@ export default function DevModeBadge({ user, dbUser }) {
                 Dev Features Active
               </span>
               <button
-                onClick={toggleDevMode}
+                onClick={onToggle}
                 className={`px-3 py-1 text-[11px] font-bold rounded transition-colors ${
                   isDevModeActive
                     ? 'bg-emerald-600 text-white hover:bg-emerald-500'
@@ -89,59 +85,25 @@ export default function DevModeBadge({ user, dbUser }) {
             </div>
 
             {/* Feature Flags Section */}
-            <div className="space-y-2 mb-3">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Feature Flags (Preview)
+            <div className="space-y-1.5 mb-3 text-[11px]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                Active Beta Modules
               </div>
-
-              <label className="flex items-center justify-between cursor-pointer py-1">
-                <div>
-                  <div className="font-medium text-slate-800 dark:text-slate-200">Import & Migration Wizard</div>
-                  <div className="text-[10px] text-slate-500">Harvest, Toggl, Clockify migration tab</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={Boolean(devFlags.import_wizard)}
-                  onChange={e => setDevFlag('import_wizard', e.target.checked)}
-                  disabled={!isDevModeActive}
-                  className="rounded border-slate-300 dark:border-zinc-600 text-slate-900 focus:ring-slate-900"
-                />
-              </label>
-
-              <label className="flex items-center justify-between cursor-pointer py-1">
-                <div>
-                  <div className="font-medium text-slate-800 dark:text-slate-200">Harvest API & CSV Import</div>
-                  <div className="text-[10px] text-slate-500">Direct workspace ingestion</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={Boolean(devFlags.harvest_importer)}
-                  onChange={e => setDevFlag('harvest_importer', e.target.checked)}
-                  disabled={!isDevModeActive}
-                  className="rounded border-slate-300 dark:border-zinc-600 text-slate-900 focus:ring-slate-900"
-                />
-              </label>
-
-              <label className="flex items-center justify-between cursor-pointer py-1">
-                <div>
-                  <div className="font-medium text-slate-800 dark:text-slate-200">Toggl Track Importer</div>
-                  <div className="text-[10px] text-slate-500">Workspace & tag mapping</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={Boolean(devFlags.toggl_importer)}
-                  onChange={e => setDevFlag('toggl_importer', e.target.checked)}
-                  disabled={!isDevModeActive}
-                  className="rounded border-slate-300 dark:border-zinc-600 text-slate-900 focus:ring-slate-900"
-                />
-              </label>
+              <div className="flex items-center justify-between py-0.5 text-slate-700 dark:text-slate-300">
+                <span>Migration & Import Wizard</span>
+                <span className="font-mono text-emerald-600 font-bold">ACTIVE</span>
+              </div>
+              <div className="flex items-center justify-between py-0.5 text-slate-700 dark:text-slate-300">
+                <span>Harvest & Toggl Importers</span>
+                <span className="font-mono text-emerald-600 font-bold">READY</span>
+              </div>
             </div>
 
             {/* Diagnostic Identity Footprint */}
             <div className="border-t border-slate-200 dark:border-zinc-800 pt-2 text-[10px] text-slate-400 font-mono space-y-0.5">
-              <div>User: {user?.id?.slice(0, 15)}...</div>
+              <div>Clerk ID: {user?.id?.slice(0, 18)}...</div>
               <div>Role: {dbUser?.role || 'employee'}</div>
-              <div>Org: {dbUser?.organization?.name || 'Personal'}</div>
+              <div>Org: {dbUser?.organization?.name || 'Workspace'}</div>
             </div>
           </div>
         </>

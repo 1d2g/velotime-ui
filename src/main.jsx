@@ -31,8 +31,6 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
-import { DevModeProvider } from "./contexts/DevModeContext.jsx";
-
 const path = window.location.pathname;
 const isPublicPage = [
   "/privacy",
@@ -60,9 +58,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       >
         <PostHogProvider client={posthog}>
           <ToastProvider>
-            <DevModeProvider>
-              <App />
-            </DevModeProvider>
+            <App />
           </ToastProvider>
         </PostHogProvider>
       </ClerkProvider>

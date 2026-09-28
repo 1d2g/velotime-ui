@@ -22,7 +22,6 @@ import ExpensesTab from "./components/ExpensesTab";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
-import { useDevMode } from "./contexts/DevModeContext";
 import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 
@@ -31,13 +30,30 @@ export default function App() {
   const { getToken, isSignedIn } = useAuth();
   const { organization, membership, isLoaded: isOrgLoaded } = useOrganization();
   const posthog = usePostHog();
-  const { isDevModeActive, setDbUserContext } = useDevMode();
+
+  // Developer Mode Authorization: strictly via Clerk publicMetadata or local development
+  const isAuthorizedDev = useMemo(() => {
+    if (import.meta.env.DEV) return true;
+    const publicMeta = user?.publicMetadata || {};
+    if (publicMeta.isDev === true || publicMeta.dev === true) return true;
+    if (publicMeta.role === "developer" || publicMeta.role === "dev") return true;
+    if (dbUser?.role === "developer") return true;
+    return false;
+  }, [user, dbUser]);
+
+  const [isDevModeActive, setIsDevModeActive] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const stored = localStorage.getItem("velotime_dev_mode_active");
+    return stored !== null ? stored === "true" : true;
+  });
 
   useEffect(() => {
-    if (dbUser) {
-      setDbUserContext(dbUser);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("velotime_dev_mode_active", isDevModeActive ? "true" : "false");
     }
-  }, [dbUser, setDbUserContext]);
+  }, [isDevModeActive]);
+
+  const isDevActive = isAuthorizedDev && isDevModeActive;
 
   useEffect(() => {
     if (user) {
@@ -212,7 +228,7 @@ export default function App() {
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
-    ...(isDevModeActive ? ["Migration (Dev)"] : []),
+    ...(isDevActive ? ["Migration (Dev)"] : []),
     "Settings",
   ];
 
@@ -852,7 +868,13 @@ export default function App() {
               </div>
               <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
                 {/* Developer Mode Console Badge */}
-                <DevModeBadge user={user} dbUser={dbUser} />
+                <DevModeBadge
+                  isAuthorizedDev={isAuthorizedDev}
+                  isDevModeActive={isDevActive}
+                  onToggle={() => setIsDevModeActive((prev) => !prev)}
+                  user={user}
+                  dbUser={dbUser}
+                />
 
                 {/* Connected Integrations & Speed Layer Button */}
                 <button
@@ -1360,7 +1382,7 @@ export default function App() {
                     forceSync={forceSync}
                   />
                 </TrialLockoutOverlay>
-              ) : activeTab === "Migration (Dev)" && isDevModeActive ? (
+              ) : activeTab === "Migration (Dev)" && isDevActive ? (
                 <ImportWizardTab
                   dbUser={dbUser}
                   clients={clients}
