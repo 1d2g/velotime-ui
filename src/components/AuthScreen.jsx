@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import { Check, Lock } from "lucide-react";
 import FounderChatBubble from "./FounderChatBubble";
+import FounderAdBanner from "./FounderAdBanner";
 
 export default function AuthScreen() {
   const [authMode, setAuthMode] = useState(() => {
@@ -57,8 +58,11 @@ export default function AuthScreen() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center py-10 px-4 bg-slate-100 dark:bg-zinc-950 font-sans">
-      <div className="w-full max-w-md flex flex-col items-center">
+    <div className="min-h-screen flex flex-col items-center bg-slate-100 dark:bg-zinc-950 font-sans relative">
+      {/* Top Banner (Only displayed for advertising/campaign inbound traffic) */}
+      <FounderAdBanner location="signup" />
+
+      <div className="w-full max-w-md flex flex-col items-center py-10 px-4 my-auto">
         {/* Brand Logo Header */}
         <div className="flex items-center gap-3.5 mb-6 select-none">
           <svg
