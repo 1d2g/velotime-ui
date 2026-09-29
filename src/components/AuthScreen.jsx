@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import { Check, Lock } from "lucide-react";
+import FounderChatBubble from "./FounderChatBubble";
 
 export default function AuthScreen() {
   const [authMode, setAuthMode] = useState(() => {
@@ -196,6 +197,13 @@ export default function AuthScreen() {
           </p>
         </div>
       </div>
+
+      {/* Founder Chat Bubble / Direct Line */}
+      <FounderChatBubble
+        founderEmail="dgray@dg.tools"
+        founderName="Dustin Gray"
+        initialOpen={true}
+      />
     </div>
   );
 }
