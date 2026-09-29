@@ -25,6 +25,7 @@ import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
+import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
 
 export default function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -771,6 +772,31 @@ export default function App() {
     }
   };
 
+  const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
+
+  const shouldShowOnboarding = useMemo(() => {
+    if (dismissedOnboarding) return false;
+    if (!isSignedIn || !user || !isOrgLoaded || isAuditMode) return false;
+    // Never prompt if the user already belongs to an active Clerk organization
+    if (organization?.id) return false;
+    // Never prompt if dbUser already has an organization assigned
+    if (dbUser?.organizationId) return false;
+    // Never prompt if localStorage marks onboarding as completed for this user
+    const completedKey = `velotime_onboarding_completed_${user.id}`;
+    if (typeof window !== "undefined" && localStorage.getItem(completedKey) === "true") {
+      return false;
+    }
+    return true;
+  }, [
+    dismissedOnboarding,
+    isSignedIn,
+    user,
+    isOrgLoaded,
+    isAuditMode,
+    organization?.id,
+    dbUser?.organizationId,
+  ]);
+
   return (
     <div className="font-sans text-sm h-screen flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100 overflow-hidden">
       <style>{`
@@ -823,6 +849,14 @@ export default function App() {
           </div>
         ) : (
           <>
+            <WorkspaceOnboardingModal
+              isOpen={shouldShowOnboarding}
+              onClose={() => setDismissedOnboarding(true)}
+              user={user}
+              apiCall={apiCall}
+              forceSync={forceSync}
+              setActiveTab={setActiveTab}
+            />
             <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
               <div className="flex items-center w-full lg:w-64 shrink-0">
                 <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2">
