@@ -24,6 +24,7 @@ import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
+import AuthScreen from "./components/AuthScreen";
 
 export default function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -781,15 +782,7 @@ export default function App() {
 
       {!isAuditMode && (
         <SignedOut>
-          <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-200 dark:bg-zinc-950">
-            <SignIn
-              routing="hash"
-              fallbackRedirectUrl="/"
-              forceRedirectUrl="/"
-              signUpFallbackRedirectUrl="/"
-              signUpForceRedirectUrl="/"
-            />
-          </div>
+          <AuthScreen />
         </SignedOut>
       )}
 
