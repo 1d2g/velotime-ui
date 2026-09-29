@@ -534,11 +534,11 @@ export default function TimesheetMatrix({
   };
 
   const stickyLeft1 =
-    "sticky left-0 z-20 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
+    "sticky left-0 z-30 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
   const stickyLeft2 =
-    "sticky left-24 z-20 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
+    "sticky left-24 z-30 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 ";
   const stickyLeft3 =
-    "sticky left-48 z-20 border-r border-b border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
+    "sticky left-48 z-30 bg-white dark:bg-zinc-900 border-r border-b border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
   const stickyRight =
     "sticky right-0 z-30 bg-white dark:bg-zinc-900 border-l border-b border-slate-300 dark:border-zinc-700 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] ";
 
