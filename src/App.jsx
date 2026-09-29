@@ -43,15 +43,30 @@ export default function App() {
         });
       }
 
-      // Track Google Ads Sign-up Conversion (fire once per user)
+      // Track True Google Ads Sign-up Conversion (fire strictly once for fresh new signups)
       const convKey = `velotime_gtag_conv_${user.id}`;
       if (!localStorage.getItem(convKey)) {
-        if (typeof window !== "undefined" && typeof window.gtag === "function") {
-          window.gtag("event", "conversion", {
-            send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
-            value: 1.0,
-            currency: "USD",
-          });
+        // Ensure this is a newly created account (created in the last 24 hours) rather than a returning user sign-in
+        const createdAtMs = user.createdAt ? new Date(user.createdAt).getTime() : 0;
+        const isFreshSignup = !user.createdAt || Date.now() - createdAtMs < 24 * 60 * 60 * 1000;
+
+        if (isFreshSignup) {
+          if (typeof window !== "undefined" && typeof window.gtag === "function") {
+            window.gtag("event", "conversion", {
+              send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
+              value: 1.0,
+              currency: "USD",
+            });
+          }
+
+          if (posthog) {
+            posthog.capture("true_signup_conversion", {
+              userId: user.id,
+              email: user.primaryEmailAddress?.emailAddress,
+              source: new URLSearchParams(window.location.search).get("source") || "direct",
+              isAdLead: sessionStorage.getItem("velotime_ad_lead") === "true",
+            });
+          }
         }
         localStorage.setItem(convKey, "true");
       }
