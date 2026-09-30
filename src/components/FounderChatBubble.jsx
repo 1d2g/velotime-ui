@@ -5,14 +5,14 @@ import { usePostHog } from "posthog-js/react";
 export default function FounderChatBubble({
   founderName = "Dustin Gray",
   founderEmail = "dgray@dg.tools",
-  initialOpen = true,
-  topPosition = "30%",
+  initialOpen = false,
+  position = "bottom-right",
 }) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Smooth entrance after page loads
+  // Smooth entrance if explicitly requested
   useEffect(() => {
     if (initialOpen) {
       const timer = setTimeout(() => {
@@ -51,8 +51,7 @@ export default function FounderChatBubble({
 
   return (
     <div
-      style={{ top: topPosition }}
-      className="fixed right-3 sm:right-6 md:right-8 lg:right-12 z-40 font-sans max-w-[calc(100vw-24px)] xs:max-w-sm sm:max-w-md w-full pointer-events-none flex flex-col items-end"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 font-sans max-w-[calc(100vw-32px)] sm:max-w-md w-full pointer-events-none flex flex-col items-end"
     >
       {/* Expanded Speech Bubble Card */}
       {isOpen ? (

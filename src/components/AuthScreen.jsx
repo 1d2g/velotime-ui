@@ -206,7 +206,7 @@ export default function AuthScreen() {
       <FounderChatBubble
         founderEmail="dgray@dg.tools"
         founderName="Dustin Gray"
-        initialOpen={true}
+        initialOpen={false}
       />
     </div>
   );
