@@ -813,7 +813,13 @@ export default function App() {
   ]);
 
   return (
-    <div className="font-sans text-sm h-screen flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100 overflow-hidden">
+    <div
+      className={`font-sans text-sm ${
+        !isSignedIn && !isAuditMode
+          ? "min-h-screen min-h-[100dvh] h-auto overflow-y-auto"
+          : "h-screen overflow-hidden"
+      } flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100`}
+    >
       <style>{`
  .force-black-cursor { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Crect x='7.5' y='2' width='1' height='16' fill='black'/%3E%3Crect x='5' y='1' width='6' height='1' fill='black'/%3E%3Crect x='5' y='18' width='6' height='1' fill='black'/%3E%3C/svg%3E") 8 10, text !important; }
  .hide-caret { caret-color: transparent !important; }
@@ -823,7 +829,9 @@ export default function App() {
 
       {!isAuditMode && (
         <SignedOut>
-          <AuthScreen />
+          <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
+            <AuthScreen />
+          </div>
         </SignedOut>
       )}
 
