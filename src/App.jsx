@@ -54,6 +54,7 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
+      safeSetItem("localStorage", "velotime_has_signed_in", "true");
       if (posthog) {
         try {
           posthog.identify(user.id, {

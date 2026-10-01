@@ -136,6 +136,16 @@ function LogoPatternBackground() {
   );
 }
 
+const safeGetItem = (storage, key, fallback = null) => {
+  try {
+    if (typeof window !== "undefined" && window[storage]) {
+      const val = window[storage].getItem(key);
+      return val !== null ? val : fallback;
+    }
+  } catch (e) {}
+  return fallback;
+};
+
 export default function AuthScreen() {
   const [authMode, setAuthMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -143,7 +153,19 @@ export default function AuthScreen() {
       const mode = params.get("mode");
       const path = window.location.pathname;
       const hash = window.location.hash;
-      // Default to signup for all inbound traffic; only switch to signin if explicitly requested
+      const hasSignedInBefore = safeGetItem("localStorage", "velotime_has_signed_in");
+      const isPaidCampaign =
+        params.has("gclid") ||
+        params.has("utm_source") ||
+        params.has("utm_campaign") ||
+        params.has("trial");
+
+      // Paid campaigns and explicit signup requests ALWAYS default to signup
+      if (mode === "signup" || hash.includes("sign-up") || isPaidCampaign) {
+        return "signup";
+      }
+
+      // Explicit signin request
       if (
         mode === "signin" ||
         mode === "login" ||
@@ -152,6 +174,11 @@ export default function AuthScreen() {
         hash.includes("sign-in") ||
         hash.includes("login")
       ) {
+        return "signin";
+      }
+
+      // Returning users who have previously authenticated on this browser
+      if (hasSignedInBefore) {
         return "signin";
       }
     }
@@ -316,6 +343,16 @@ export default function AuthScreen() {
                 <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
                   Access your organization timesheets, projects, and invoices.
                 </p>
+                <div className="mt-3 p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg flex items-center justify-center gap-1.5 text-xs text-rose-200">
+                  <span>New to VeloTime?</span>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode("signup")}
+                    className="font-bold text-white underline hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    Start 14-day free trial &rarr;
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -326,6 +363,7 @@ export default function AuthScreen() {
           {authMode === "signup" ? (
             <SignUp
               routing="hash"
+              signInUrl="#sign-in"
               fallbackRedirectUrl="/"
               forceRedirectUrl="/"
               signInFallbackRedirectUrl="/"
@@ -335,6 +373,7 @@ export default function AuthScreen() {
           ) : (
             <SignIn
               routing="hash"
+              signUpUrl="#sign-up"
               fallbackRedirectUrl="/"
               forceRedirectUrl="/"
               signUpFallbackRedirectUrl="/"
