@@ -141,28 +141,18 @@ export default function AuthScreen() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
-      const isTrial = params.get("trial") === "true";
-      const isSignUp = params.get("sign_up") === "true";
       const path = window.location.pathname;
       const hash = window.location.hash;
+      // Default to signup for all inbound traffic; only switch to signin if explicitly requested
       if (
         mode === "signin" ||
+        mode === "login" ||
         path.startsWith("/sign-in") ||
         path.startsWith("/login") ||
-        hash.includes("sign-in")
+        hash.includes("sign-in") ||
+        hash.includes("login")
       ) {
         return "signin";
-      }
-      if (
-        mode === "signup" ||
-        isTrial ||
-        isSignUp ||
-        path.startsWith("/sign-up") ||
-        path.startsWith("/signup") ||
-        path.startsWith("/register") ||
-        hash.includes("sign-up")
-      ) {
-        return "signup";
       }
     }
     // Default to signup for all new inbound traffic
@@ -228,92 +218,107 @@ export default function AuthScreen() {
       {/* Top Banner (Only displayed for advertising/campaign inbound traffic) */}
       <FounderAdBanner location="signup" />
 
-      <div className="w-full max-w-[360px] sm:max-w-md flex flex-col items-center py-4 sm:py-8 lg:py-10 px-3 sm:px-4 my-auto relative z-10">
-        {/* Brand Logo Header */}
-        <div className="flex items-center gap-3 sm:gap-3.5 mb-3 sm:mb-6 select-none">
-          <svg
-            className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 select-none shadow-md rounded-lg"
-            viewBox="0 0 200 200"
-            fill="none"
-          >
-            <rect width="200" height="200" rx="36" fill="#0F172A" />
-            <path
-              d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
-              fill="#F43F5E"
-            />
-            <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
-            <path
-              d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
-              fill="#FFFFFF"
-            />
-          </svg>
-          <span className="font-extrabold text-lg sm:text-xl tracking-[0.24em] uppercase font-sans">
-            <span className="text-white">VELO</span>
-            <span className="text-rose-500">TIME</span>
-          </span>
-        </div>
+      <div className="w-full max-w-[360px] sm:max-w-md flex flex-col items-center pt-6 sm:pt-10 pb-24 sm:pb-36 px-3 sm:px-4 m-auto relative z-10">
+        {/* Glossy Semi-Transparent Brand & Context Header Card */}
+        <div className="w-full relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl shadow-2xl shadow-black/50 p-4 sm:p-6 mb-3 sm:mb-4 flex flex-col items-center select-none">
+          {/* Top Bevel Specular Gloss Highlight */}
+          <div
+            className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-b from-white/[0.08] via-white/[0.015] to-transparent"
+            aria-hidden="true"
+          />
 
-        {/* Tab Toggle */}
-        <div className="w-full bg-zinc-900/80 p-0.5 sm:p-1 mb-3 sm:mb-6 flex border border-zinc-800 shadow-inner rounded-lg backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setAuthMode("signup")}
-            className={`flex-1 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold tracking-wider uppercase transition-colors rounded-md ${
-              authMode === "signup"
-                ? "bg-zinc-100 text-zinc-950 shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            Start Free Trial
-          </button>
-          <button
-            type="button"
-            onClick={() => setAuthMode("signin")}
-            className={`flex-1 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold tracking-wider uppercase transition-colors rounded-md ${
-              authMode === "signin"
-                ? "bg-zinc-100 text-zinc-950 shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            Sign In
-          </button>
-        </div>
+          {/* Subtle Ambient Rose Corner Glow */}
+          <div
+            className="absolute -top-10 -left-10 w-28 h-28 bg-rose-500/15 rounded-full blur-2xl pointer-events-none"
+            aria-hidden="true"
+          />
 
-        {/* Dynamic Context Header */}
-        <div className="text-center mb-3 sm:mb-5 w-full">
-          {authMode === "signup" ? (
-            <>
-              <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
-                Start your 14-day free trial
-              </h1>
-              <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5 sm:mt-1">
-                Zero credit card required. Full team matrix & margin telemetry.
-              </p>
-              <div className="mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-semibold text-zinc-300">
-                <span className="inline-flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  No credit card
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  Instant Google SSO
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  Full team features
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
-                Sign in to your workspace
-              </h1>
-              <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5 sm:mt-1">
-                Access your organization timesheets, projects, and invoices.
-              </p>
-            </>
-          )}
+          {/* Brand Logo Header */}
+          <div className="flex items-center gap-3 sm:gap-3.5 mb-3 sm:mb-4 select-none relative z-10">
+            <svg
+              className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 select-none shadow-md rounded-lg"
+              viewBox="0 0 200 200"
+              fill="none"
+            >
+              <rect width="200" height="200" rx="36" fill="#0F172A" />
+              <path
+                d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
+                fill="#F43F5E"
+              />
+              <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
+              <path
+                d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
+                fill="#FFFFFF"
+              />
+            </svg>
+            <span className="font-extrabold text-lg sm:text-xl tracking-[0.24em] uppercase font-sans">
+              <span className="text-white">VELO</span>
+              <span className="text-rose-500">TIME</span>
+            </span>
+          </div>
+
+          {/* Tab Toggle */}
+          <div className="w-full bg-zinc-950/60 p-0.5 sm:p-1 mb-3 sm:mb-4 flex border border-white/[0.08] shadow-inner rounded-xl backdrop-blur-sm relative z-10">
+            <button
+              type="button"
+              onClick={() => setAuthMode("signup")}
+              className={`flex-1 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold tracking-wider uppercase transition-all rounded-lg ${
+                authMode === "signup"
+                  ? "bg-zinc-100 text-zinc-950 shadow-md"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Start Free Trial
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthMode("signin")}
+              className={`flex-1 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold tracking-wider uppercase transition-all rounded-lg ${
+                authMode === "signin"
+                  ? "bg-zinc-100 text-zinc-950 shadow-md"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Sign In
+            </button>
+          </div>
+
+          {/* Dynamic Context Header */}
+          <div className="text-center w-full relative z-10">
+            {authMode === "signup" ? (
+              <>
+                <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
+                  Start your 14-day free trial
+                </h1>
+                <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
+                  Zero credit card required. Full team matrix & margin telemetry.
+                </p>
+                <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-semibold text-zinc-300">
+                  <span className="inline-flex items-center gap-1 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    No credit card
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    Instant Google SSO
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    Full team features
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
+                  Sign in to your workspace
+                </h1>
+                <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
+                  Access your organization timesheets, projects, and invoices.
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Clerk Auth Component */}
@@ -340,7 +345,7 @@ export default function AuthScreen() {
         </div>
 
         {/* Trust & Back Links */}
-        <div className="mt-4 sm:mt-8 pb-12 sm:pb-8 text-center space-y-1.5 sm:space-y-2">
+        <div className="mt-4 sm:mt-6 pb-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-zinc-400 font-medium flex-wrap">
             <a
               href="https://velotime.dg.tools/demo"
