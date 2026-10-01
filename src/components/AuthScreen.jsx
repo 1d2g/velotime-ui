@@ -206,6 +206,23 @@ export default function AuthScreen() {
     };
   }, []);
 
+  // Track Sign Up Page Visit conversion in Google Ads (guarded to once per session)
+  useEffect(() => {
+    if (authMode === "signup") {
+      try {
+        const trackedKey = "velotime_gtag_signup_visit_tracked";
+        if (typeof window !== "undefined" && !sessionStorage.getItem(trackedKey)) {
+          if (typeof window.gtag === "function") {
+            window.gtag("event", "conversion", {
+              send_to: "AW-18479452942/dGBxCO2knI0dEI6m2OtE",
+            });
+            sessionStorage.setItem(trackedKey, "true");
+          }
+        }
+      } catch (e) {}
+    }
+  }, [authMode]);
+
   const clerkAppearance = {
     variables: {
       colorBackground: "#121722",
