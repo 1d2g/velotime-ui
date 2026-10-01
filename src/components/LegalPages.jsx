@@ -63,22 +63,32 @@ function PublicInvoiceView({ invoiceId }) {
   };
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount || 0);
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(amount || 0);
+    } catch (e) {
+      const parts = String(Number(amount || 0).toFixed(2)).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return '$' + parts.join('.');
+    }
   };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (e) {
+      return new Date(dateStr).toDateString();
+    }
   };
 
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const paymentStatus = searchParams.get("payment");
 
   if (isLoading) {

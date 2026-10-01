@@ -1170,7 +1170,7 @@ export default function InvoicesTab({
                               "{pbCurrentPercent}% {pbPhaseName} | Last Billed: {pbPreviousPercent || 0}%"
                             </div>
                             <div className="text-[11px] text-primary-700 dark:text-primary-400">
-                              Amount: ({pbCurrentPercent}% − {pbPreviousPercent || 0}%) = {(parseFloat(pbCurrentPercent) || 0) - (parseFloat(pbPreviousPercent) || 0)}% of ${parseFloat(pbContractValue).toLocaleString()} = <span className="font-bold tabular-nums text-xs">${calculatedProgressAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              Amount: ({pbCurrentPercent}% − {pbPreviousPercent || 0}%) = {(parseFloat(pbCurrentPercent) || 0) - (parseFloat(pbPreviousPercent) || 0)}% of ${parseFloat(pbContractValue).toLocaleString('en-US')} = <span className="font-bold tabular-nums text-xs">${calculatedProgressAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             </div>
                           </div>
                         )}

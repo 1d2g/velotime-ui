@@ -1201,13 +1201,13 @@ export default function ReportsTab({
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Billable Value</span>
-                <div className="text-2xl font-black text-primary-600 dark:text-primary-400 font-mono">${kpiStats.revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                <div className="text-2xl font-black text-primary-600 dark:text-primary-400 font-mono">${kpiStats.revenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                 <span className="text-[10px] text-slate-500 font-medium">Gross revenue</span>
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-none-none shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Labor Cost</span>
-                <div className="text-2xl font-black text-slate-700 dark:text-slate-300 font-mono">${kpiStats.cost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                <div className="text-2xl font-black text-slate-700 dark:text-slate-300 font-mono">${kpiStats.cost.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                 <span className="text-[10px] text-slate-500 font-medium">Loaded payroll</span>
               </div>
 

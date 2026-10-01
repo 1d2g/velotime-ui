@@ -27,6 +27,24 @@ import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
 
+const safeGetItem = (storage, key, fallback = null) => {
+  try {
+    if (typeof window !== "undefined" && window[storage]) {
+      const val = window[storage].getItem(key);
+      return val !== null ? val : fallback;
+    }
+  } catch (e) {}
+  return fallback;
+};
+
+const safeSetItem = (storage, key, value) => {
+  try {
+    if (typeof window !== "undefined" && window[storage]) {
+      window[storage].setItem(key, String(value));
+    }
+  } catch (e) {}
+};
+
 export default function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { getToken, isSignedIn } = useAuth();
@@ -37,62 +55,70 @@ export default function App() {
   useEffect(() => {
     if (user) {
       if (posthog) {
-        posthog.identify(user.id, {
-          email: user.primaryEmailAddress?.emailAddress,
-          name: user.fullName,
-        });
+        try {
+          posthog.identify(user.id, {
+            email: user.primaryEmailAddress?.emailAddress,
+            name: user.fullName,
+          });
+        } catch (e) {}
       }
 
       // Track True Google Ads Sign-up Conversion (fire strictly once for fresh new signups)
       const convKey = `velotime_gtag_conv_${user.id}`;
-      if (!localStorage.getItem(convKey)) {
+      if (!safeGetItem("localStorage", convKey)) {
         // Ensure this is a newly created account (created in the last 24 hours) rather than a returning user sign-in
         const createdAtMs = user.createdAt ? new Date(user.createdAt).getTime() : 0;
         const isFreshSignup = !user.createdAt || Date.now() - createdAtMs < 24 * 60 * 60 * 1000;
 
         if (isFreshSignup) {
-          if (typeof window !== "undefined" && typeof window.gtag === "function") {
-            window.gtag("event", "conversion", {
-              send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
-              value: 1.0,
-              currency: "USD",
-            });
-          }
+          try {
+            if (typeof window !== "undefined" && typeof window.gtag === "function") {
+              window.gtag("event", "conversion", {
+                send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
+                value: 1.0,
+                currency: "USD",
+              });
+            }
+          } catch (e) {}
 
           if (posthog) {
-            posthog.capture("true_signup_conversion", {
-              userId: user.id,
-              email: user.primaryEmailAddress?.emailAddress,
-              source: new URLSearchParams(window.location.search).get("source") || "direct",
-              isAdLead: sessionStorage.getItem("velotime_ad_lead") === "true",
-            });
+            try {
+              posthog.capture("true_signup_conversion", {
+                userId: user.id,
+                email: user.primaryEmailAddress?.emailAddress,
+                source: new URLSearchParams(window.location.search).get("source") || "direct",
+                isAdLead: safeGetItem("sessionStorage", "velotime_ad_lead") === "true",
+              });
+            } catch (e) {}
           }
         }
-        localStorage.setItem(convKey, "true");
+        safeSetItem("localStorage", convKey, "true");
       }
     }
   }, [user, posthog]);
 
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem("velotime_activeTab") || "Timesheets";
+    return safeGetItem("localStorage", "velotime_activeTab", "Timesheets");
   });
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("velotime_activeTab", activeTab);
+    safeSetItem("localStorage", "velotime_activeTab", activeTab);
   }, [activeTab]);
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("velotime_theme") || "light";
+    return safeGetItem("localStorage", "velotime_theme", "light");
   });
 
   const [colorTheme, setColorTheme] = useState(() => {
-    return localStorage.getItem("velotime_colorTheme") || "blue";
+    return safeGetItem("localStorage", "velotime_colorTheme", "blue");
   });
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", colorTheme);
-    localStorage.setItem("velotime_colorTheme", colorTheme);
+    try {
+      document.documentElement.setAttribute("data-theme", colorTheme);
+    } catch (e) {}
+    safeSetItem("localStorage", "velotime_colorTheme", colorTheme);
   }, [colorTheme]);
 
   const cycleColorTheme = () => {
@@ -106,12 +132,14 @@ export default function App() {
   const [lockout, setLockout] = useState(null);
 
   useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    localStorage.setItem("velotime_theme", theme);
+    try {
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch (e) {}
+    safeSetItem("localStorage", "velotime_theme", theme);
   }, [theme]);
 
   const [dbUser, setDbUser] = useState(null);
@@ -226,15 +254,12 @@ export default function App() {
   }, [user, dbUser]);
 
   const [isDevModeActive, setIsDevModeActive] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("velotime_dev_mode_active");
+    const stored = safeGetItem("localStorage", "velotime_dev_mode_active");
     return stored !== null ? stored === "true" : true;
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("velotime_dev_mode_active", isDevModeActive ? "true" : "false");
-    }
+    safeSetItem("localStorage", "velotime_dev_mode_active", isDevModeActive ? "true" : "false");
   }, [isDevModeActive]);
 
   const isDevActive = isAuthorizedDev && isDevModeActive;
@@ -798,7 +823,7 @@ export default function App() {
     if (dbUser?.organizationId) return false;
     // Never prompt if localStorage marks onboarding as completed for this user
     const completedKey = `velotime_onboarding_completed_${user.id}`;
-    if (typeof window !== "undefined" && localStorage.getItem(completedKey) === "true") {
+    if (safeGetItem("localStorage", completedKey) === "true") {
       return false;
     }
     return true;
