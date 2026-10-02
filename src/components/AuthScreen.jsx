@@ -213,12 +213,18 @@ export default function AuthScreen() {
   }, []);
 
   // Track Sign Up Page Visit conversion in Google Ads (guarded to once per session)
+  // CRITICAL SAFEGUARD: Do not reward Google Ads for tiny/letterboxed resolutions (e.g. 650x269 companion slots)
   useEffect(() => {
     if (authMode === "signup") {
       try {
         const trackedKey = "velotime_gtag_signup_visit_tracked";
         if (typeof window !== "undefined" && !sessionStorage.getItem(trackedKey)) {
-          if (typeof window.gtag === "function") {
+          // A viable workspace viewport requires at least 480px vertical height and 360px width.
+          // Tiny companion widgets, mini-players, or letterboxed iframes (<480px height like 650x269) are ignored
+          // so Google is strictly trained and rewarded on real full-screen desktop, laptop, and mobile devices.
+          const isViableViewport = window.innerHeight >= 480 && window.innerWidth >= 360;
+
+          if (isViableViewport && typeof window.gtag === "function") {
             window.gtag("event", "conversion", {
               send_to: "AW-18479452942/dGBxCO2knI0dEI6m2OtE",
             });
