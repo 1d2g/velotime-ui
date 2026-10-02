@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, ArrowLeft } from "lucide-react";
 import FounderChatBubble from "./FounderChatBubble";
 import FounderAdBanner from "./FounderAdBanner";
 
@@ -147,6 +147,12 @@ const safeGetItem = (storage, key, fallback = null) => {
 };
 
 export default function AuthScreen() {
+  // Calculate destination URL back to interactive demo preserving search params if any
+  const demoUrl =
+    typeof window !== "undefined" && window.location.search
+      ? `https://velotime.dg.tools/demo${window.location.search}`
+      : "https://velotime.dg.tools/demo";
+
   const [authMode, setAuthMode] = useState(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -263,6 +269,20 @@ export default function AuthScreen() {
       <FounderAdBanner location="signup" />
 
       <div className="w-full max-w-[360px] sm:max-w-md flex flex-col items-center pt-6 sm:pt-10 pb-24 sm:pb-36 px-3 sm:px-4 m-auto relative z-10">
+        {/* Top Back to Interactive Demo Navigation Bar */}
+        <div className="w-full flex items-center justify-between mb-3 px-1">
+          <a
+            href={demoUrl}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-white/20 text-xs font-semibold transition-all shadow-sm group cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Interactive Demo</span>
+          </a>
+          <span className="text-[11px] font-medium text-zinc-400 hidden sm:inline">
+            No account required to test
+          </span>
+        </div>
+
         {/* Glossy Semi-Transparent Brand & Context Header Card */}
         <div className="w-full relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl shadow-2xl shadow-black/50 p-4 sm:p-6 mb-3 sm:mb-4 flex flex-col items-center select-none">
           {/* Top Bevel Specular Gloss Highlight */}
@@ -351,6 +371,15 @@ export default function AuthScreen() {
                     Full team features
                   </span>
                 </div>
+                <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-center">
+                  <a
+                    href={demoUrl}
+                    className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors font-medium hover:underline underline-offset-2"
+                  >
+                    <ArrowLeft className="w-3 h-3 text-zinc-500" />
+                    <span>Want to test the matrix first? Back to live demo</span>
+                  </a>
+                </div>
               </>
             ) : (
               <>
@@ -404,10 +433,11 @@ export default function AuthScreen() {
         <div className="mt-4 sm:mt-6 pb-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-zinc-400 font-medium flex-wrap">
             <a
-              href="https://velotime.dg.tools/demo"
-              className="hover:text-rose-400 transition-colors underline"
+              href={demoUrl}
+              className="hover:text-rose-400 transition-colors underline flex items-center gap-1"
             >
-              Back to Interactive Sandbox Demo
+              <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
+              <span>Back to Interactive Sandbox Demo</span>
             </a>
             <span>•</span>
             <a
