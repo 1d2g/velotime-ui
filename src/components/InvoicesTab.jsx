@@ -64,6 +64,43 @@ export default function InvoicesTab({
 
   const autoSaveTimerRef = useRef(null);
 
+  // Company Name state and auto-save
+  const [companyName, setCompanyName] = useState(() => {
+    return (
+      dbUser?.organization?.name ||
+      (typeof window !== "undefined" ? localStorage.getItem("velotime_org_name") : "") ||
+      ""
+    );
+  });
+
+  useEffect(() => {
+    if (dbUser?.organization?.name) {
+      setCompanyName(dbUser.organization.name);
+      try {
+        localStorage.setItem("velotime_org_name", dbUser.organization.name);
+      } catch (e) {}
+    }
+  }, [dbUser?.organization?.name]);
+
+  const companyNameTimerRef = useRef(null);
+
+  const handleCompanyNameChange = (val) => {
+    setCompanyName(val);
+    try {
+      localStorage.setItem("velotime_org_name", val);
+    } catch (e) {}
+
+    if (companyNameTimerRef.current) clearTimeout(companyNameTimerRef.current);
+    companyNameTimerRef.current = setTimeout(async () => {
+      try {
+        await apiCall("/api/organization", "PUT", { name: val });
+        if (forceSync) forceSync();
+      } catch (err) {
+        console.error("Failed to auto-save organization name", err);
+      }
+    }, 500);
+  };
+
   // Company Logo Resolution (from invoice, dbUser organization, or localStorage cache)
   const [localLogo, setLocalLogo] = useState(() => {
     try {
@@ -192,13 +229,22 @@ export default function InvoicesTab({
   const saveSheetChanges = async (updatedFields) => {
     if (!activeInvoice) return;
     try {
+      const payload = {
+        ...updatedFields,
+        projectId:
+          updatedFields.projectId && typeof updatedFields.projectId === "string" && updatedFields.projectId.trim() !== ""
+            ? updatedFields.projectId.trim()
+            : null,
+      };
       const updated = await apiCall(
         `/api/invoices/${activeInvoice.id}`,
         "PUT",
-        updatedFields,
+        payload,
       );
-      setActiveInvoice(updated);
-      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      if (updated && updated.id) {
+        setActiveInvoice(updated);
+        setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      }
     } catch (e) {
       console.error("Auto-save failed", e);
     }
@@ -886,28 +932,49 @@ export default function InvoicesTab({
                 
                 {/* Left Header: Title, Project, Billed To (Flush alignment) */}
                 <div className="flex-1 w-full max-w-md">
-                  {/* Company Logo (Screen & Print) */}
-                  {companyLogo ? (
-                    <div className="mb-4">
-                      <img
-                        src={companyLogo}
-                        alt={dbUser?.organization?.name || "Company Logo"}
-                        className="h-12 sm:h-16 w-auto max-w-[220px] max-h-[70px] object-contain object-left"
+                  {/* Company Branding: Logo + Large Font Company Name Textbox */}
+                  <div className="flex items-center gap-3.5 mb-4">
+                    {/* Company Logo (Screen & Print) */}
+                    {companyLogo ? (
+                      <div className="shrink-0">
+                        <img
+                          src={companyLogo}
+                          alt={companyName || "Company Logo"}
+                          className="h-12 sm:h-14 w-auto max-w-[180px] max-h-[64px] object-contain object-left"
+                        />
+                      </div>
+                    ) : (
+                      <div className="print:hidden shrink-0">
+                        <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer border border-dashed border-slate-300 dark:border-zinc-700 hover:border-slate-400 px-2.5 py-1.5 transition-colors">
+                          <span>+ Add Company Logo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleQuickLogoUpload}
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Optional Large Font Company Name Textbox */}
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => handleCompanyNameChange(e.target.value)}
+                        onBlur={() => {
+                          if (companyName.trim()) {
+                            apiCall("/api/organization", "PUT", { name: companyName.trim() }).catch(() => {});
+                          }
+                        }}
+                        placeholder="Company Name (Optional)..."
+                        className={`w-full text-xl sm:text-2xl font-black text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 transition-all outline-none tracking-tight ${
+                          !companyName.trim() ? "print:hidden" : ""
+                        }`}
                       />
                     </div>
-                  ) : (
-                    <div className="mb-3 print:hidden">
-                      <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer border border-dashed border-slate-300 dark:border-zinc-700 hover:border-slate-400 px-2 py-0.5 transition-colors">
-                        <span>+ Add Company Logo</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleQuickLogoUpload}
-                        />
-                      </label>
-                    </div>
-                  )}
+                  </div>
 
                   <div className="flex items-baseline gap-3 mb-2">
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
@@ -979,15 +1046,17 @@ export default function InvoicesTab({
                       type="text"
                       value={sheetForm.clientName}
                       onChange={(e) => handleFieldChange("clientName", e.target.value)}
+                      onBlur={() => saveSheetChanges(sheetForm)}
                       placeholder="Click to enter Client Name..."
-                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none-none px-0 py-0.5 transition-all outline-none"
+                      className="w-full text-base font-bold text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 transition-all outline-none"
                     />
                     <textarea
                       rows="2"
                       value={sheetForm.clientAddress}
                       onChange={(e) => handleFieldChange("clientAddress", e.target.value)}
+                      onBlur={() => saveSheetChanges(sheetForm)}
                       placeholder="Click to enter Billing Address..."
-                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none-none px-0 py-0.5 mt-1 resize-none transition-all outline-none"
+                      className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 rounded-none px-0 py-0.5 mt-1 resize-none transition-all outline-none"
                     />
                   </div>
                 </div>
