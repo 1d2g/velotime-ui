@@ -141,10 +141,41 @@ export default function OrganizationSettingsTab({
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogoBase64(reader.result);
+    reader.onloadend = async () => {
+      const b64 = reader.result;
+      setLogoBase64(b64);
+      try {
+        localStorage.setItem("velotime_org_logo", b64);
+        await apiCall("/api/organization/invoice-settings", "PUT", {
+          invoicePrefix,
+          nextInvoiceNumber,
+          logoBase64: b64,
+          timerRoundingMinutes,
+        });
+        forceSync();
+        addToast("Company logo uploaded and saved!", "success");
+      } catch (err) {
+        console.error("Auto-save logo error:", err);
+      }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = async () => {
+    setLogoBase64("");
+    try {
+      localStorage.removeItem("velotime_org_logo");
+      await apiCall("/api/organization/invoice-settings", "PUT", {
+        invoicePrefix,
+        nextInvoiceNumber,
+        logoBase64: "",
+        timerRoundingMinutes,
+      });
+      forceSync();
+      addToast("Logo removed", "info");
+    } catch (err) {
+      console.error("Failed to remove logo:", err);
+    }
   };
 
   const handleRoleChange = async (userId, newRole) => {
@@ -409,7 +440,7 @@ export default function OrganizationSettingsTab({
                       {isAdmin && (
                         <button
                           type="button"
-                          onClick={() => setLogoBase64("")}
+                          onClick={handleRemoveLogo}
                           className="absolute -top-2 -right-2 bg-red-500 text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <svg

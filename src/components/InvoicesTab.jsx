@@ -64,6 +64,59 @@ export default function InvoicesTab({
 
   const autoSaveTimerRef = useRef(null);
 
+  // Company Logo Resolution (from invoice, dbUser organization, or localStorage cache)
+  const [localLogo, setLocalLogo] = useState(() => {
+    try {
+      return localStorage.getItem("velotime_org_logo") || "";
+    } catch {
+      return "";
+    }
+  });
+
+  useEffect(() => {
+    const orgLogo = dbUser?.organization?.logoBase64 || activeInvoice?.organization?.logoBase64;
+    if (orgLogo) {
+      try {
+        localStorage.setItem("velotime_org_logo", orgLogo);
+        setLocalLogo(orgLogo);
+      } catch (e) {
+        // ignore quota
+      }
+    }
+  }, [dbUser?.organization?.logoBase64, activeInvoice?.organization?.logoBase64]);
+
+  const companyLogo =
+    activeInvoice?.organization?.logoBase64 ||
+    dbUser?.organization?.logoBase64 ||
+    localLogo ||
+    null;
+
+  const handleQuickLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      addToast("Logo file must be smaller than 2MB.", "error");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const b64 = reader.result;
+      setLocalLogo(b64);
+      try {
+        localStorage.setItem("velotime_org_logo", b64);
+        await apiCall("/api/organization/invoice-settings", "PUT", {
+          logoBase64: b64,
+        });
+        if (forceSync) forceSync();
+        addToast("Company logo updated and saved!", "success");
+      } catch (err) {
+        console.error("Failed to upload logo:", err);
+        addToast("Failed to save logo to server", "error");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const fetchInvoices = async () => {
     try {
       const data = await apiCall("/api/invoices", "GET");
@@ -205,14 +258,14 @@ export default function InvoicesTab({
 
     if (mode === "pay_when_paid") {
       newDueDate = null;
-      if (!newNotes || newNotes.includes("Payment is due within")) {
+      if (newNotes && newNotes.includes("Payment is due within")) {
         newNotes = "Payment terms: Pay When Paid.";
       }
     } else {
       const days = parseInt(customDays || 30, 10);
       setNetDays(days);
       newDueDate = calculateDueDate(issueDate, days);
-      if (!newNotes || newNotes.includes("Pay When Paid")) {
+      if (newNotes && newNotes.includes("Pay When Paid")) {
         newNotes = `Payment is due within ${days} days of invoice date.`;
       }
     }
@@ -833,6 +886,29 @@ export default function InvoicesTab({
                 
                 {/* Left Header: Title, Project, Billed To (Flush alignment) */}
                 <div className="flex-1 w-full max-w-md">
+                  {/* Company Logo (Screen & Print) */}
+                  {companyLogo ? (
+                    <div className="mb-4">
+                      <img
+                        src={companyLogo}
+                        alt={dbUser?.organization?.name || "Company Logo"}
+                        className="h-12 sm:h-16 w-auto max-w-[220px] max-h-[70px] object-contain object-left"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-3 print:hidden">
+                      <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer border border-dashed border-slate-300 dark:border-zinc-700 hover:border-slate-400 px-2 py-0.5 transition-colors">
+                        <span>+ Add Company Logo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleQuickLogoUpload}
+                        />
+                      </label>
+                    </div>
+                  )}
+
                   <div className="flex items-baseline gap-3 mb-2">
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
                       Invoice
@@ -842,27 +918,57 @@ export default function InvoicesTab({
                     </span>
                   </div>
 
-                  {/* Associated Project */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase text-slate-400">Project:</span>
-                      <select
-                        value={sheetForm.projectId || ""}
-                        onChange={(e) => handleProjectSelect(e.target.value)}
-                        className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-none-none px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
-                      >
-                        <option value="">-- No Project Linked --</option>
-                        {projects.map((p) => {
-                          const cl = getClientForProject(p.id);
-                          return (
-                            <option key={p.id} value={p.id}>
-                              {p.name} {cl ? `(${cl.name})` : ""}
-                            </option>
-                          );
-                        })}
-                      </select>
+                  {/* Associated Project: Only displayed if a project is linked */}
+                  {sheetForm.projectId ? (
+                    <div className="mb-4">
+                      {/* Interactive on screen */}
+                      <div className="flex items-center gap-2 print:hidden">
+                        <span className="text-[11px] font-bold uppercase text-slate-400">Project:</span>
+                        <select
+                          value={sheetForm.projectId}
+                          onChange={(e) => handleProjectSelect(e.target.value)}
+                          className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-none px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                        >
+                          <option value="">-- No Project Linked --</option>
+                          {projects.map((p) => {
+                            const cl = getClientForProject(p.id);
+                            return (
+                              <option key={p.id} value={p.id}>
+                                {p.name} {cl ? `(${cl.name})` : ""}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      {/* Clean presentation in print */}
+                      <div className="hidden print:flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                        <span className="text-[11px] font-bold uppercase text-slate-500">Project:</span>
+                        <span>{projects.find((p) => p.id === sheetForm.projectId)?.name || ""}</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* No project linked: totally hidden on print, optional link tool on screen */
+                    <div className="mb-4 print:hidden">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold uppercase text-slate-400">Project:</span>
+                        <select
+                          value=""
+                          onChange={(e) => handleProjectSelect(e.target.value)}
+                          className="bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 hover:border-primary-500 rounded-none px-2.5 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 outline-none cursor-pointer"
+                        >
+                          <option value="">-- Link a Project (Optional) --</option>
+                          {projects.map((p) => {
+                            const cl = getClientForProject(p.id);
+                            return (
+                              <option key={p.id} value={p.id}>
+                                {p.name} {cl ? `(${cl.name})` : ""}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   {/* BILLED TO */}
                   <div className="mt-4">
@@ -981,14 +1087,6 @@ export default function InvoicesTab({
                         </span>
                       </div>
                     )}
-
-                    {/* Status */}
-                    <div className="flex justify-between items-center text-right">
-                      <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
-                      <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-white text-right">
-                        {sheetForm.status === "sent" ? "Sent" : sheetForm.status === "draft" ? "Not Sent" : sheetForm.status}
-                      </span>
-                    </div>
 
                   </div>
                 </div>
@@ -1281,21 +1379,39 @@ export default function InvoicesTab({
               <div className="pt-6 border-t border-slate-200 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-12 gap-8 items-start">
                 
                 {/* Notes & Terms (Live WYSIWYG Editable) */}
-                <div className="sm:col-span-7">
-                  <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
-                    Notes & Legal Terms
-                  </span>
-                  <textarea
-                    rows="3"
-                    value={sheetForm.notes}
-                    onChange={(e) => handleFieldChange("notes", e.target.value)}
-                    placeholder="Click to add payment instructions, wire details, or milestone notes..."
-                    className="w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-none-none p-3 resize-none transition-all outline-none leading-relaxed"
-                  />
-                </div>
+                {sheetForm.notes && sheetForm.notes.trim() ? (
+                  <div className="sm:col-span-7">
+                    <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                      Notes & Legal Terms
+                    </span>
+                    <textarea
+                      rows="3"
+                      value={sheetForm.notes}
+                      onChange={(e) => handleFieldChange("notes", e.target.value)}
+                      placeholder="Click to add payment instructions, wire details, or milestone notes..."
+                      className="print:hidden w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-transparent hover:border-slate-200 dark:hover:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-none p-3 resize-none transition-all outline-none leading-relaxed"
+                    />
+                    <div className="hidden print:block text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {sheetForm.notes}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sm:col-span-7 print:hidden">
+                    <span className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                      Notes & Legal Terms (Optional - Hidden on Invoice when empty)
+                    </span>
+                    <textarea
+                      rows="2"
+                      value={sheetForm.notes || ""}
+                      onChange={(e) => handleFieldChange("notes", e.target.value)}
+                      placeholder="Click to add payment instructions, wire details, or milestone notes..."
+                      className="w-full text-xs text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-zinc-800/30 border border-dashed border-slate-300 dark:border-zinc-700 focus:border-primary-500 focus:bg-white dark:focus:bg-zinc-800 rounded-none p-2.5 resize-none transition-all outline-none leading-relaxed"
+                    />
+                  </div>
+                )}
 
                 {/* Financial Summary */}
-                <div className="sm:col-span-5 bg-slate-50 dark:bg-zinc-800/40 rounded-none-none p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2">
+                <div className={`sm:col-span-5 ${(!sheetForm.notes || !sheetForm.notes.trim()) ? "sm:col-start-8 ml-auto w-full" : ""} bg-slate-50 dark:bg-zinc-800/40 rounded-none-none p-4 border border-slate-200 dark:border-zinc-700/60 text-xs space-y-2`}>
                   <div className="flex justify-between py-0.5 text-slate-500">
                     <span>Subtotal:</span>
                     <span className="tabular-nums font-bold text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>
