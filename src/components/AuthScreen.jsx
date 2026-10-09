@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import { Check, Lock, ArrowLeft } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import FounderChatBubble from "./FounderChatBubble";
 import FounderAdBanner from "./FounderAdBanner";
 
@@ -147,6 +148,9 @@ const safeGetItem = (storage, key, fallback = null) => {
 };
 
 export default function AuthScreen() {
+  const posthog = usePostHog();
+  const lastCapturedModeRef = useRef(null);
+
   // Calculate destination URL back to interactive demo preserving search params if any
   const demoUrl =
     typeof window !== "undefined" && window.location.search
@@ -234,6 +238,34 @@ export default function AuthScreen() {
       } catch (e) {}
     }
   }, [authMode]);
+
+  // Track Sign Up Page and Sign In Page landings in PostHog
+  useEffect(() => {
+    if (typeof window === "undefined" || !posthog) return;
+    if (lastCapturedModeRef.current === authMode) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const props = {
+        source: params.get("source") || "direct",
+        utm_source: params.get("utm_source") || null,
+        utm_campaign: params.get("utm_campaign") || null,
+        utm_medium: params.get("utm_medium") || null,
+        utm_content: params.get("utm_content") || null,
+        trial: params.get("trial") === "true",
+        referrer: typeof document !== "undefined" ? document.referrer : null,
+        viewport_width: window.innerWidth,
+        viewport_height: window.innerHeight,
+      };
+
+      if (authMode === "signup") {
+        posthog.capture("signup_page_viewed", props);
+        lastCapturedModeRef.current = "signup";
+      } else if (authMode === "signin") {
+        posthog.capture("signin_page_viewed", props);
+        lastCapturedModeRef.current = "signin";
+      }
+    } catch (e) {}
+  }, [authMode, posthog]);
 
   const clerkAppearance = {
     variables: {
