@@ -29,13 +29,13 @@ export default function ClaimWorkspaceModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Accent Stripe */}
-        <div className="h-1.5 w-full bg-emerald-500" />
+        <div className="h-1.5 w-full bg-rose-500" />
 
         {/* Modal Header */}
         <div className="p-6 border-b border-slate-200 dark:border-zinc-800 flex items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+              <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-300 dark:border-rose-800">
                 14-Day Free Cloud Trial
               </span>
               <span className="text-xs font-mono text-slate-500">No Credit Card</span>
@@ -100,15 +100,15 @@ export default function ClaimWorkspaceModal({
               {/* Guarantees checklist */}
               <div className="space-y-1.5 text-xs text-slate-700 dark:text-zinc-300 font-medium">
                 <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <Check className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>Full access to team timesheets, client invoicing, and PDF export.</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <Check className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>$5/user/mo after trial (vs $14/user on Harvest). Cancel anytime.</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <Check className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>Direct founder support (Dustin Gray • dgray@dg.tools).</span>
                 </div>
               </div>
@@ -123,7 +123,7 @@ export default function ClaimWorkspaceModal({
                   }}
                   className="w-full sm:flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-rose-400 dark:text-rose-500" />
                   <span>Create Free Account (1-Click)</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>

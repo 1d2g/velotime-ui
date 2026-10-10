@@ -263,6 +263,41 @@ export default function TimesheetMatrix({
     return rowId.split("_")[0];
   }, [selectedCell, rowKeys]);
 
+  // Flicking mouse out of the grid collapses the expanded notes
+  const handleGridMouseLeave = () => {
+    if (
+      document.activeElement &&
+      (document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA")
+    ) {
+      return;
+    }
+    setSelectedCell(null);
+    setIsEditing(false);
+  };
+
+  // Clicking outside the grid cells collapses the notes
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        e.target.closest("button") ||
+        e.target.closest("input") ||
+        e.target.closest("textarea") ||
+        e.target.closest("[role='dialog']") ||
+        e.target.closest(".popover")
+      ) {
+        return;
+      }
+      if (!e.target.closest("tbody") && !e.target.closest("td")) {
+        setSelectedCell(null);
+        setIsEditing(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       if (activeTaskPopover || isAddingProject) return;
@@ -334,11 +369,7 @@ export default function TimesheetMatrix({
         } else if (e.key === "Escape") {
           e.preventDefault();
           setIsEditing(false);
-          document
-            .getElementById(
-              `cell_${rowKeys[selectedCell.r]}_${visibleColKeys[selectedCell.c]}`,
-            )
-            ?.focus();
+          setSelectedCell(null);
         } else if (e.key === "Tab") {
           e.preventDefault();
           setIsEditing(false);
@@ -372,6 +403,12 @@ export default function TimesheetMatrix({
               ?.focus();
           }
         }
+        return;
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedCell(null);
         return;
       }
 
@@ -775,7 +812,10 @@ export default function TimesheetMatrix({
         ))}
       </div>
 
-      <div className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors">
+      <div 
+        className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors"
+        onMouseLeave={handleGridMouseLeave}
+      >
         <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
           <thead ref={theadRef}>
             <tr className="bg-slate-100 dark:bg-zinc-800 ">
@@ -1238,6 +1278,10 @@ export default function TimesheetMatrix({
                                   isActive={isActive}
                                   calculatedHeight={calculatedNoteRowHeight}
                                   onNoteChange={onNoteChange}
+                                  onCollapse={() => {
+                                    setSelectedCell(null);
+                                    setIsEditing(false);
+                                  }}
                                   onSelect={() => {
                                     setSelectedCell({ r: rIndex, c: cIndex });
                                     setIsEditing(false);
@@ -1674,6 +1718,7 @@ function TimesheetNoteCell({
   isActive,
   calculatedHeight,
   onNoteChange,
+  onCollapse,
   onSelect,
   isFirstInProject,
 }) {
@@ -1703,7 +1748,11 @@ function TimesheetNoteCell({
     if (e.key === "Escape") {
       e.preventDefault();
       textareaRef.current.blur();
-      document.getElementById(`cell_${rowId}_${taskId}`)?.focus();
+      if (onCollapse) {
+        onCollapse();
+      } else {
+        document.getElementById(`cell_${rowId}_${taskId}`)?.focus();
+      }
     }
   };
 

@@ -1225,17 +1225,17 @@ export default function App() {
                 </button>
                 {isGuestMode ? (
                   <div className="flex items-center gap-2 sm:gap-2.5">
-                    <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-[11px] font-mono font-bold text-rose-800 dark:text-rose-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                       <span>Guest Sandbox</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleOpenClaimModal}
-                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                      <Sparkles className="w-3.5 h-3.5 text-white" />
                       <span className="hidden sm:inline">Save & Claim</span>
                       <span className="sm:hidden">Save</span>
                     </button>
@@ -1351,18 +1351,18 @@ export default function App() {
                           ))}
                         </div>
 
-                        {/* Integrated Pricing Benchmark */}
+                        {/* Integrated Pricing Benchmark (Prominent & Rose Accents) */}
                         {isGuestMode && (
-                          <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-xs select-none">
-                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 uppercase tracking-wider">
+                          <div className="inline-flex items-center gap-3 px-3.5 py-1.5 bg-slate-50 dark:bg-zinc-900 border-2 border-slate-900 dark:border-zinc-700 text-sm font-semibold select-none shadow-xs">
+                            <span className="font-mono text-xs font-black px-2 py-0.5 bg-rose-500 text-white uppercase tracking-wider">
                               Pricing Benchmark
                             </span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">
-                              VeloTime <strong className="text-slate-950 dark:text-white font-bold">$5/user/mo</strong> vs Harvest{" "}
-                              <span className="line-through text-slate-400">$14/mo</span>
+                            <span className="text-slate-800 dark:text-slate-200 text-sm">
+                              VeloTime <strong className="text-slate-950 dark:text-white font-black text-base">$5/user/mo</strong> vs Harvest{" "}
+                              <span className="line-through text-slate-400 font-normal">$14/mo</span>
                             </span>
-                            <span className="text-slate-400 dark:text-slate-600 hidden sm:inline">•</span>
-                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs hidden sm:inline">
+                            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline font-bold">•</span>
+                            <span className="text-rose-600 dark:text-rose-400 font-black text-sm hidden sm:inline">
                               Save $1,296/yr (12 seats)
                             </span>
                           </div>
@@ -1420,10 +1420,10 @@ export default function App() {
 
                         {isGuestMode ? (
                           <div
-                            className="bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold py-1.5 px-3 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-1.5 select-none"
+                            className="bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 font-semibold py-1.5 px-3 border border-rose-300 dark:border-rose-800 text-xs flex items-center gap-1.5 select-none"
                             title="Your timesheet edits are saved in your local browser storage"
                           >
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                             <span>Saved in Browser</span>
                           </div>
                         ) : isSaving ? (

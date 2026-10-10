@@ -51,7 +51,7 @@ export default function FounderTrustBanner({
               DG
             </div>
             <span
-              className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-slate-950"
+              className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-500 border border-slate-950"
               title="Founder Online"
             />
           </div>
@@ -88,8 +88,8 @@ export default function FounderTrustBanner({
           >
             {copied ? (
               <>
-                <Check className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-400">Copied!</span>
+                <Check className="w-3 h-3 text-rose-400" />
+                <span className="text-rose-400">Copied!</span>
               </>
             ) : (
               <>
