@@ -115,6 +115,22 @@ export default function ScriptsConsole() {
     setTriggerStatus({ type: "loading", msg: `Dispatching ${activeScript.workflowFile} on GitHub Actions...` });
 
     try {
+      const requestPayload = {
+        ref: "main"
+      };
+
+      if (activeScript.acceptsInputs && flags) {
+        const inputs = {};
+        Object.entries(flags).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) {
+            inputs[k] = String(v);
+          }
+        });
+        if (Object.keys(inputs).length > 0) {
+          requestPayload.inputs = inputs;
+        }
+      }
+
       const res = await fetch(`https://api.github.com/repos/1d2g/velotime-landing/actions/workflows/${activeScript.workflowFile}/dispatches`, {
         method: "POST",
         headers: {
@@ -123,9 +139,7 @@ export default function ScriptsConsole() {
           "Content-Type": "application/json",
           "User-Agent": "VeloTime-MissionControl"
         },
-        body: JSON.stringify({
-          ref: "main"
-        })
+        body: JSON.stringify(requestPayload)
       });
 
       if (res.status === 204) {

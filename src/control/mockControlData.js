@@ -157,7 +157,8 @@ export const CONTROL_SCRIPTS = [
     name: "PostHog Session Recording Auditor",
     category: "Analytics & UX",
     file: "scripts/posthog-recording-auditor.mjs",
-    workflowFile: null,
+    workflowFile: "posthog-audit.yml",
+    acceptsInputs: true,
     description: "Pulls recent PostHog session replays, identifies friction and click drop-offs, and synthesizes UX findings.",
     defaultFlags: {
       hours: 6
@@ -165,7 +166,7 @@ export const CONTROL_SCRIPTS = [
     flagOptions: [
       { key: "hours", label: "Lookback Hours", type: "number", default: 6 }
     ],
-    buildCommand: () => "node scripts/posthog-recording-auditor.mjs"
+    buildCommand: (flags) => `node scripts/posthog-recording-auditor.mjs${flags?.hours ? ` --hours=${flags.hours}` : ""}`
   },
   {
     id: "gsc_watchdog",
