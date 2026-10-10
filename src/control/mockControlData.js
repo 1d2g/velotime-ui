@@ -305,39 +305,93 @@ export const MINI_POSTHOG_METRICS = {
 
 export const REPEAT_VISITORS_DATA = {
   scorecard: {
-    repeatRate: "24.6%",
-    totalTrackedPersons: 184,
-    repeatVisitorsCount: 45,
-    avgDaysToReturn: "2.8d",
-    repeatConversionRate: "14.2%",
-    firstTimeConversionRate: "3.1%",
-    conversionLift: "4.5x",
-    avgDwellRepeat: "184s",
-    avgDwellSingle: "38s"
+    repeatRate: "21.4%",
+    totalTrackedPersons: 136,
+    repeatVisitorsCount: 29,
+    avgDaysToReturn: "2.6d",
+    completedSignups: 0,
+    trialIntentRate: "3.7%",
+    trialIntentClicks: 5,
+    avgDwellRepeat: "142s",
+    avgDwellSingle: "31s"
   },
   cohortDistribution: [
-    { visits: "1 Visit", pct: "75.4%", count: 139, label: "Initial Discovery Stage" },
-    { visits: "2 Visits", pct: "14.8%", count: 27, label: "Comparison & Evaluation" },
-    { visits: "3-5 Visits", pct: "6.9%", count: 13, label: "High-Intent Consideration" },
-    { visits: "6+ Visits", pct: "2.9%", count: 5, label: "Power Users / Trial Prospects" }
+    { visits: "1 Visit", pct: "78.6%", count: 107, label: "Single-Touch Bounce / Discovery" },
+    { visits: "2 Visits", pct: "13.8%", count: 19, label: "Re-evaluated Demo or Comparison" },
+    { visits: "3-5 Visits", pct: "5.5%", count: 7, label: "Multi-Touch Evaluation (Unconverted)" },
+    { visits: "6+ Visits", pct: "2.1%", count: 3, label: "Chronic Return / Internal Audit" }
   ],
   profiles: [
+    {
+      id: "01a122bb-fe46-7b31-aab2-856f9bb5d8b5",
+      alias: "Agency Lead (Norwich, NY - 5m Dwell)",
+      location: "Norwich, NY, United States",
+      device: "Desktop (Edge / Windows)",
+      primarySource: "Google Ads (Campaign 24295180019)",
+      totalSessions: 2,
+      pageviews: 3,
+      clicks: 0,
+      activeDays: 1,
+      spanHours: "301s (5.0m)",
+      firstSeen: "Oct 9, 2026 18:15 EDT",
+      lastSeen: "Oct 9, 2026 18:20 EDT",
+      status: "Hovered & Bounced (0 Clicks)",
+      pathsVisited: ["/demo"],
+      evolutionSummary: "Arrived from Google Ads targeting NY agencies. Dwelled for over 5 minutes hovering over the timesheet grid and feature sections, but left without clicking CTA or registering.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Oct 9, 2026 • 18:15 EDT",
+          entryUrl: "/demo?gad_source=2&gad_campaignid=24295180019",
+          dwell: "301s",
+          clicks: 0,
+          notes: "Deep 5-minute dwell on interactive demo page. Scrolled and hovered over grid rows. Zero clicks recorded; closed browser without creating account."
+        }
+      ]
+    },
+    {
+      id: "01a0fde4-8d35-74e6-8f70-4e4e931e9267",
+      alias: "High-Intent Evaluator (Zimmerman, MN)",
+      location: "Zimmerman, MN, United States",
+      device: "Desktop (Mac Safari)",
+      primarySource: "YouTube / Direct Video Link",
+      totalSessions: 2,
+      pageviews: 2,
+      clicks: 4,
+      activeDays: 1,
+      spanHours: "48s",
+      firstSeen: "Oct 2, 2026 14:33 EDT",
+      lastSeen: "Oct 2, 2026 14:34 EDT",
+      status: "Trial Intent Drop-off (4 CTA Clicks)",
+      pathsVisited: ["/", "/demo"],
+      evolutionSummary: "Triggered 4 separate 'Start Free Trial' clicks across the homepage and benchmark bar. Reached the Clerk authentication signup gateway, hovered, but abandoned without creating account.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Oct 2, 2026 • 14:33 EDT",
+          entryUrl: "/demo",
+          dwell: "48s",
+          clicks: 4,
+          notes: "Tested demo benchmark bar. Clicked 'Start 14-Day Free Trial' CTA button 4 times. Redirected towards signup URL, hovered over input modal, but dropped off before submitting email."
+        }
+      ]
+    },
     {
       id: "01a0f48c-b621-751d-a2b5-971f5ccdb16a",
       alias: "Prospect #4812 (Florida Agency)",
       location: "Kissimmee, FL, United States",
-      device: "Desktop (Mac Chrome)",
-      primarySource: "Google Ads (Campaign 24309795540)",
+      device: "Desktop (Opera / Mac)",
+      primarySource: "TradingView Referral / Direct",
       totalSessions: 3,
-      pageviews: 9,
-      clicks: 11,
+      pageviews: 10,
+      clicks: 13,
       activeDays: 2,
       spanHours: "6.8h",
       firstSeen: "Sep 30, 2026 19:00 EDT",
-      lastSeen: "Oct 1, 2026 01:47 EDT",
-      status: "High-Intent Prospect",
-      pathsVisited: ["/compare/harvest", "/demo", "/pricing", "/tools", "/", "/integrations"],
-      evolutionSummary: "Transitioned from reading competitor comparison to deep testing of keyboard grid in demo, concluding with pricing review.",
+      lastSeen: "Oct 3, 2026 15:31 EDT",
+      status: "Multi-Page Evaluator (Unconverted)",
+      pathsVisited: ["/compare/harvest", "/demo", "/pricing", "/tools", "/", "/integrations", "/blog"],
+      evolutionSummary: "Navigated through 7 distinct product pages across multiple return sessions. Tested timesheet demo and pricing breakdown, but exited without signup.",
       journey: [
         {
           sessionNumber: 1,
@@ -345,7 +399,7 @@ export const REPEAT_VISITORS_DATA = {
           entryUrl: "/compare/harvest",
           dwell: "68s",
           clicks: 2,
-          notes: "Discovered via Google Ads ('harvest alternative'). Read pricing breakdown table ($5/user vs $14/user). Left without opening demo."
+          notes: "Read Harvest pricing vs VeloTime comparison table. Navigated to demo."
         },
         {
           sessionNumber: 2,
@@ -353,207 +407,113 @@ export const REPEAT_VISITORS_DATA = {
           entryUrl: "/demo",
           dwell: "185s",
           clicks: 6,
-          notes: "Returned 2 hours later via direct URL to /demo. Tested arrow-key navigation across 4 timesheet cells, entered sample hours."
+          notes: "Returned 2 hours later to /demo. Tested arrow-key navigation and entered sample task hours."
         },
         {
           sessionNumber: 3,
-          date: "Oct 1, 2026 • 01:47 EDT",
+          date: "Oct 3, 2026 • 15:31 EDT",
           entryUrl: "/pricing",
           dwell: "154s",
-          clicks: 3,
-          notes: "Returned past midnight. Checked team seat tiers on /pricing and read integration docs. Clicked 'Start 14-Day Free Trial' CTA."
-        }
-      ]
-    },
-    {
-      id: "user_3GxuhW1BSU6eytxkmIdLARZkc3x",
-      alias: "Founder #2019 (NY Design Studio)",
-      location: "New York, NY, United States",
-      device: "Desktop (Windows Chrome)",
-      primarySource: "Direct Web / Word of Mouth",
-      totalSessions: 10,
-      pageviews: 17,
-      clicks: 9,
-      activeDays: 5,
-      spanHours: "82.6h (3.5 days)",
-      firstSeen: "Sep 27, 2026 22:17 EDT",
-      lastSeen: "Oct 1, 2026 08:54 EDT",
-      status: "Converted / Active Account",
-      pathsVisited: ["/", "/demo", "/pricing", "/compare/harvest"],
-      evolutionSummary: "Evaluated product across 5 separate calendar days before creating organization and inviting team members.",
-      journey: [
-        {
-          sessionNumber: 1,
-          date: "Sep 27, 2026 • 22:17 EDT",
-          entryUrl: "/",
-          dwell: "42s",
-          clicks: 1,
-          notes: "Initial exploration of homepage hero grid. Viewed '15-second weekly timesheet' messaging."
-        },
-        {
-          sessionNumber: 2,
-          date: "Sep 28, 2026 • 11:30 EDT",
-          entryUrl: "/demo",
-          dwell: "240s",
           clicks: 5,
-          notes: "Deep demo test during agency business hours. Validated keyboard speed and project/task switching."
-        },
-        {
-          sessionNumber: 5,
-          date: "Sep 29, 2026 • 16:40 EDT",
-          entryUrl: "/pricing",
-          dwell: "90s",
-          clicks: 2,
-          notes: "Checked pricing for a 12-person team ($60/mo vs Harvest $168/mo)."
-        },
-        {
-          sessionNumber: 10,
-          date: "Oct 1, 2026 • 08:54 EDT",
-          entryUrl: "https://app.velotime.dg.tools",
-          dwell: "420s",
-          clicks: 8,
-          notes: "Full account creation via Clerk. Initialized organization workspace and added first client project."
-        }
-      ]
-    },
-    {
-      id: "01a0f7e5-21a3-765b-a383-ab425fdb5f7a",
-      alias: "Agency Lead #7731 (Melbourne)",
-      location: "Melbourne, Victoria, Australia",
-      device: "Desktop (Mac Safari)",
-      primarySource: "Email Outreach (Signature Link)",
-      totalSessions: 3,
-      pageviews: 3,
-      clicks: 10,
-      activeDays: 1,
-      spanHours: "15 mins",
-      firstSeen: "Oct 1, 2026 10:36 EDT",
-      lastSeen: "Oct 1, 2026 10:37 EDT",
-      status: "Evaluating Sandbox",
-      pathsVisited: ["/demo", "/"],
-      evolutionSummary: "Direct recipient of automated cold email; clicked signature link and thoroughly tested demo grid.",
-      journey: [
-        {
-          sessionNumber: 1,
-          date: "Oct 1, 2026 • 10:36 EDT",
-          entryUrl: "/demo",
-          dwell: "45s",
-          clicks: 4,
-          notes: "Arrived from outreach email campaign 'defbgvif_fghevbf'. Landed straight in interactive matrix sandbox."
-        },
-        {
-          sessionNumber: 2,
-          date: "Oct 1, 2026 • 10:37 EDT",
-          entryUrl: "/",
-          dwell: "55s",
-          clicks: 6,
-          notes: "Navigated to root homepage to read product features and invoice generation specs."
+          notes: "Returned 3 days later to re-check pricing tiers and integrations. Left without opening Clerk signup modal."
         }
       ]
     },
     {
       id: "user_3H0RLB9dfGhCRMdfQpFyikI9QUa",
-      alias: "Visitor #1140 (Brooklyn Studio)",
+      alias: "Lurker #1140 (Brooklyn Studio Reader)",
       location: "Brooklyn, NY, United States",
       device: "Desktop (Mac Chrome)",
-      primarySource: "Campaign 'anti_stopwatch' (Reddit / Direct)",
+      primarySource: "Reddit 'anti_stopwatch' Thread",
       totalSessions: 10,
-      pageviews: 18,
+      pageviews: 35,
       clicks: 0,
       activeDays: 5,
-      spanHours: "84.1h",
-      firstSeen: "Sep 27, 2026 12:02 EDT",
-      lastSeen: "Oct 1, 2026 00:09 EDT",
-      status: "Chronic Reader (0 Clicks)",
+      spanHours: "84.1h (3.5 days)",
+      firstSeen: "Sep 24, 2026 10:22 EDT",
+      lastSeen: "Oct 3, 2026 01:42 EDT",
+      status: "Chronic Lurker (0 Clicks / 0 Signups)",
       pathsVisited: ["/", "/demo"],
-      evolutionSummary: "Visited 10 times across 5 days, reads copy intently for 40-70 seconds per visit, but exhibits zero click events.",
+      evolutionSummary: "Visited 10 times across 5 separate calendar days. Reads copy for 40-70 seconds per visit, hovering over comparison cards, but exhibits zero click events and never initiated registration.",
       journey: [
         {
           sessionNumber: 1,
-          date: "Sep 27, 2026 • 12:02 EDT",
+          date: "Sep 24, 2026 • 10:22 EDT",
           entryUrl: "/?source=anti_stopwatch",
           dwell: "65s",
           clicks: 0,
-          notes: "Arrived from Reddit discussion on timesheet hate. Read full page copy, paused on pricing section."
+          notes: "Arrived from Reddit discussion. Read full homepage copy, paused on pricing table."
         },
         {
           sessionNumber: 4,
-          date: "Sep 29, 2026 • 18:20 EDT",
+          date: "Sep 27, 2026 • 18:20 EDT",
           entryUrl: "/demo",
           dwell: "72s",
           clicks: 0,
-          notes: "Returned to demo URL. Read instructions but did not click or type in matrix."
+          notes: "Returned to demo URL. Read feature descriptions without typing into grid."
         },
         {
           sessionNumber: 10,
-          date: "Oct 1, 2026 • 00:09 EDT",
+          date: "Oct 3, 2026 • 01:42 EDT",
           entryUrl: "/",
           dwell: "58s",
           clicks: 0,
-          notes: "Latest return visit. Dwell suggests reading or comparing side-by-side with another tool."
+          notes: "Latest return visit. Dwell suggests side-by-side reading with another timesheet tool."
         }
       ]
     },
     {
-      id: "01a0eb83-9708-7aee-afc4-c5080de5f278",
-      alias: "Visitor #8821 (California)",
-      location: "Hayward, CA, United States",
+      id: "user_3GxuhW1BSU6eytxkmIdLARZkc3x",
+      alias: "Internal Admin / Founder (Brooklyn, NY)",
+      location: "Brooklyn, NY, United States",
       device: "Desktop (Windows Chrome)",
-      primarySource: "Direct Web",
-      totalSessions: 3,
-      pageviews: 3,
-      clicks: 2,
-      activeDays: 1,
-      spanHours: "16.2h",
-      firstSeen: "Sep 29, 2026 00:54 EDT",
-      lastSeen: "Sep 29, 2026 17:07 EDT",
-      status: "Demo Sandbox Evaluator",
-      pathsVisited: ["/demo"],
-      evolutionSummary: "Returned three times directly to /demo throughout the day to test timesheet spreadsheet interactions.",
+      primarySource: "Direct Admin / Clerk Authenticated",
+      totalSessions: 14,
+      pageviews: 72,
+      clicks: 34,
+      activeDays: 8,
+      spanHours: "Active Session",
+      firstSeen: "Jul 24, 2026 17:46 EDT",
+      lastSeen: "Oct 10, 2026 14:38 EDT",
+      status: "Internal Workspace Admin",
+      pathsVisited: ["/control", "/?mode=signup&trial=true", "/", "/demo"],
+      evolutionSummary: "Internal product owner account (4thgencorei7@gmail.com). Navigating Mission Control, testing diagnostic scripts, and inspecting live PostHog telemetry.",
       journey: [
         {
           sessionNumber: 1,
-          date: "Sep 29, 2026 • 00:54 EDT",
-          entryUrl: "/demo",
-          dwell: "38s",
-          clicks: 1,
-          notes: "First entry to sandbox demo."
+          date: "Jul 24, 2026 • 17:46 EDT",
+          entryUrl: "https://app.velotime.dg.tools",
+          dwell: "420s",
+          clicks: 8,
+          notes: "Initial Clerk organization workspace creation and admin onboarding."
         },
         {
-          sessionNumber: 2,
-          date: "Sep 29, 2026 • 09:30 EDT",
-          entryUrl: "/demo",
-          dwell: "95s",
-          clicks: 1,
-          notes: "Returned morning of next day to test cell input."
-        },
-        {
-          sessionNumber: 3,
-          date: "Sep 29, 2026 • 17:07 EDT",
-          entryUrl: "/demo",
-          dwell: "44s",
-          clicks: 0,
-          notes: "Quick evening check before closing browser."
+          sessionNumber: 14,
+          date: "Oct 10, 2026 • 14:38 EDT",
+          entryUrl: "https://app.velotime.dg.tools/control",
+          dwell: "180s",
+          clicks: 12,
+          notes: "Active founder session reviewing Mission Control telemetry and running outreach diagnostics."
         }
       ]
     }
   ],
   dropoffBottlenecks: [
     {
-      id: "demo_activation_gap",
-      title: "Interactive Demo to Trial Sign-up Gap",
-      severity: "High",
-      affectedPercentage: "41% of 2+ Visit Users",
-      description: "Returning users spend an average of 185s typing into the /demo matrix, but leave without starting a trial because they don't see how their entries persist or how to invite team members.",
-      recommendedAction: "Add an in-grid prompt banner: 'Like the speed? Save this timesheet & invite your team in 15 seconds (14-Day Free Trial, No Credit Card)'."
+      id: "clerk_signup_friction",
+      title: "Clerk Auth Gate Abandonment (High Friction)",
+      severity: "Critical",
+      affectedPercentage: "100% of Trial Clickers",
+      description: "Visitors who click 'Start 14-Day Free Trial' arrive at the Clerk authentication popup. Because they expect an instant in-browser interactive workspace without creating passwords or entering email verification codes, they abandon immediately.",
+      recommendedAction: "Allow zero-signup sandbox persistence (save in localStorage) and only request email when exporting invoices or inviting team members."
     },
     {
-      id: "comparison_pricing_hesitation",
-      title: "Multi-Touch Harvest Comparison Hesitation",
-      severity: "Medium",
-      affectedPercentage: "28% of 2+ Visit Users",
-      description: "Prospects landing on /compare/harvest return 2.8 days later to re-verify pricing. They hesitate because they want confirmation that VeloTime exports to CSV/Excel and QuickBooks.",
-      recommendedAction: "Highlight '1-Click QuickBooks & CSV Export Included' directly in the sticky comparison bar above the fold."
+      id: "passive_hovering_gap",
+      title: "High Dwell / Zero-Click Passive Lurking",
+      severity: "High",
+      affectedPercentage: "62% of Returning Visitors",
+      description: "Multiple visitors (such as Norwich, NY: 301s dwell; Brooklyn, NY: 10 sessions) read and hover over the timesheet demo for minutes without interacting or clicking.",
+      recommendedAction: "Implement an animated interactive micro-demo with pre-populated sample client data so lurkers immediately see the 15-second timesheet filled without having to type manually."
     }
   ],
   hogqlQuery: `SELECT

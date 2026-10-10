@@ -47,7 +47,8 @@ export default function UserEvolution() {
 
     if (selectedCohort === "2") return p.totalSessions === 2;
     if (selectedCohort === "3+") return p.totalSessions >= 3;
-    if (selectedCohort === "converted") return p.status.includes("Converted") || p.status.includes("High-Intent");
+    if (selectedCohort === "intent") return p.status.includes("Trial Intent");
+    if (selectedCohort === "internal") return p.status.includes("Internal");
     return true;
   });
 
@@ -118,26 +119,26 @@ export default function UserEvolution() {
           <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
             <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <MousePointer className="w-3 h-3" />
-              <span>Repeat Conversion Rate</span>
+              <span>Self-Serve Signups</span>
             </div>
-            <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5">
-              {scorecard.repeatConversionRate}
+            <div className="text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
+              {scorecard.completedSignups} (0.0%)
             </div>
-            <div className="text-[10px] text-slate-600 dark:text-zinc-400 font-semibold mt-0.5">
-              {scorecard.conversionLift} lift vs 1st visit ({scorecard.firstTimeConversionRate})
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              100% drop-off at Clerk auth gate
             </div>
           </div>
 
           <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
             <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Users className="w-3 h-3" />
-              <span>Avg Total Dwell Time</span>
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span>Trial Intent Rate</span>
             </div>
-            <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums mt-0.5">
-              {scorecard.avgDwellRepeat}
+            <div className="text-xl font-black text-amber-600 dark:text-amber-400 tabular-nums mt-0.5">
+              {scorecard.trialIntentRate}
             </div>
             <div className="text-[10px] text-slate-500 mt-0.5">
-              vs {scorecard.avgDwellSingle} for single-visit bounces
+              {scorecard.trialIntentClicks} CTA clicks before gate exit
             </div>
           </div>
         </div>
@@ -260,7 +261,16 @@ export default function UserEvolution() {
                   selectedCohort === "all" ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white font-bold" : "text-slate-600 dark:text-slate-400"
                 }`}
               >
-                All Repeat
+                All Profiles
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedCohort("intent")}
+                className={`px-2.5 py-1 text-xs font-semibold transition border-r border-slate-300 dark:border-zinc-700 ${
+                  selectedCohort === "intent" ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white font-bold" : "text-slate-600 dark:text-slate-400"
+                }`}
+              >
+                Trial Intent Drop-off
               </button>
               <button
                 type="button"
@@ -282,12 +292,12 @@ export default function UserEvolution() {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedCohort("converted")}
+                onClick={() => setSelectedCohort("internal")}
                 className={`px-2.5 py-1 text-xs font-semibold transition ${
-                  selectedCohort === "converted" ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white font-bold" : "text-slate-600 dark:text-slate-400"
+                  selectedCohort === "internal" ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white font-bold" : "text-slate-600 dark:text-slate-400"
                 }`}
               >
-                High-Intent / Converted
+                Internal Admin
               </button>
             </div>
 
@@ -325,10 +335,12 @@ export default function UserEvolution() {
                         {user.alias}
                       </span>
                       <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border uppercase ${
-                        user.status.includes("Converted") 
-                          ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800"
-                          : user.status.includes("High-Intent")
-                          ? "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 border-cyan-300 dark:border-cyan-800"
+                        user.status.includes("Internal") 
+                          ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800"
+                          : user.status.includes("Trial Intent")
+                          ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                          : user.status.includes("Multi-Page")
+                          ? "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800"
                           : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-zinc-700"
                       }`}>
                         {user.status}
