@@ -1354,9 +1354,10 @@ export default function App() {
                           ))}
                         </div>
 
-                        {dbUser &&
+                        {!isGuestMode && dbUser &&
                           (dbUser.role === "admin" ||
-                            dbUser.role === "manager") && (
+                            dbUser.role === "manager") &&
+                          orgUsers && orgUsers.length > 1 && (
                             <div className="ml-2 flex items-center gap-2 border-l border-slate-300 dark:border-zinc-700 pl-4">
                               <span className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase">
                                 Viewing:
@@ -1403,7 +1404,15 @@ export default function App() {
                           />
                         </div>
 
-                        {isSaving ? (
+                        {isGuestMode ? (
+                          <div
+                            className="bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold py-1.5 px-3 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-1.5 select-none"
+                            title="Your timesheet edits are saved in your local browser storage"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Saved in Browser</span>
+                          </div>
+                        ) : isSaving ? (
                           <button
                             disabled
                             className="tour-save-indicator bg-primary-50 text-primary-700 font-semibold py-1.5 px-4 border border-slate-900 transition-colors text-sm flex items-center gap-2 cursor-wait select-none"

@@ -21,6 +21,7 @@ export const GUEST_MOCK_USER = {
     id: "org_guest_sandbox",
     name: "Guest Studio Workspace",
     tier: "trial",
+    createdAt: new Date().toISOString(),
     invoicePrefix: "INV-",
     nextInvoiceNumber: 1001,
   },

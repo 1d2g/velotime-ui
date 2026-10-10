@@ -2,7 +2,7 @@ import { useToast } from "../contexts/ToastContext";
 
 export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
   const { addToast } = useToast();
-  if (!dbUser || !dbUser.organization) {
+  if (!dbUser || !dbUser.organization || dbUser.id === "guest_user" || dbUser.organization.id === "org_guest_sandbox" || dbUser.organization.tier === "sandbox") {
     return children;
   }
 
@@ -12,8 +12,16 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
     return children;
   }
 
-  // Calculate days since creation
+  if (!createdAt) {
+    return children;
+  }
+
   const createdDate = new Date(createdAt);
+  if (isNaN(createdDate.getTime())) {
+    return children;
+  }
+
+  // Calculate days since creation
   const now = new Date();
   const daysSince = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
   const trialDuration = 14;
