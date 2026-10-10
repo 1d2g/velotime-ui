@@ -6,6 +6,7 @@ import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
 import { motion } from "framer-motion";
+import { Pencil, RotateCcw } from "lucide-react";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -30,6 +31,10 @@ export default function TimesheetMatrix({
   searchQuery = "",
   onReorderProject,
   onToggleTimer,
+  onClearGrid,
+  onRenameProject,
+  onUpdateClient,
+  onEditTask,
 }) {
   const [selectedCell, setSelectedCell] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -39,6 +44,12 @@ export default function TimesheetMatrix({
 
   const [showMissingNotes, setShowMissingNotes] = useState(false);
   const [showWeekends, setShowWeekends] = useState(false);
+
+  // Client / Project & Task Inline Edit States
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editNameInput, setEditNameInput] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTaskNameInput, setEditTaskNameInput] = useState("");
 
   // Sorting State
   const [sortMode, setSortMode] = useState("manual"); // 'manual', 'client', 'hours', 'az'
@@ -773,7 +784,7 @@ export default function TimesheetMatrix({
                 colSpan={3}
               >
                 <div className="flex flex-col items-center justify-center h-full w-full gap-1.5 py-1">
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center justify-center gap-3">
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
                       <input
                         type="checkbox"
@@ -794,6 +805,17 @@ export default function TimesheetMatrix({
                         Audit Notes
                       </span>
                     </label>
+                    {onClearGrid && (
+                      <button
+                        type="button"
+                        onClick={onClearGrid}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 select-none transition-colors border border-slate-300 dark:border-zinc-700 hover:border-rose-400 px-2 py-0.5 bg-slate-50 dark:bg-zinc-800 shadow-sm cursor-pointer"
+                        title="Clear all hours from the timesheet matrix"
+                      >
+                        <RotateCcw className="w-3 h-3 text-slate-500 hover:text-rose-600" />
+                        <span>Clear Grid</span>
+                      </button>
+                    )}
                   </div>
                   {timeframe === "week" && (
                     <div>
@@ -856,20 +878,69 @@ export default function TimesheetMatrix({
                           />
                         </svg>
                       </button>
-                      <span
-                        className="truncate flex-1 text-left text-sm select-none"
-                        title={p.client ? `${p.client.name} | ${p.name}` : p.name}
-                      >
-                        {p.client ? (
-                          <>
-                            <span className="text-slate-400 dark:text-slate-500 font-medium mr-1.5">{p.client.name}</span>
-                            <span className="text-slate-300 dark:text-zinc-600 mr-1.5">|</span>
-                            {p.name}
-                          </>
-                        ) : (
-                          p.name
-                        )}
-                      </span>
+                      {editingProjectId === p.id ? (
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (editNameInput.trim()) {
+                              if (p.client && onUpdateClient) {
+                                onUpdateClient(p.clientId, { name: editNameInput.trim() });
+                              } else if (onRenameProject) {
+                                onRenameProject(p.id, editNameInput.trim());
+                              }
+                            }
+                            setEditingProjectId(null);
+                          }}
+                          className="flex items-center gap-1 flex-1 min-w-0"
+                        >
+                          <input
+                            type="text"
+                            autoFocus
+                            value={editNameInput}
+                            onChange={(e) => setEditNameInput(e.target.value)}
+                            onBlur={() => {
+                              if (editNameInput.trim()) {
+                                if (p.client && onUpdateClient) {
+                                  onUpdateClient(p.clientId, { name: editNameInput.trim() });
+                                } else if (onRenameProject) {
+                                  onRenameProject(p.id, editNameInput.trim());
+                                }
+                              }
+                              setEditingProjectId(null);
+                            }}
+                            className="bg-white dark:bg-zinc-800 text-xs px-2 py-0.5 border-2 border-primary-500 text-slate-900 dark:text-white outline-none w-full font-bold shadow-sm"
+                          />
+                        </form>
+                      ) : (
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <span
+                            className="truncate text-left text-sm select-none"
+                            title={p.client ? `${p.client.name} | ${p.name}` : p.name}
+                          >
+                            {p.client ? (
+                              <>
+                                <span className="text-slate-500 dark:text-slate-400 font-bold mr-1">{p.client.name}</span>
+                                <span className="text-slate-300 dark:text-zinc-600 mr-1">|</span>
+                                <span className="font-semibold">{p.name}</span>
+                              </>
+                            ) : (
+                              p.name
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProjectId(p.id);
+                              setEditNameInput(p.client ? p.client.name : p.name);
+                            }}
+                            className="p-1 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
+                            title="Edit Client / Project Name"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                       {sortMode === 'manual' && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-slate-300 mx-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -950,9 +1021,50 @@ export default function TimesheetMatrix({
                           key={t.id}
                           className={`group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative ${index === 0 ? "border-l" : ""}`}
                         >
-                          <span className="truncate block w-full px-1">
-                            {t.name}
-                          </span>
+                          {editingTaskId === t.id ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                if (editTaskNameInput.trim() && onEditTask) {
+                                  onEditTask(p.id, t.id, { name: editTaskNameInput.trim() });
+                                }
+                                setEditingTaskId(null);
+                              }}
+                              className="w-full px-1"
+                            >
+                              <input
+                                type="text"
+                                autoFocus
+                                value={editTaskNameInput}
+                                onChange={(e) => setEditTaskNameInput(e.target.value)}
+                                onBlur={() => {
+                                  if (editTaskNameInput.trim() && onEditTask) {
+                                    onEditTask(p.id, t.id, { name: editTaskNameInput.trim() });
+                                  }
+                                  setEditingTaskId(null);
+                                }}
+                                className="bg-white dark:bg-zinc-800 text-[11px] px-1 py-0.5 border-2 border-primary-500 text-slate-900 dark:text-white outline-none w-full text-center font-bold shadow-sm"
+                              />
+                            </form>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1 w-full px-1">
+                              <span className="truncate block font-medium" title={t.name}>
+                                {t.name}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingTaskId(t.id);
+                                  setEditTaskNameInput(t.name);
+                                }}
+                                className="p-0.5 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors shrink-0 cursor-pointer"
+                                title="Edit Task Name"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                           {t.isBillable === false && (
                             <span 
                               className="inline-block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-zinc-800 px-1 py-0.5 mt-0.5 rounded-none select-none"

@@ -26,6 +26,19 @@ import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
+import { Sparkles, LogIn } from "lucide-react";
+import FounderTrustBanner from "./components/guest/FounderTrustBanner";
+import GuestBenchmarkBar from "./components/guest/GuestBenchmarkBar";
+import GuestKpiRibbon from "./components/guest/GuestKpiRibbon";
+import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
+import {
+  GUEST_USER_ID,
+  GUEST_MOCK_USER,
+  INITIAL_GUEST_CLIENTS,
+  INITIAL_GUEST_PROJECTS,
+  buildInitialGuestEntries,
+  INITIAL_GUEST_NOTES,
+} from "./components/guest/guestInitialData";
 
 const safeGetItem = (storage, key, fallback = null) => {
   try {
@@ -154,6 +167,12 @@ export default function App() {
   const [taskRates, setTaskRates] = useState([]);
 
   const isAuditMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("audit_mode") === "true";
+  const isExplicitSignIn = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signin";
+
+  const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+
+  const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
 
   useEffect(() => {
     if (isAuditMode) {
@@ -418,6 +437,148 @@ export default function App() {
     }
   }, [currentDate, timeframe]);
 
+  const totalGuestHours = useMemo(() => {
+    return Object.values(entries).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+  }, [entries]);
+
+  // Load guest sandbox workspace from localStorage or hybrid template
+  useEffect(() => {
+    if (isGuestMode) {
+      try {
+        const saved = safeGetItem("localStorage", "velotime_guest_workspace");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.projects && parsed.projects.length > 0) {
+            setProjects(parsed.projects);
+            setClients(parsed.clients || INITIAL_GUEST_CLIENTS);
+            setEntries(parsed.entries || {});
+            setNotes(parsed.notes || {});
+            setDbUser(GUEST_MOCK_USER);
+            setIsSyncing(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load saved guest workspace:", e);
+      }
+
+      // Hybrid Default (3 clients, 3 projects, 3 tasks each, 1 pre-seeded row of 16.0h)
+      setDbUser(GUEST_MOCK_USER);
+      setClients(INITIAL_GUEST_CLIENTS);
+      setProjects(INITIAL_GUEST_PROJECTS);
+      setEntries(buildInitialGuestEntries(dates));
+      setNotes(INITIAL_GUEST_NOTES);
+      setIsSyncing(false);
+    }
+  }, [isGuestMode, dates.length]);
+
+  // Real-time autosave of guest workspace
+  useEffect(() => {
+    if (isGuestMode && projects.length > 0) {
+      const payload = {
+        clients,
+        projects,
+        entries,
+        notes,
+      };
+      safeSetItem("localStorage", "velotime_guest_workspace", JSON.stringify(payload));
+    }
+  }, [isGuestMode, clients, projects, entries, notes]);
+
+  // Handshake: Automatically claim stashed guest data upon successful sign-in
+  useEffect(() => {
+    async function checkAndClaimGuestData() {
+      if (!isSignedIn || !user || !dbUser || isAuditMode) return;
+      const guestStash = safeGetItem("localStorage", "velotime_guest_stash");
+      if (!guestStash) return;
+
+      try {
+        const parsedStash = JSON.parse(guestStash);
+        // Clear stash immediately to prevent duplicate claims
+        safeSetItem("localStorage", "velotime_guest_stash", null);
+        if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.removeItem("velotime_guest_stash");
+          window.localStorage.removeItem("velotime_guest_workspace");
+        }
+
+        await apiCall("/api/workspace/claim-guest-data", "POST", parsedStash);
+        addToast("Your guest timesheet workspace has been claimed and synced to your cloud organization!", "success");
+        if (posthog) {
+          try {
+            posthog.capture("guest_claimed_conversion", {
+              hoursClaimed: parsedStash.totalHours || 0,
+              projectsClaimed: parsedStash.projects?.length || 0,
+            });
+          } catch (e) {}
+        }
+        forceSync();
+      } catch (err) {
+        console.error("Failed to claim guest data via API:", err);
+      }
+    }
+    checkAndClaimGuestData();
+  }, [isSignedIn, user, dbUser, isAuditMode]);
+
+  const handleOpenClaimModal = () => {
+    const stash = {
+      clients,
+      projects,
+      entries,
+      notes,
+      totalHours: totalGuestHours,
+    };
+    safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify(stash));
+    setIsClaimModalOpen(true);
+  };
+
+  const handleExportCsv = () => {
+    const header = ["Client", "Project", "Task", "Date", "Hours", "Note"].join(",");
+    const rows = [];
+    projects.forEach((p) => {
+      const clientName = p.client?.name || p.clientName || "Studio";
+      (p.tasks || []).forEach((t) => {
+        dates.forEach((d) => {
+          const uid = dbUser?.id || GUEST_USER_ID;
+          const hrs = entries[`${uid}_${d.id}_${t.id}`] || 0;
+          const note = notes[`${uid}_${d.id}_${t.id}`] || "";
+          if (hrs > 0) {
+            rows.push([
+              `"${clientName.replace(/"/g, '""')}"`,
+              `"${p.name.replace(/"/g, '""')}"`,
+              `"${t.name.replace(/"/g, '""')}"`,
+              `"${d.id}"`,
+              hrs,
+              `"${note.replace(/"/g, '""')}"`,
+            ].join(","));
+          }
+        });
+      });
+    });
+    const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `velotime_timesheet_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addToast("Timesheet CSV exported successfully", "success");
+  };
+
+  const handleClearGrid = () => {
+    setEntries({});
+    setNotes({});
+    if (isGuestMode) {
+      safeSetItem("localStorage", "velotime_guest_workspace", JSON.stringify({
+        clients,
+        projects,
+        entries: {},
+        notes: {},
+      }));
+    }
+    addToast("Timesheet grid cleared", "info");
+  };
+
   useEffect(() => {
     async function syncDatabase() {
       if (!isSignedIn || !user || !isOrgLoaded) return;
@@ -491,6 +652,12 @@ export default function App() {
   ]);
 
   const apiCall = async (endpoint, method, body, successMessage = "", options = {}) => {
+    if (isGuestMode) {
+      if (successMessage) {
+        addToast(successMessage, "success");
+      }
+      return {};
+    }
     const isWrite = ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
     if (isWrite) {
       setActiveSaves((prev) => prev + 1);
@@ -533,15 +700,25 @@ export default function App() {
       return;
     }
     const tempId = `temp_${Date.now()}`;
+    const clientObj = clients.find(c => c.id === clientId) || null;
     const tempProject = {
       id: tempId,
       name: projectName,
       clientId: clientId || null,
+      client: clientObj,
       isCollapsed: false,
-      tasks: [],
+      tasks: [
+        { id: `temp_t_${Date.now()}_a`, name: "Task A", isBillable: true },
+        { id: `temp_t_${Date.now()}_b`, name: "Task B", isBillable: true },
+        { id: `temp_t_${Date.now()}_c`, name: "Task C", isBillable: true },
+      ],
       createdAt: new Date().toISOString(),
     };
     setProjects((prev) => [...prev, tempProject]);
+    if (isGuestMode) {
+      addToast("Project created", "success");
+      return;
+    }
     try {
       const savedProject = await apiCall(
         "/api/projects",
@@ -558,6 +735,12 @@ export default function App() {
   };
 
   const handleAddClient = async (name, address) => {
+    if (isGuestMode) {
+      const newClient = { id: `guest_c_${Date.now()}`, name, address: address || "" };
+      setClients((prev) => [...prev, newClient]);
+      addToast("Client created", "success");
+      return newClient;
+    }
     try {
       const data = await apiCall("/api/clients", "POST", { name, address }, "Client created");
       setClients((prev) => [...prev, data]);
@@ -572,6 +755,19 @@ export default function App() {
     setClients((prev) =>
       prev.map((c) => (c.id === clientId ? { ...c, ...data } : c)),
     );
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.clientId === clientId) {
+          return {
+            ...p,
+            client: { ...(p.client || {}), ...data },
+            clientName: data.name || p.clientName,
+          };
+        }
+        return p;
+      }),
+    );
+    if (isGuestMode || clientId.startsWith("guest_") || clientId.startsWith("temp_")) return;
     try {
       const updated = await apiCall(`/api/clients/${clientId}`, "PUT", data, "Client updated");
       setClients((prev) =>
@@ -587,7 +783,7 @@ export default function App() {
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, name: newName } : p)),
     );
-    if (projectId.startsWith("temp_")) return;
+    if (isGuestMode || projectId.startsWith("temp_") || projectId.startsWith("guest_")) return;
     try {
       const savedProject = await apiCall(`/api/projects/${projectId}`, "PUT", {
         name: newName,
@@ -604,6 +800,7 @@ export default function App() {
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, ...data } : p)),
     );
+    if (isGuestMode || projectId.startsWith("temp_") || projectId.startsWith("guest_")) return;
     try {
       const updated = await apiCall(`/api/projects/${projectId}`, "PUT", data);
       setProjects((prev) =>
@@ -616,7 +813,7 @@ export default function App() {
 
   const handleDeleteProject = async (projectId) => {
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
-    if (projectId.startsWith("temp_")) return;
+    if (isGuestMode || projectId.startsWith("temp_") || projectId.startsWith("guest_")) return;
     try {
       await apiCall(`/api/projects/${projectId}`, "DELETE");
     } catch (e) {
@@ -629,7 +826,7 @@ export default function App() {
       addToast("Task name cannot be empty", "error");
       return;
     }
-    const tempId = `temp_${Date.now()}`;
+    const tempId = `guest_t_${Date.now()}`;
     const tempTask = { id: tempId, name: taskToAdd.name, isBillable: taskToAdd.isBillable ?? true };
     setProjects((prev) =>
       prev.map((p) => {
@@ -637,6 +834,10 @@ export default function App() {
         return p;
       }),
     );
+    if (isGuestMode) {
+      addToast("Task created", "success");
+      return;
+    }
     try {
       const savedTask = await apiCall(
         "/api/tasks",
@@ -673,6 +874,7 @@ export default function App() {
         return p;
       }),
     );
+    if (isGuestMode || taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
     try {
       await apiCall(`/api/tasks/${taskId}`, "DELETE");
     } catch (e) {
@@ -734,7 +936,7 @@ export default function App() {
       }),
     );
 
-    if (taskId.startsWith("temp_")) return;
+    if (isGuestMode || taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
 
     // 2. Fire the database update in the background
     try {
@@ -746,12 +948,12 @@ export default function App() {
 
   const handleCellChange = async (dateId, taskId, value, targetUserId) => {
     const numValue = parseFloat(value) || 0;
-    const uid = targetUserId || viewUserId || dbUser.id;
+    const uid = targetUserId || viewUserId || dbUser?.id || GUEST_USER_ID;
     setEntries((prev) => ({
       ...prev,
       [`${uid}_${dateId}_${taskId}`]: numValue,
     }));
-    if (taskId.startsWith("temp_")) return;
+    if (isGuestMode || taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
     try {
       await apiCall("/api/entries", "POST", {
         dateId,
@@ -780,9 +982,9 @@ export default function App() {
 
   // PUSH NOTES TO DATABASE
   const handleNoteChange = async (dateId, taskId, newNote, targetUserId) => {
-    const uid = targetUserId || viewUserId || dbUser.id;
+    const uid = targetUserId || viewUserId || dbUser?.id || GUEST_USER_ID;
     setNotes((prev) => ({ ...prev, [`${uid}_${dateId}_${taskId}`]: newNote }));
-    if (taskId.startsWith("temp_")) return;
+    if (isGuestMode || taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
     try {
       await apiCall("/api/notes", "POST", {
         dateId,
@@ -841,7 +1043,7 @@ export default function App() {
   return (
     <div
       className={`font-sans text-sm ${
-        !isSignedIn && !isAuditMode
+        showAuthScreen && !isSignedIn && !isAuditMode
           ? "min-h-screen min-h-[100dvh] h-auto overflow-y-auto"
           : "h-screen overflow-hidden"
       } flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100`}
@@ -853,60 +1055,61 @@ export default function App() {
  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
  `}</style>
 
-      {!isAuditMode && (
-        <SignedOut>
-          <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
-            <AuthScreen />
-          </div>
-        </SignedOut>
-      )}
-
-      {(isAuditMode || isSignedIn) && (
-        lockout === "seat_limit_reached" && !isAuditMode ? (
-          <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
-            <div className="max-w-md w-full bg-white dark:bg-zinc-900 p-8 border border-red-200 ">
-              <div className="w-16 h-16 mx-auto mb-6 bg-red-100 flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-red-600 "
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">
-                Seat Limit Reached
-              </h2>
-              <p className="text-slate-600 dark:text-slate-400 dark:text-slate-600 mb-8 leading-relaxed text-sm">
-                The organization you are trying to join has reached its maximum
-                seat limit for the demo tier. An administrator must upgrade the
-                workspace to Pro to allow more members.
+      {showAuthScreen && !isSignedIn && !isAuditMode ? (
+        <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
+          <AuthScreen onBackToGuest={() => setShowAuthScreen(false)} />
+        </div>
+      ) : lockout === "seat_limit_reached" && !isAuditMode && !isGuestMode ? (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
+          <div className="max-w-md w-full bg-white dark:bg-zinc-900 p-8 border border-red-200 ">
+            <div className="w-16 h-16 mx-auto mb-6 bg-red-100 flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-red-600 "
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2">
+              Seat Limit Reached
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 dark:text-slate-600 mb-8 leading-relaxed text-sm">
+              The organization you are trying to join has reached its maximum
+              seat limit for the demo tier. An administrator must upgrade the
+              workspace to Pro to allow more members.
+            </p>
+            <div className="space-y-3">
+              <UserButton afterSignOutUrl="/" />
+              <p className="text-xs text-slate-500 dark:text-slate-500 ">
+                Sign out or switch accounts
               </p>
-              <div className="space-y-3">
-                <UserButton afterSignOutUrl="/" />
-                <p className="text-xs text-slate-500 dark:text-slate-500 ">
-                  Sign out or switch accounts
-                </p>
-              </div>
             </div>
           </div>
-        ) : (
-          <>
-            <WorkspaceOnboardingModal
-              isOpen={shouldShowOnboarding}
-              onClose={() => setDismissedOnboarding(true)}
-              user={user}
-              apiCall={apiCall}
-              forceSync={forceSync}
-              setActiveTab={setActiveTab}
-            />
-            <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
+        </div>
+      ) : (
+        <>
+          {isGuestMode && (
+            <>
+              <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" />
+              <GuestBenchmarkBar totalHours={totalGuestHours} onClaimWorkspace={handleOpenClaimModal} />
+            </>
+          )}
+          <WorkspaceOnboardingModal
+            isOpen={shouldShowOnboarding}
+            onClose={() => setDismissedOnboarding(true)}
+            user={user}
+            apiCall={apiCall}
+            forceSync={forceSync}
+            setActiveTab={setActiveTab}
+          />
+          <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
               <div className="flex items-center w-full lg:w-64 shrink-0">
                 <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2">
                   <svg
@@ -1018,18 +1221,48 @@ export default function App() {
                     </svg>
                   )}
                 </button>
-                <div className="text-right hidden sm:block">
-                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {user?.fullName || "Welcome"}
+                {isGuestMode ? (
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Guest Sandbox</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleOpenClaimModal}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                      <span className="hidden sm:inline">Save & Claim</span>
+                      <span className="sm:hidden">Save</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthScreen(true)}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <LogIn className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                      <span>Sign In</span>
+                    </button>
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-500">
-                    {dbUser?.role
-                      ? dbUser.role.charAt(0).toUpperCase() +
-                        dbUser.role.slice(1)
-                      : "Employee"}
-                  </div>
-                </div>
-                <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <>
+                    <div className="text-right hidden sm:block">
+                      <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {user?.fullName || "Welcome"}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-500">
+                        {dbUser?.role
+                          ? dbUser.role.charAt(0).toUpperCase() +
+                            dbUser.role.slice(1)
+                          : "Employee"}
+                      </div>
+                    </div>
+                    <UserButton afterSignOutUrl="/" />
+                  </>
+                )}
 
                 {/* Hamburger Button for Mobile */}
                 <button
@@ -1096,6 +1329,11 @@ export default function App() {
                 </div>
               ) : activeTab === "Timesheets" ? (
                 <>
+                  {isGuestMode && (
+                    <div className="shrink-0 mb-3 -mt-4">
+                      <GuestKpiRibbon totalHours={totalGuestHours} />
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-4">
                     <div className="flex items-center justify-between gap-6">
                       <div className="flex items-center gap-4 flex-wrap">
@@ -1367,9 +1605,12 @@ export default function App() {
                             onRemoveTask={handleRemoveTask}
                             onEditTask={handleEditTask}
                             onAddProject={handleAddProject}
+                            onRenameProject={handleRenameProject}
+                            onUpdateClient={handleUpdateClient}
                             onToggleCollapse={handleToggleCollapse}
                             searchQuery={searchQuery}
                             onReorderProject={handleReorderProject}
+                            onClearGrid={handleClearGrid}
                           />
                         </div>
                       </TrialLockoutOverlay>
@@ -1486,7 +1727,25 @@ export default function App() {
             {/* Onboarding Tour paused pending review */}
           </>
         )
-      )}
+      }
+
+      <ClaimWorkspaceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        totalHours={totalGuestHours}
+        projectsCount={projects.length}
+        clientsCount={clients.length}
+        onExportCsv={handleExportCsv}
+        onInitiateSignUp={() => {
+          safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
+            clients,
+            projects,
+            entries,
+            notes,
+            totalHours: totalGuestHours,
+          }));
+        }}
+      />
     </div>
   );
 }

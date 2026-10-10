@@ -147,7 +147,7 @@ const safeGetItem = (storage, key, fallback = null) => {
   return fallback;
 };
 
-export default function AuthScreen() {
+export default function AuthScreen({ onBackToGuest }) {
   const posthog = usePostHog();
   const lastCapturedModeRef = useRef(null);
 
@@ -470,13 +470,24 @@ export default function AuthScreen() {
         {/* Trust & Back Links */}
         <div className="mt-4 sm:mt-6 pb-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-zinc-400 font-medium flex-wrap">
-            <a
-              href={demoUrl}
-              className="hover:text-rose-400 transition-colors underline flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
-              <span>Back to Interactive Sandbox Demo</span>
-            </a>
+            {onBackToGuest ? (
+              <button
+                type="button"
+                onClick={onBackToGuest}
+                className="hover:text-rose-400 transition-colors underline flex items-center gap-1 cursor-pointer bg-transparent border-none text-[11px] sm:text-xs text-zinc-400 font-medium"
+              >
+                <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
+                <span>Back to Interactive Sandbox</span>
+              </button>
+            ) : (
+              <a
+                href={demoUrl}
+                className="hover:text-rose-400 transition-colors underline flex items-center gap-1"
+              >
+                <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
+                <span>Back to Interactive Sandbox Demo</span>
+              </a>
+            )}
             <span>•</span>
             <a
               href="/privacy"
