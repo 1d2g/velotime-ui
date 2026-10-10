@@ -302,3 +302,280 @@ export const MINI_POSTHOG_METRICS = {
     { event: "true_signup_conversion", count: 1 }
   ]
 };
+
+export const REPEAT_VISITORS_DATA = {
+  scorecard: {
+    repeatRate: "24.6%",
+    totalTrackedPersons: 184,
+    repeatVisitorsCount: 45,
+    avgDaysToReturn: "2.8d",
+    repeatConversionRate: "14.2%",
+    firstTimeConversionRate: "3.1%",
+    conversionLift: "4.5x",
+    avgDwellRepeat: "184s",
+    avgDwellSingle: "38s"
+  },
+  cohortDistribution: [
+    { visits: "1 Visit", pct: "75.4%", count: 139, label: "Initial Discovery Stage" },
+    { visits: "2 Visits", pct: "14.8%", count: 27, label: "Comparison & Evaluation" },
+    { visits: "3-5 Visits", pct: "6.9%", count: 13, label: "High-Intent Consideration" },
+    { visits: "6+ Visits", pct: "2.9%", count: 5, label: "Power Users / Trial Prospects" }
+  ],
+  profiles: [
+    {
+      id: "01a0f48c-b621-751d-a2b5-971f5ccdb16a",
+      alias: "Prospect #4812 (Florida Agency)",
+      location: "Kissimmee, FL, United States",
+      device: "Desktop (Mac Chrome)",
+      primarySource: "Google Ads (Campaign 24309795540)",
+      totalSessions: 3,
+      pageviews: 9,
+      clicks: 11,
+      activeDays: 2,
+      spanHours: "6.8h",
+      firstSeen: "Sep 30, 2026 19:00 EDT",
+      lastSeen: "Oct 1, 2026 01:47 EDT",
+      status: "High-Intent Prospect",
+      pathsVisited: ["/compare/harvest", "/demo", "/pricing", "/tools", "/", "/integrations"],
+      evolutionSummary: "Transitioned from reading competitor comparison to deep testing of keyboard grid in demo, concluding with pricing review.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Sep 30, 2026 • 19:00 EDT",
+          entryUrl: "/compare/harvest",
+          dwell: "68s",
+          clicks: 2,
+          notes: "Discovered via Google Ads ('harvest alternative'). Read pricing breakdown table ($5/user vs $14/user). Left without opening demo."
+        },
+        {
+          sessionNumber: 2,
+          date: "Sep 30, 2026 • 21:15 EDT",
+          entryUrl: "/demo",
+          dwell: "185s",
+          clicks: 6,
+          notes: "Returned 2 hours later via direct URL to /demo. Tested arrow-key navigation across 4 timesheet cells, entered sample hours."
+        },
+        {
+          sessionNumber: 3,
+          date: "Oct 1, 2026 • 01:47 EDT",
+          entryUrl: "/pricing",
+          dwell: "154s",
+          clicks: 3,
+          notes: "Returned past midnight. Checked team seat tiers on /pricing and read integration docs. Clicked 'Start 14-Day Free Trial' CTA."
+        }
+      ]
+    },
+    {
+      id: "user_3GxuhW1BSU6eytxkmIdLARZkc3x",
+      alias: "Founder #2019 (NY Design Studio)",
+      location: "New York, NY, United States",
+      device: "Desktop (Windows Chrome)",
+      primarySource: "Direct Web / Word of Mouth",
+      totalSessions: 10,
+      pageviews: 17,
+      clicks: 9,
+      activeDays: 5,
+      spanHours: "82.6h (3.5 days)",
+      firstSeen: "Sep 27, 2026 22:17 EDT",
+      lastSeen: "Oct 1, 2026 08:54 EDT",
+      status: "Converted / Active Account",
+      pathsVisited: ["/", "/demo", "/pricing", "/compare/harvest"],
+      evolutionSummary: "Evaluated product across 5 separate calendar days before creating organization and inviting team members.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Sep 27, 2026 • 22:17 EDT",
+          entryUrl: "/",
+          dwell: "42s",
+          clicks: 1,
+          notes: "Initial exploration of homepage hero grid. Viewed '15-second weekly timesheet' messaging."
+        },
+        {
+          sessionNumber: 2,
+          date: "Sep 28, 2026 • 11:30 EDT",
+          entryUrl: "/demo",
+          dwell: "240s",
+          clicks: 5,
+          notes: "Deep demo test during agency business hours. Validated keyboard speed and project/task switching."
+        },
+        {
+          sessionNumber: 5,
+          date: "Sep 29, 2026 • 16:40 EDT",
+          entryUrl: "/pricing",
+          dwell: "90s",
+          clicks: 2,
+          notes: "Checked pricing for a 12-person team ($60/mo vs Harvest $168/mo)."
+        },
+        {
+          sessionNumber: 10,
+          date: "Oct 1, 2026 • 08:54 EDT",
+          entryUrl: "https://app.velotime.dg.tools",
+          dwell: "420s",
+          clicks: 8,
+          notes: "Full account creation via Clerk. Initialized organization workspace and added first client project."
+        }
+      ]
+    },
+    {
+      id: "01a0f7e5-21a3-765b-a383-ab425fdb5f7a",
+      alias: "Agency Lead #7731 (Melbourne)",
+      location: "Melbourne, Victoria, Australia",
+      device: "Desktop (Mac Safari)",
+      primarySource: "Email Outreach (Signature Link)",
+      totalSessions: 3,
+      pageviews: 3,
+      clicks: 10,
+      activeDays: 1,
+      spanHours: "15 mins",
+      firstSeen: "Oct 1, 2026 10:36 EDT",
+      lastSeen: "Oct 1, 2026 10:37 EDT",
+      status: "Evaluating Sandbox",
+      pathsVisited: ["/demo", "/"],
+      evolutionSummary: "Direct recipient of automated cold email; clicked signature link and thoroughly tested demo grid.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Oct 1, 2026 • 10:36 EDT",
+          entryUrl: "/demo",
+          dwell: "45s",
+          clicks: 4,
+          notes: "Arrived from outreach email campaign 'defbgvif_fghevbf'. Landed straight in interactive matrix sandbox."
+        },
+        {
+          sessionNumber: 2,
+          date: "Oct 1, 2026 • 10:37 EDT",
+          entryUrl: "/",
+          dwell: "55s",
+          clicks: 6,
+          notes: "Navigated to root homepage to read product features and invoice generation specs."
+        }
+      ]
+    },
+    {
+      id: "user_3H0RLB9dfGhCRMdfQpFyikI9QUa",
+      alias: "Visitor #1140 (Brooklyn Studio)",
+      location: "Brooklyn, NY, United States",
+      device: "Desktop (Mac Chrome)",
+      primarySource: "Campaign 'anti_stopwatch' (Reddit / Direct)",
+      totalSessions: 10,
+      pageviews: 18,
+      clicks: 0,
+      activeDays: 5,
+      spanHours: "84.1h",
+      firstSeen: "Sep 27, 2026 12:02 EDT",
+      lastSeen: "Oct 1, 2026 00:09 EDT",
+      status: "Chronic Reader (0 Clicks)",
+      pathsVisited: ["/", "/demo"],
+      evolutionSummary: "Visited 10 times across 5 days, reads copy intently for 40-70 seconds per visit, but exhibits zero click events.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Sep 27, 2026 • 12:02 EDT",
+          entryUrl: "/?source=anti_stopwatch",
+          dwell: "65s",
+          clicks: 0,
+          notes: "Arrived from Reddit discussion on timesheet hate. Read full page copy, paused on pricing section."
+        },
+        {
+          sessionNumber: 4,
+          date: "Sep 29, 2026 • 18:20 EDT",
+          entryUrl: "/demo",
+          dwell: "72s",
+          clicks: 0,
+          notes: "Returned to demo URL. Read instructions but did not click or type in matrix."
+        },
+        {
+          sessionNumber: 10,
+          date: "Oct 1, 2026 • 00:09 EDT",
+          entryUrl: "/",
+          dwell: "58s",
+          clicks: 0,
+          notes: "Latest return visit. Dwell suggests reading or comparing side-by-side with another tool."
+        }
+      ]
+    },
+    {
+      id: "01a0eb83-9708-7aee-afc4-c5080de5f278",
+      alias: "Visitor #8821 (California)",
+      location: "Hayward, CA, United States",
+      device: "Desktop (Windows Chrome)",
+      primarySource: "Direct Web",
+      totalSessions: 3,
+      pageviews: 3,
+      clicks: 2,
+      activeDays: 1,
+      spanHours: "16.2h",
+      firstSeen: "Sep 29, 2026 00:54 EDT",
+      lastSeen: "Sep 29, 2026 17:07 EDT",
+      status: "Demo Sandbox Evaluator",
+      pathsVisited: ["/demo"],
+      evolutionSummary: "Returned three times directly to /demo throughout the day to test timesheet spreadsheet interactions.",
+      journey: [
+        {
+          sessionNumber: 1,
+          date: "Sep 29, 2026 • 00:54 EDT",
+          entryUrl: "/demo",
+          dwell: "38s",
+          clicks: 1,
+          notes: "First entry to sandbox demo."
+        },
+        {
+          sessionNumber: 2,
+          date: "Sep 29, 2026 • 09:30 EDT",
+          entryUrl: "/demo",
+          dwell: "95s",
+          clicks: 1,
+          notes: "Returned morning of next day to test cell input."
+        },
+        {
+          sessionNumber: 3,
+          date: "Sep 29, 2026 • 17:07 EDT",
+          entryUrl: "/demo",
+          dwell: "44s",
+          clicks: 0,
+          notes: "Quick evening check before closing browser."
+        }
+      ]
+    }
+  ],
+  dropoffBottlenecks: [
+    {
+      id: "demo_activation_gap",
+      title: "Interactive Demo to Trial Sign-up Gap",
+      severity: "High",
+      affectedPercentage: "41% of 2+ Visit Users",
+      description: "Returning users spend an average of 185s typing into the /demo matrix, but leave without starting a trial because they don't see how their entries persist or how to invite team members.",
+      recommendedAction: "Add an in-grid prompt banner: 'Like the speed? Save this timesheet & invite your team in 15 seconds (14-Day Free Trial, No Credit Card)'."
+    },
+    {
+      id: "comparison_pricing_hesitation",
+      title: "Multi-Touch Harvest Comparison Hesitation",
+      severity: "Medium",
+      affectedPercentage: "28% of 2+ Visit Users",
+      description: "Prospects landing on /compare/harvest return 2.8 days later to re-verify pricing. They hesitate because they want confirmation that VeloTime exports to CSV/Excel and QuickBooks.",
+      recommendedAction: "Highlight '1-Click QuickBooks & CSV Export Included' directly in the sticky comparison bar above the fold."
+    }
+  ],
+  hogqlQuery: `SELECT
+  distinct_id,
+  count(distinct properties.$session_id) as session_count,
+  countIf(event = '$pageview') as pageviews,
+  countIf(event = '$autocapture') as clicks,
+  min(timestamp) as first_seen,
+  max(timestamp) as last_seen,
+  dateDiff('minute', min(timestamp), max(timestamp)) as span_minutes,
+  count(distinct toDate(timestamp)) as days_active,
+  any(properties.$geoip_city_name) as city,
+  any(properties.$geoip_country_name) as country,
+  any(properties.$device_type) as device,
+  any(coalesce(properties.utm_source, properties.$referring_domain, '$direct')) as source,
+  any(properties.utm_campaign) as campaign,
+  groupArray(distinct properties.$pathname) as paths
+FROM events
+WHERE timestamp >= now() - INTERVAL 14 DAY
+  AND distinct_id NOT LIKE '%internal%'
+GROUP BY distinct_id
+HAVING session_count >= 2 OR days_active >= 2
+ORDER BY session_count DESC, clicks DESC
+LIMIT 50;`
+};

@@ -9,10 +9,12 @@ import {
   Sun,
   Moon,
   Clock, 
-  Radio
+  Radio,
+  Users
 } from "lucide-react";
 import ScriptsConsole from "./ScriptsConsole";
 import PostHogAudits from "./PostHogAudits";
+import UserEvolution from "./UserEvolution";
 import GscTelemetry from "./GscTelemetry";
 import MiniPostHogDashboard from "./MiniPostHogDashboard";
 
@@ -75,6 +77,7 @@ export default function ControlDashboard() {
   const tabs = [
     { id: "scripts", label: "Scripts & Outreach", icon: Terminal, count: "11 Scripts" },
     { id: "posthog_audits", label: "PostHog Audits & AI", icon: Eye, count: "UX Audits" },
+    { id: "user_evolution", label: "User Evolution & Retention", icon: Users, count: "Repeat Cohorts" },
     { id: "gsc", label: "Search Console (GSC)", icon: Search, count: "Organic Telemetry" },
     { id: "posthog_mini", label: "PostHog Mini Dashboard", icon: Activity, count: "Live Stream" },
   ];
@@ -194,6 +197,7 @@ export default function ControlDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
         {activeTab === "scripts" && <ScriptsConsole />}
         {activeTab === "posthog_audits" && <PostHogAudits />}
+        {activeTab === "user_evolution" && <UserEvolution />}
         {activeTab === "gsc" && <GscTelemetry />}
         {activeTab === "posthog_mini" && <MiniPostHogDashboard />}
       </main>
