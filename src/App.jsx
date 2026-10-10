@@ -944,6 +944,18 @@ export default function App() {
                 </nav>
               </div>
               <div className="flex items-center justify-end w-auto lg:w-64 gap-3 sm:gap-4 shrink-0">
+                {/* Mission Control Shortcut for Founder */}
+                {user?.primaryEmailAddress?.emailAddress?.toLowerCase() === "4thgencorei7@gmail.com" && (
+                  <a
+                    href="/control"
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono font-bold tracking-wider rounded border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                    title="Open VeloTime Mission Control"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    <span>CONTROL</span>
+                  </a>
+                )}
+
                 {/* Developer Mode Console Badge */}
                 <DevModeBadge
                   isAuthorizedDev={isAuthorizedDev}

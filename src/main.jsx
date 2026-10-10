@@ -10,6 +10,7 @@ import { PostHogProvider } from "posthog-js/react";
 
 import LegalPages from "./components/LegalPages.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import ControlPortal from "./control/ControlPortal.jsx";
 
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_xrWAkajTPLpTYFqgkS6L28qrLcgHnBjuRqz6YFN4UXCA";
 const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -37,6 +38,7 @@ if (!PUBLISHABLE_KEY) {
 }
 
 const path = window.location.pathname;
+const isControlPage = path === "/control" || path.startsWith("/control");
 const isPublicPage = [
   "/privacy",
   "/contact",
@@ -64,7 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         >
           <PostHogProvider client={posthog}>
             <ToastProvider>
-              <App />
+              {isControlPage ? <ControlPortal /> : <App />}
             </ToastProvider>
           </PostHogProvider>
         </ClerkProvider>

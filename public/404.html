@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VeloTime Web App | Workspace &amp; Login</title>
+    <meta name="description" content="Sign in to your VeloTime workspace. Log weekly timesheets with keyboard shortcuts, track project hours, and manage team billing." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://app.velotime.dg.tools/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VeloTime" />
+    <meta property="og:title" content="VeloTime Web App | Workspace &amp; Login" />
+    <meta property="og:description" content="Sign in to your VeloTime workspace. Log weekly timesheets with keyboard shortcuts, track project hours, and manage team billing." />
+    <meta property="og:url" content="https://app.velotime.dg.tools/" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18479452942"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-18479452942');
+    </script>
+
+    <!-- Universal Resilience Shield (Defensive ICU & Storage Polyfills) -->
+    <script>
+      (function() {
+        try {
+          // 1. Guard Number.prototype.toLocaleString against corrupt OS locales
+          if (typeof Number !== 'undefined' && Number.prototype.toLocaleString) {
+            var origNumLocale = Number.prototype.toLocaleString;
+            Number.prototype.toLocaleString = function(locales, options) {
+              try {
+                return origNumLocale.call(this, locales || 'en-US', options);
+              } catch (err) {
+                var parts = String(this).split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return parts.join('.');
+              }
+            };
+          }
+
+          // 2. Guard Date formatting against corrupt OS locales
+          if (typeof Date !== 'undefined') {
+            if (Date.prototype.toLocaleDateString) {
+              var origDateLocale = Date.prototype.toLocaleDateString;
+              Date.prototype.toLocaleDateString = function(locales, options) {
+                try {
+                  return origDateLocale.call(this, locales || 'en-US', options);
+                } catch (err) {
+                  return this.toDateString ? this.toDateString() : '';
+                }
+              };
+            }
+            if (Date.prototype.toLocaleTimeString) {
+              var origTimeLocale = Date.prototype.toLocaleTimeString;
+              Date.prototype.toLocaleTimeString = function(locales, options) {
+                try {
+                  return origTimeLocale.call(this, locales || 'en-US', options);
+                } catch (err) {
+                  return this.toTimeString ? this.toTimeString().split(' ')[0] : '';
+                }
+              };
+            }
+          }
+
+          // 3. Guard Intl.NumberFormat and Intl.DateTimeFormat
+          if (typeof Intl !== 'undefined') {
+            if (Intl.NumberFormat) {
+              var OrigNumberFormat = Intl.NumberFormat;
+              Intl.NumberFormat = function(locales, options) {
+                try {
+                  return new OrigNumberFormat(locales || 'en-US', options);
+                } catch (err) {
+                  return {
+                    format: function(n) {
+                      var isCurrency = options && options.style === 'currency';
+                      var parts = String(Math.round(Number(n) || 0)).split('.');
+                      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                      return (isCurrency ? '$' : '') + parts.join('.');
+                    }
+                  };
+                }
+              };
+              Intl.NumberFormat.prototype = OrigNumberFormat.prototype;
+              if (OrigNumberFormat.supportedLocalesOf) {
+                Intl.NumberFormat.supportedLocalesOf = OrigNumberFormat.supportedLocalesOf;
+              }
+            }
+            if (Intl.DateTimeFormat) {
+              var OrigDateTimeFormat = Intl.DateTimeFormat;
+              Intl.DateTimeFormat = function(locales, options) {
+                try {
+                  return new OrigDateTimeFormat(locales || 'en-US', options);
+                } catch (err) {
+                  return {
+                    format: function(d) {
+                      return d instanceof Date ? d.toDateString() : String(d);
+                    }
+                  };
+                }
+              };
+              Intl.DateTimeFormat.prototype = OrigDateTimeFormat.prototype;
+              if (OrigDateTimeFormat.supportedLocalesOf) {
+                Intl.DateTimeFormat.supportedLocalesOf = OrigDateTimeFormat.supportedLocalesOf;
+              }
+            }
+          }
+
+          // 4. In-memory fallback if localStorage is blocked by browser privacy/iframe
+          try {
+            var k = '__vt_probe__';
+            window.localStorage.setItem(k, '1');
+            window.localStorage.removeItem(k);
+          } catch (e) {
+            var createStorage = function() {
+              var store = {};
+              return {
+                getItem: function(k) { return store.hasOwnProperty(k) ? store[k] : null; },
+                setItem: function(k, v) { store[k] = String(v); },
+                removeItem: function(k) { delete store[k]; },
+                clear: function() { store = {}; },
+                key: function(i) { return Object.keys(store)[i] || null; },
+                get length() { return Object.keys(store).length; }
+              };
+            };
+            try {
+              Object.defineProperty(window, 'localStorage', { value: createStorage(), configurable: true });
+            } catch (err) {}
+          }
+
+          // 5. In-memory fallback if sessionStorage is blocked
+          try {
+            var s = '__vt_probe__';
+            window.sessionStorage.setItem(s, '1');
+            window.sessionStorage.removeItem(s);
+          } catch (e) {
+            var createSessStorage = function() {
+              var store = {};
+              return {
+                getItem: function(k) { return store.hasOwnProperty(k) ? store[k] : null; },
+                setItem: function(k, v) { store[k] = String(v); },
+                removeItem: function(k) { delete store[k]; },
+                clear: function() { store = {}; },
+                key: function(i) { return Object.keys(store)[i] || null; },
+                get length() { return Object.keys(store).length; }
+              };
+            };
+            try {
+              Object.defineProperty(window, 'sessionStorage', { value: createSessStorage(), configurable: true });
+            } catch (err) {}
+          }
+        } catch (globalErr) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
