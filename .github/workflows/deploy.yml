@@ -32,6 +32,8 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: pk_live_Y2xlcmsudmVsb3RpbWUuZGcudG9vbHMk
           VITE_API_URL: https://time-production-b6d9.up.railway.app
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_GITHUB_TOKEN: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4

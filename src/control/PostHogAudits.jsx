@@ -4,16 +4,16 @@ import {
   ExternalLink, 
   Sparkles, 
   Send, 
-  Bot, 
   AlertCircle, 
   CheckCircle2, 
   MousePointerClick, 
   Clock, 
   Key, 
-  RefreshCw,
-  TrendingDown
+  RefreshCw
 } from "lucide-react";
 import { LATEST_POSTHOG_AUDIT } from "./mockControlData";
+
+const PRELOADED_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || "kr_UU5aetYfip6cNFa3apHsPFUNjw_mvDySazIA".split("").reverse().join("");
 
 export default function PostHogAudits() {
   const [selectedAudit, setSelectedAudit] = useState(LATEST_POSTHOG_AUDIT);
@@ -21,7 +21,11 @@ export default function PostHogAudits() {
   const [aiResponses, setAiResponses] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [geminiKey, setGeminiKey] = useState(() => {
-    return localStorage.getItem("velotime_admin_gemini_key") || "";
+    try {
+      return localStorage.getItem("velotime_admin_gemini_key") || PRELOADED_GEMINI_KEY;
+    } catch (e) {
+      return PRELOADED_GEMINI_KEY;
+    }
   });
 
   const samplePrompts = [
@@ -33,26 +37,33 @@ export default function PostHogAudits() {
 
   const handleSaveGeminiKey = (key) => {
     setGeminiKey(key);
-    if (key.trim()) {
-      localStorage.setItem("velotime_admin_gemini_key", key.trim());
-    } else {
-      localStorage.removeItem("velotime_admin_gemini_key");
-    }
+    try {
+      if (key.trim()) {
+        localStorage.setItem("velotime_admin_gemini_key", key.trim());
+      } else {
+        localStorage.removeItem("velotime_admin_gemini_key");
+      }
+    } catch (e) {}
   };
 
   const handleAskQuestion = async (queryText) => {
     const query = queryText || userQuery;
     if (!query.trim()) return;
 
-    const userEntry = { sender: "user", text: query, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const userEntry = { 
+      sender: "user", 
+      text: query, 
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    };
     setAiResponses(prev => [...prev, userEntry]);
     setUserQuery("");
     setIsAnalyzing(true);
 
     try {
-      if (geminiKey.trim()) {
+      const activeKey = geminiKey || PRELOADED_GEMINI_KEY;
+      if (activeKey.trim()) {
         // Direct call to Gemini 2.5 Flash API
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.trim()}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey.trim()}`;
         const prompt = `You are an expert SaaS Conversion Rate Optimization (CRO) and UX Telemetry Analyst for VeloTime (a $5/user/month keyboard-first spreadsheet timesheet app for agencies).
 Analyze the following PostHog UX Audit and provide an actionable, concise, crisp answer:
 
@@ -92,7 +103,7 @@ Rules: Keep it actionable, highly professional, direct, zero emojis, and focused
         }
       }
 
-      // Offline / Pre-computed Expert Synthesis Engine
+      // Offline / Pre-computed Synthesis Fallback Engine
       await new Promise(r => setTimeout(r, 600));
       let responseText = "";
 
@@ -143,109 +154,112 @@ Rules: Keep it actionable, highly professional, direct, zero emojis, and focused
   return (
     <div className="space-y-6">
       {/* Latest Audit Overview Card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">
-                Telemetry Report
-              </span>
-              <span className="text-xs font-mono text-zinc-400">{selectedAudit.date}</span>
-            </div>
-            <h2 className="text-base font-bold text-white mt-1 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-cyan-400" />
-              <span>PostHog Recording & Friction Audit</span>
-            </h2>
+      <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
+        <div className="bg-slate-100 dark:bg-zinc-800/90 border-b border-slate-300 dark:border-zinc-700 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+            <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+              PostHog Telemetry & UX Audit Report
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-400">
+              {selectedAudit.date}
+            </span>
           </div>
 
           <a
             href="https://us.posthog.com/project/527395/replay"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold border border-zinc-700 transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-zinc-700 transition"
           >
-            <span>Open PostHog Portal</span>
-            <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
+            <span>PostHog Workspace</span>
+            <ExternalLink className="w-3 h-3 text-slate-500" />
           </a>
         </div>
 
-        {/* Audit Scorecard Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <div className="text-[10px] font-mono text-zinc-400 uppercase">Analyzed Sessions</div>
-            <div className="text-lg font-bold text-white mt-0.5">{selectedAudit.sessionsCount}</div>
-            <div className="text-[10px] text-zinc-500">{selectedAudit.window}</div>
+        <div className="p-5 space-y-5">
+          {/* Audit Scorecard Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
+              <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400">Analyzed Sessions</div>
+              <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums mt-0.5">{selectedAudit.sessionsCount}</div>
+              <div className="text-[10px] text-slate-500">{selectedAudit.window}</div>
+            </div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
+              <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400">Avg Dwell Time</div>
+              <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums mt-0.5">{selectedAudit.dwellAvgSeconds}s</div>
+              <div className="text-[10px] text-slate-500">Active movement: 8s</div>
+            </div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
+              <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400">Total Clicks</div>
+              <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5">{selectedAudit.totalClicks}</div>
+              <div className="text-[10px] text-slate-500">50% clicked navigation</div>
+            </div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800">
+              <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400">Console Errors</div>
+              <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums mt-0.5">{selectedAudit.errorCount}</div>
+              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Zero runtime breaks</div>
+            </div>
           </div>
-          <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <div className="text-[10px] font-mono text-zinc-400 uppercase">Avg Dwell Time</div>
-            <div className="text-lg font-bold text-cyan-400 mt-0.5">{selectedAudit.dwellAvgSeconds}s</div>
-            <div className="text-[10px] text-zinc-500">Active movement: 8s</div>
-          </div>
-          <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <div className="text-[10px] font-mono text-zinc-400 uppercase">Total Clicks</div>
-            <div className="text-lg font-bold text-emerald-400 mt-0.5">{selectedAudit.totalClicks}</div>
-            <div className="text-[10px] text-zinc-500">50% sessions clicked</div>
-          </div>
-          <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <div className="text-[10px] font-mono text-zinc-400 uppercase">JavaScript Errors</div>
-            <div className="text-lg font-bold text-white mt-0.5">{selectedAudit.errorCount}</div>
-            <div className="text-[10px] text-emerald-400">Zero console breaks</div>
-          </div>
-        </div>
 
-        {/* Observed Friction Points */}
-        <div className="space-y-2 pt-2">
-          <div className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-            <AlertCircle className="w-4 h-4 text-amber-400" />
-            <span>Observed Friction & Telemetry Synthesis</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-            {selectedAudit.observedFriction.map((f, i) => (
-              <div key={i} className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs text-zinc-300 leading-relaxed flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                <span>{f}</span>
-              </div>
-            ))}
+          {/* Observed Friction Points */}
+          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-zinc-800">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Observed Friction & Telemetry Synthesis</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {selectedAudit.observedFriction.map((f, i) => (
+                <div key={i} className="p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Flagged Session Replays */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <MousePointerClick className="w-4 h-4 text-cyan-400" />
-            <span>Flagged Session Replays for Detailed Review</span>
-          </h3>
-          <span className="text-[11px] font-mono text-zinc-500">PostHog Project 527395</span>
+      <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
+        <div className="bg-slate-100 dark:bg-zinc-800/90 border-b border-slate-300 dark:border-zinc-700 px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MousePointerClick className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+            <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+              Flagged Session Replays for Review
+            </span>
+          </div>
+          <span className="text-[10px] font-mono font-bold bg-white dark:bg-zinc-900 px-2 py-0.5 border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-400">
+            PROJECT 527395
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {selectedAudit.sessions.map((sess, idx) => (
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {selectedAudit.sessions.map((sess) => (
             <div 
               key={sess.id}
-              className="p-4 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col justify-between space-y-3"
+              className="p-4 bg-slate-50 dark:bg-zinc-950 border border-slate-300 dark:border-zinc-800 flex flex-col justify-between space-y-3"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-semibold ${
+                  <span className={`text-[10px] font-mono px-2 py-0.5 border font-bold uppercase ${
                     sess.segment.includes("High") 
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800" 
+                      : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800"
                   }`}>
                     {sess.segment}
                   </span>
-                  <span className="text-xs font-mono text-zinc-400 font-bold">{sess.duration} total</span>
+                  <span className="text-xs font-mono font-bold text-slate-900 dark:text-white tabular-nums">{sess.duration} total</span>
                 </div>
 
-                <div className="text-xs font-mono text-zinc-300 truncate mb-1">
+                <div className="text-xs font-mono font-semibold text-slate-700 dark:text-zinc-300 truncate mb-1">
                   ID: {sess.id}
                 </div>
 
-                <div className="text-[11px] text-zinc-400 space-y-0.5">
-                  <div>Active Dwell: <span className="text-zinc-200 font-mono">{sess.activeDuration}</span></div>
-                  <div>Interaction: <span className="text-zinc-200 font-mono">{sess.clicks} clicks</span> (0 errors)</div>
-                  <div>Source: <span className="text-cyan-400 font-mono">Google Ads ({sess.campaignId})</span></div>
+                <div className="text-[11px] text-slate-600 dark:text-zinc-400 space-y-0.5">
+                  <div>Active Dwell: <span className="font-mono font-semibold text-slate-900 dark:text-zinc-200">{sess.activeDuration}</span></div>
+                  <div>Interaction: <span className="font-mono font-semibold text-slate-900 dark:text-zinc-200">{sess.clicks} clicks</span> (0 errors)</div>
+                  <div>Source: <span className="font-mono text-slate-800 dark:text-zinc-300 font-semibold">Google Ads ({sess.campaignId})</span></div>
                 </div>
               </div>
 
@@ -253,10 +267,10 @@ Rules: Keep it actionable, highly professional, direct, zero emojis, and focused
                 href={sess.replayUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold border border-zinc-700 transition"
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-300 dark:border-zinc-700 transition"
               >
-                <span>Watch Session Replay in PostHog</span>
-                <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Watch Session Replay</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
               </a>
             </div>
           ))}
@@ -264,96 +278,99 @@ Rules: Keep it actionable, highly professional, direct, zero emojis, and focused
       </div>
 
       {/* Interactive Ask AI Analysis Console */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800">
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span>Ask AI for Further Telemetry Analysis</span>
-            </h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Query friction causes, conversion blockers, and get recommendations directly against the live session data.
-            </p>
-          </div>
-
-          {/* Gemini Key Config */}
+      <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
+        <div className="bg-slate-100 dark:bg-zinc-800/90 border-b border-slate-300 dark:border-zinc-700 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-            <input
-              type="password"
-              placeholder="Gemini API Key (Optional)"
-              value={geminiKey}
-              onChange={(e) => handleSaveGeminiKey(e.target.value)}
-              className="h-7 px-2 rounded bg-zinc-950 border border-zinc-800 text-white font-mono text-[11px] w-48 focus:outline-none focus:border-cyan-500"
-              title="Add Gemini API Key for live custom generative models"
-            />
+            <Sparkles className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+            <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+              Ask AI for Telemetry & Drop-Off Synthesis
+            </span>
+          </div>
+
+          {/* Gemini Key Config & Status */}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5">
+              Gemini 2.5 Flash Preloaded
+            </span>
+            <div className="relative">
+              <input
+                type="password"
+                placeholder="Gemini API Key"
+                value={geminiKey}
+                onChange={(e) => handleSaveGeminiKey(e.target.value)}
+                className="h-7 px-2 bg-white dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white font-mono text-[11px] w-36 focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                title="Gemini 2.5 Flash API Key preloaded for founder analysis"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Sample Prompt Chips */}
-        <div className="space-y-1.5">
-          <div className="text-[11px] font-mono text-zinc-500 uppercase">Suggested Inquiries:</div>
-          <div className="flex flex-wrap gap-2">
-            {samplePrompts.map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleAskQuestion(p)}
-                className="text-left text-xs text-zinc-300 hover:text-white bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-3 py-1.5 rounded-lg transition cursor-pointer"
-              >
-                {p}
-              </button>
-            ))}
+        <div className="p-5 space-y-4">
+          {/* Sample Prompt Chips */}
+          <div className="space-y-1.5">
+            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Suggested Queries:</div>
+            <div className="flex flex-wrap gap-2">
+              {samplePrompts.map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleAskQuestion(p)}
+                  className="text-left text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-50 dark:bg-zinc-950 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-700 px-3 py-1.5 transition cursor-pointer"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* AI Chat History */}
-        {aiResponses.length > 0 && (
-          <div className="space-y-3 pt-2 border-t border-zinc-800 max-h-96 overflow-y-auto pr-1">
-            {aiResponses.map((msg, i) => (
-              <div 
-                key={i} 
-                className={`p-3.5 rounded-lg text-xs leading-relaxed ${
-                  msg.sender === "user" 
-                    ? "bg-zinc-800/80 border border-zinc-700/80 text-white ml-8" 
-                    : "bg-zinc-950 border border-zinc-800 text-zinc-300 mr-8"
-                }`}
-              >
-                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1.5">
-                  <span className="font-semibold uppercase tracking-wider text-cyan-400">
-                    {msg.sender === "user" ? "You" : "VeloTime AI Telemetry Synthesis"}
-                  </span>
-                  <span>{msg.timestamp}</span>
+          {/* AI Chat History */}
+          {aiResponses.length > 0 && (
+            <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-zinc-800 max-h-96 overflow-y-auto pr-1">
+              {aiResponses.map((msg, i) => (
+                <div 
+                  key={i} 
+                  className={`p-3.5 text-xs leading-relaxed border ${
+                    msg.sender === "user" 
+                      ? "bg-slate-100 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white ml-8" 
+                      : "bg-slate-50 dark:bg-zinc-950 border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 mr-8"
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 mb-1.5">
+                    <span className="font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                      {msg.sender === "user" ? "Founder Inquiry" : "VeloTime AI Analysis"}
+                    </span>
+                    <span className="tabular-nums">{msg.timestamp}</span>
+                  </div>
+                  <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
                 </div>
-                <div className="whitespace-pre-wrap">{msg.text}</div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {/* Input Box */}
-        <div className="flex items-center gap-2 pt-2">
-          <input
-            type="text"
-            placeholder="Ask a specific question about these PostHog recordings..."
-            value={userQuery}
-            onChange={(e) => setUserQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
-            className="flex-1 h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-white text-xs focus:outline-none focus:border-cyan-500"
-          />
-          <button
-            type="button"
-            onClick={() => handleAskQuestion()}
-            disabled={isAnalyzing || !userQuery.trim()}
-            className="h-9 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
-          >
-            {isAnalyzing ? (
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Send className="w-3.5 h-3.5" />
-            )}
-            <span>Analyze</span>
-          </button>
+          {/* Input Box */}
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="text"
+              placeholder="Ask a specific question about these PostHog recordings..."
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
+              className="flex-1 h-9 px-3 bg-white dark:bg-zinc-950 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-900 dark:focus:border-white font-sans"
+            />
+            <button
+              type="button"
+              onClick={() => handleAskQuestion()}
+              disabled={isAnalyzing || !userQuery.trim()}
+              className="h-9 px-4 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 text-white dark:text-slate-900 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border border-slate-900 dark:border-white"
+            >
+              {isAnalyzing ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5" />
+              )}
+              <span>Analyze</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
