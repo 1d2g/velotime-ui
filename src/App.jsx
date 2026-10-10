@@ -28,8 +28,6 @@ import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
 import { Sparkles, LogIn } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
-import GuestBenchmarkBar from "./components/guest/GuestBenchmarkBar";
-import GuestKpiRibbon from "./components/guest/GuestKpiRibbon";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
 import {
   GUEST_USER_ID,
@@ -37,6 +35,7 @@ import {
   INITIAL_GUEST_CLIENTS,
   INITIAL_GUEST_PROJECTS,
   buildInitialGuestEntries,
+  buildInitialGuestNotes,
   INITIAL_GUEST_NOTES,
 } from "./components/guest/guestInitialData";
 
@@ -444,30 +443,36 @@ export default function App() {
   // Load guest sandbox workspace from localStorage or hybrid template
   useEffect(() => {
     if (isGuestMode) {
-      try {
-        const saved = safeGetItem("localStorage", "velotime_guest_workspace");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.projects && parsed.projects.length > 0) {
-            setProjects(parsed.projects);
-            setClients(parsed.clients || INITIAL_GUEST_CLIENTS);
-            setEntries(parsed.entries || {});
-            setNotes(parsed.notes || {});
-            setDbUser(GUEST_MOCK_USER);
-            setIsSyncing(false);
-            return;
+      const templateVer = safeGetItem("localStorage", "velotime_guest_template_ver");
+      const isCurrentTemplate = templateVer === "v3";
+
+      if (isCurrentTemplate) {
+        try {
+          const saved = safeGetItem("localStorage", "velotime_guest_workspace");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.projects && parsed.projects.length > 0) {
+              setProjects(parsed.projects);
+              setClients(parsed.clients || INITIAL_GUEST_CLIENTS);
+              setEntries(parsed.entries || {});
+              setNotes(parsed.notes || {});
+              setDbUser(GUEST_MOCK_USER);
+              setIsSyncing(false);
+              return;
+            }
           }
+        } catch (e) {
+          console.error("Failed to load saved guest workspace:", e);
         }
-      } catch (e) {
-        console.error("Failed to load saved guest workspace:", e);
       }
 
-      // Hybrid Default (3 clients, 3 projects, 3 tasks each, 1 pre-seeded row of 16.0h)
+      // Hybrid Default (3 clients, 3 projects, 3 tasks each, 1 pre-seeded day row on Monday of 8.0h)
+      safeSetItem("localStorage", "velotime_guest_template_ver", "v3");
       setDbUser(GUEST_MOCK_USER);
       setClients(INITIAL_GUEST_CLIENTS);
       setProjects(INITIAL_GUEST_PROJECTS);
       setEntries(buildInitialGuestEntries(dates));
-      setNotes(INITIAL_GUEST_NOTES);
+      setNotes(buildInitialGuestNotes(dates));
       setIsSyncing(false);
     }
   }, [isGuestMode, dates.length]);
@@ -1096,10 +1101,7 @@ export default function App() {
       ) : (
         <>
           {isGuestMode && (
-            <>
-              <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" />
-              <GuestBenchmarkBar totalHours={totalGuestHours} onClaimWorkspace={handleOpenClaimModal} />
-            </>
+            <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" />
           )}
           <WorkspaceOnboardingModal
             isOpen={shouldShowOnboarding}
@@ -1329,11 +1331,6 @@ export default function App() {
                 </div>
               ) : activeTab === "Timesheets" ? (
                 <>
-                  {isGuestMode && (
-                    <div className="shrink-0 mb-3 -mt-4">
-                      <GuestKpiRibbon totalHours={totalGuestHours} />
-                    </div>
-                  )}
                   <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-4">
                     <div className="flex items-center justify-between gap-6">
                       <div className="flex items-center gap-4 flex-wrap">
@@ -1353,6 +1350,23 @@ export default function App() {
                             </button>
                           ))}
                         </div>
+
+                        {/* Integrated Pricing Benchmark */}
+                        {isGuestMode && (
+                          <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-xs select-none">
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 uppercase tracking-wider">
+                              Pricing Benchmark
+                            </span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">
+                              VeloTime <strong className="text-slate-950 dark:text-white font-bold">$5/user/mo</strong> vs Harvest{" "}
+                              <span className="line-through text-slate-400">$14/mo</span>
+                            </span>
+                            <span className="text-slate-400 dark:text-slate-600 hidden sm:inline">•</span>
+                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs hidden sm:inline">
+                              Save $1,296/yr (12 seats)
+                            </span>
+                          </div>
+                        )}
 
                         {!isGuestMode && dbUser &&
                           (dbUser.role === "admin" ||

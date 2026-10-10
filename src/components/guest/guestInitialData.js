@@ -76,26 +76,38 @@ export const INITIAL_GUEST_PROJECTS = [
 ];
 
 /**
- * Pre-seeds exactly one row: Task A under Client A with 16.0 hours
- * for the current active Monday-Friday week dates.
+ * Pre-seeds exactly one day row (Monday) across Client A's tasks
+ * (Task A: 4.0h, Task B: 2.5h, Task C: 1.5h = 8.0h total for Monday).
+ * All other days (Tue through Sun) start completely blank ready for evaluator input.
  */
 export function buildInitialGuestEntries(weekDates) {
   const entries = {};
   if (!Array.isArray(weekDates) || weekDates.length === 0) return entries;
 
-  // Single pre-seeded row: Client A -> Task A
-  const taskId = "guest_t1_a";
-  const hoursSequence = [4.0, 3.5, 5.0, 2.5, 1.0]; // Mon through Fri = 16.0 hrs
+  // Single pre-seeded day row: Monday across Client A's tasks
+  const monday = weekDates[0];
+  if (!monday) return entries;
 
-  weekDates.slice(0, 5).forEach((d, idx) => {
-    const val = hoursSequence[idx] || 0;
-    entries[`${GUEST_USER_ID}_${d.id}_${taskId}`] = val;
-  });
+  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_a`] = 4.0;
+  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_b`] = 2.5;
+  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_c`] = 1.5;
 
   return entries;
 }
 
-export const INITIAL_GUEST_NOTES = {
-  // Pre-seeded audit note explaining the 16.0h breakdown
-  [`${GUEST_USER_ID}_note_guest_t1_a`]: "Initial sprint deliverable kickoff and concept design.",
-};
+export function buildInitialGuestNotes(weekDates) {
+  const notes = {};
+  if (!Array.isArray(weekDates) || weekDates.length === 0) return notes;
+
+  const monday = weekDates[0];
+  if (!monday) return notes;
+
+  // Pre-seeded audit notes for Monday's logged tasks
+  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_a`] = "Sprint architecture and UX wireframing.";
+  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_b`] = "Component library setup and token styling.";
+  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_c`] = "Client sync and backlog refinement.";
+
+  return notes;
+}
+
+export const INITIAL_GUEST_NOTES = {};
