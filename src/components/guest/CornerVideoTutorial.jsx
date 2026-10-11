@@ -27,7 +27,12 @@ export default function CornerVideoTutorial({
   useEffect(() => {
     if (isOpen) {
       setIsDismissed(false);
-      setIsMinimized(false);
+      try {
+        const wasMinimized = sessionStorage.getItem("velotime_corner_video_minimized") === "true";
+        setIsMinimized(wasMinimized);
+      } catch {
+        setIsMinimized(false);
+      }
     }
   }, [isOpen]);
 
