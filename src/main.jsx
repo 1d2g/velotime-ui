@@ -15,6 +15,10 @@ import ControlPortal from "./control/ControlPortal.jsx";
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_xrWAkajTPLpTYFqgkS6L28qrLcgHnBjuRqz6YFN4UXCA";
 const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
 
+if (typeof window !== "undefined") {
+  window.posthog = posthog;
+}
+
 if (typeof window !== "undefined" && POSTHOG_KEY) {
   try {
     const isEmbedded = window.self !== window.top || new URLSearchParams(window.location.search).get("embed") === "true";
