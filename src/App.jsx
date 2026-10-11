@@ -1503,9 +1503,9 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Middle: Expanded Pricing Benchmark Chart filling the red box width! */}
+                      {/* Middle: Expanded Pricing Benchmark Chart filling the negative space */}
                       {isGuestMode && (
-                        <div className="flex-1 min-w-[320px] max-w-2xl px-1">
+                        <div className="flex-1 min-w-[340px] max-w-3xl px-1">
                           <PricingBenchmarkChart />
                         </div>
                       )}
