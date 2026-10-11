@@ -1397,6 +1397,9 @@ export default function App() {
                           ))}
                         </div>
 
+                        {/* Compact Pricing Benchmark Chart with Team Slider (Fits in grey banner) */}
+                        {isGuestMode && <PricingBenchmarkChart />}
+
                         {/* Interactive Tutorial & Video Tutorial Buttons (Neutral B2B High-Contrast) */}
                         {isGuestMode && (
                           <div className="flex items-center gap-2">
@@ -1620,13 +1623,6 @@ export default function App() {
                         </svg>
                       </button>
                     </div>
-
-                    {/* Dedicated Pricing Benchmark Comparison Chart & Team Size Slider */}
-                    {isGuestMode && (
-                      <div className="mt-2.5">
-                        <PricingBenchmarkChart onClaimWorkspace={handleOpenClaimModal} />
-                      </div>
-                    )}
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
                     {projects.length === 0 ? (
