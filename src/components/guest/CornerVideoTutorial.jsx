@@ -4,7 +4,7 @@ import { Play, X, ChevronDown, ChevronUp, ArrowRight, Keyboard, RotateCcw } from
 /**
  * CornerVideoTutorial Component
  *
- * Displays the 16-second video tutorial in the bottom-right corner of the workspace.
+ * Displays the 26-second video tutorial in the bottom-right corner of the workspace.
  * Provides interactive chapter scrubbing, an embedded HTML5 video player,
  * and a 1-click trigger to launch the live guided in-grid tutorial.
  */
@@ -75,7 +75,7 @@ export default function CornerVideoTutorial({
             Video Tutorial
           </span>
           <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-slate-800 text-rose-400 border border-slate-700">
-            16s
+            26s
           </span>
           <ChevronUp className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
         </button>
@@ -99,7 +99,7 @@ export default function CornerVideoTutorial({
             Video Tutorial
           </span>
           <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-rose-950/80 text-rose-300 border border-rose-800/60 uppercase">
-            16s
+            26s
           </span>
         </div>
 

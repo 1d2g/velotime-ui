@@ -1429,10 +1429,10 @@ export default function App() {
                               type="button"
                               onClick={handleOpenCornerVideo}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold border-2 border-slate-900 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
-                              title="Watch 16-second video tutorial"
+                              title="Watch 26-second video tutorial"
                             >
                               <Play className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                              <span>Video (16s)</span>
+                              <span>Video (26s)</span>
                             </button>
                           </div>
                         )}
