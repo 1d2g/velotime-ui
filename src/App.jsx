@@ -1369,7 +1369,7 @@ export default function App() {
               </div>
             )}
 
-            <main className="flex-1 flex flex-col pt-8 overflow-hidden relative">
+            <main className="flex-1 flex flex-col pt-2 overflow-hidden relative">
               {isSyncing ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-600">
                   <div className="w-8 h-8 border-4 border-slate-900 border-t-blue-600 animate-spin mb-4"></div>
@@ -1377,83 +1377,145 @@ export default function App() {
                 </div>
               ) : activeTab === "Timesheets" ? (
                 <>
-                  <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-4">
-                    <div className="flex items-center justify-between gap-6">
-                      <div className="flex items-center gap-4 flex-wrap">
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                          Timesheet for {timesheetTitle}
-                        </h1>
-
-                        {/* Timeframe Segmented Control */}
-                        <div className="bg-gray-200 dark:bg-zinc-950/80 p-0.5 flex items-center text-xs font-semibold select-none">
-                          {["day", "week", "month"].map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => setTimeframe(t)}
-                              className={`px-3 py-1 transition-all ${timeframe === t ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 " : "text-slate-500 dark:text-slate-500 hover:text-gray-850 "}`}
-                            >
-                              {t.charAt(0).toUpperCase() + t.slice(1)}
-                            </button>
-                          ))}
+                  <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-2">
+                    <div className="flex items-center justify-between gap-4 flex-wrap lg:flex-nowrap">
+                      {/* Left: Title + Controls Row (2 tight rows) */}
+                      <div className="flex flex-col gap-1 shrink-0">
+                        {/* Row 1: Title + Timeframe */}
+                        <div className="flex items-center gap-3">
+                          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight whitespace-nowrap">
+                            Timesheet for {timesheetTitle}
+                          </h1>
+                          <div className="bg-gray-200 dark:bg-zinc-950/80 p-0.5 flex items-center text-xs font-semibold select-none">
+                            {["day", "week", "month"].map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => setTimeframe(t)}
+                                className={`px-2.5 py-0.5 transition-all ${timeframe === t ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 font-bold" : "text-slate-500 dark:text-slate-500 hover:text-gray-850"}`}
+                              >
+                                {t.charAt(0).toUpperCase() + t.slice(1)}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
-                        {/* Compact Pricing Benchmark Chart with Team Slider (Fits in grey banner) */}
-                        {isGuestMode && <PricingBenchmarkChart />}
-
-                        {/* Interactive Tutorial & Video Tutorial Buttons (Neutral B2B High-Contrast) */}
-                        {isGuestMode && (
-                          <div className="flex items-center gap-2">
+                        {/* Row 2: Navigation, Zoom, and Tutorial Buttons */}
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-500 select-none flex-wrap">
+                          <div className="flex items-center gap-1">
                             <button
-                              type="button"
-                              onClick={handleStartWalkthrough}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white text-xs font-bold border border-slate-900 dark:border-zinc-300 shadow-xs transition-colors cursor-pointer select-none"
-                              title="Start interactive 3-step keyboard walkthrough in the grid"
+                              onClick={handlePrev}
+                              className="p-0.5 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
+                              title={`Previous ${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}`}
                             >
-                              <Keyboard className="w-3.5 h-3.5" />
-                              <span>Interactive Tutorial</span>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                              </svg>
                             </button>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-600">
+                              Navigate {timeframe}
+                            </span>
                             <button
-                              type="button"
-                              onClick={handleOpenCornerVideo}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
-                              title="Watch 26-second video tutorial"
+                              onClick={handleNext}
+                              className="p-0.5 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
+                              title={`Next ${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}`}
                             >
-                              <Play className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400 fill-slate-600 dark:fill-slate-400" />
-                              <span>Video (26s)</span>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                              </svg>
                             </button>
                           </div>
-                        )}
 
-                        {!isGuestMode && dbUser &&
-                          (dbUser.role === "admin" ||
-                            dbUser.role === "manager") &&
-                          orgUsers && orgUsers.length > 1 && (
-                            <div className="ml-2 flex items-center gap-2 border-l border-slate-300 dark:border-zinc-700 pl-4">
-                              <span className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase">
-                                Viewing:
-                              </span>
-                              <select
-                                value={viewUserId || dbUser.id}
-                                onChange={(e) => setViewUserId(e.target.value)}
-                                className="text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
-                              >
-                                {orgUsers.map((u) => (
-                                  <option key={u.id} value={u.id}>
-                                    {u.id === dbUser.id
-                                      ? `My Timesheet`
-                                      : `${u.firstName} ${u.lastName}`}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                          <div className="border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
+
+                          {/* Zoom Level */}
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
+                              className="p-0.5 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
+                              title="Zoom Out"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                              </svg>
+                            </button>
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 w-7 text-center">
+                              {zoomLevel}%
+                            </span>
+                            <button
+                              onClick={() => setZoomLevel((prev) => Math.min(200, prev + 10))}
+                              className="p-0.5 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
+                              title="Zoom In"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Org Selector for Admin */}
+                          {!isGuestMode && dbUser &&
+                            (dbUser.role === "admin" || dbUser.role === "manager") &&
+                            orgUsers && orgUsers.length > 1 && (
+                              <div className="flex items-center gap-1.5 border-l border-slate-300 dark:border-zinc-700 pl-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                  Viewing:
+                                </span>
+                                <select
+                                  value={viewUserId || dbUser.id}
+                                  onChange={(e) => setViewUserId(e.target.value)}
+                                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 px-1.5 py-0.5 cursor-pointer"
+                                >
+                                  {orgUsers.map((u) => (
+                                    <option key={u.id} value={u.id}>
+                                      {u.id === dbUser.id ? `My Timesheet` : `${u.firstName} ${u.lastName}`}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                          {/* Tutorial Actions */}
+                          {isGuestMode && (
+                            <>
+                              <div className="border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={handleStartWalkthrough}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white text-[11px] font-bold border border-slate-900 dark:border-zinc-300 shadow-xs transition-colors cursor-pointer select-none"
+                                  title="Start interactive 3-step keyboard walkthrough in the grid"
+                                >
+                                  <Keyboard className="w-3 h-3" />
+                                  <span>Tutorial</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleOpenCornerVideo}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
+                                  title="Watch 26-second video tutorial"
+                                >
+                                  <Play className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400 fill-slate-600 dark:fill-slate-400" />
+                                  <span>Video (26s)</span>
+                                </button>
+                              </div>
+                            </>
                           )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-4 flex-wrap justify-end">
+                      {/* Middle: Expanded Pricing Benchmark Chart filling the red box width! */}
+                      {isGuestMode && (
+                        <div className="flex-1 min-w-[320px] max-w-2xl px-1">
+                          <PricingBenchmarkChart />
+                        </div>
+                      )}
+
+                      {/* Right: Search & Saved Status */}
+                      <div className="flex flex-col gap-1.5 items-end shrink-0">
                         {/* Search Bar */}
-                        <div className="relative w-64 max-w-full">
+                        <div className="relative w-56 max-w-full">
                           <svg
-                            className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 dark:text-slate-600"
+                            className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400 dark:text-slate-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1470,25 +1532,26 @@ export default function App() {
                             placeholder="Search projects..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-900 border-2 border-slate-300 dark:border-zinc-700 pl-9 pr-3 py-1.5 text-xs font-medium outline-none focus:border-slate-900 transition-colors text-slate-900 dark:text-slate-100"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 pl-8 pr-2.5 py-1 text-xs font-medium outline-none focus:border-slate-900 transition-colors text-slate-900 dark:text-slate-100"
                           />
                         </div>
 
+                        {/* Saved in Browser */}
                         {isGuestMode ? (
                           <div
-                            className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-medium py-1.5 px-3 border border-slate-300 dark:border-zinc-700 text-xs flex items-center gap-2 select-none"
+                            className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-medium py-0.5 px-2.5 border border-slate-300 dark:border-zinc-700 text-[11px] flex items-center gap-1.5 select-none"
                             title="Your timesheet edits are saved in your local browser storage"
                           >
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             <span>Saved in Browser</span>
                           </div>
                         ) : isSaving ? (
                           <button
                             disabled
-                            className="tour-save-indicator bg-primary-50 text-primary-700 font-semibold py-1.5 px-4 border border-slate-900 transition-colors text-sm flex items-center gap-2 cursor-wait select-none"
+                            className="tour-save-indicator bg-primary-50 text-primary-700 font-semibold py-1 px-3 border border-slate-900 transition-colors text-xs flex items-center gap-1.5 cursor-wait select-none"
                           >
                             <svg
-                              className="animate-spin h-4 w-4 text-primary-600"
+                              className="animate-spin h-3.5 w-3.5 text-primary-600"
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
                               viewBox="0 0 24 24"
@@ -1507,16 +1570,16 @@ export default function App() {
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                               ></path>
                             </svg>
-                            Saving to Cloud...
+                            Saving...
                           </button>
                         ) : (
                           <button
                             onClick={forceSync}
-                            className="tour-save-indicator bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1.5 px-4 border border-emerald-255 transition-colors text-sm flex items-center gap-1.5 cursor-pointer select-none"
+                            className="tour-save-indicator bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-1 px-3 border border-emerald-255 transition-colors text-xs flex items-center gap-1.5 cursor-pointer select-none"
                             title="Click to force re-sync with database"
                           >
                             <svg
-                              className="h-4.5 w-4.5 text-emerald-600 animate-pulse"
+                              className="h-3.5 w-3.5 text-emerald-600 animate-pulse"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1532,96 +1595,6 @@ export default function App() {
                           </button>
                         )}
                       </div>
-                    </div>
-                    {/* Navigation Chevrons under "Timesheet for [Timeframe]" */}
-                    <div className="flex items-center gap-3 text-slate-500 dark:text-slate-500 mt-1 select-none">
-                      <button
-                        onClick={handlePrev}
-                        className="p-1 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
-                        title={`Previous ${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M15 19l-7-7 7-7"
-                          />
-                        </svg>
-                      </button>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-600">
-                        Navigate {timeframe}
-                      </span>
-                      <button
-                        onClick={handleNext}
-                        className="p-1 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
-                        title={`Next ${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </button>
-                      <div className="border-l border-slate-300 dark:border-zinc-700 h-4 mx-2"></div>
-                      <button
-                        onClick={() =>
-                          setZoomLevel((prev) => Math.max(50, prev - 10))
-                        }
-                        className="p-1 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
-                        title="Zoom Out"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
-                          />
-                        </svg>
-                      </button>
-                      <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-600 w-8 text-center">
-                        {zoomLevel}%
-                      </span>
-                      <button
-                        onClick={() =>
-                          setZoomLevel((prev) => Math.min(200, prev + 10))
-                        }
-                        className="p-1 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
-                        title="Zoom In"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                          />
-                        </svg>
-                      </button>
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">

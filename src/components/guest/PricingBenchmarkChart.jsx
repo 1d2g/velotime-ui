@@ -29,7 +29,7 @@ export default function PricingBenchmarkChart({ initialSeats = 12 }) {
   return (
     <div
       id="pricing-benchmark-widget"
-      className="bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-zinc-700 px-3 py-1.5 shadow-2xs select-none w-full max-w-[420px]"
+      className="bg-white dark:bg-zinc-900 border-2 border-slate-900 dark:border-zinc-700 px-3 py-1.5 shadow-2xs select-none w-full"
       title={`VeloTime: $${velotimeMonthly}/mo vs Harvest: $${harvestMonthly}/mo vs Toggl: $${togglMonthly}/mo for ${teamSize} seats`}
     >
       {/* Top Meta Row: Badge, Annual Savings Readout, and Team Slider */}
