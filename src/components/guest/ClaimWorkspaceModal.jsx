@@ -119,6 +119,11 @@ export default function ClaimWorkspaceModal({
                   type="button"
                   onClick={() => {
                     if (onInitiateSignUp) onInitiateSignUp();
+                    try {
+                      if (typeof window !== "undefined" && window.posthog) {
+                        window.posthog.capture("signup_page_viewed", { source: "claim_workspace_modal" });
+                      }
+                    } catch (e) {}
                     setShowClerkSignUp(true);
                   }}
                   className="w-full sm:flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"

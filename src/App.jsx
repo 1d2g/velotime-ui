@@ -180,6 +180,7 @@ export default function App() {
   const isExplicitSignIn = authParam === "signin" || authParam === "signup" || authParam === "login";
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
+  const [authScreenMode, setAuthScreenMode] = useState(authParam === "signin" || authParam === "login" ? "signin" : "signup");
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [walkthroughActive, setWalkthroughActive] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
@@ -1364,7 +1365,7 @@ export default function App() {
 
       {showAuthScreen && !isSignedIn && !isAuditMode ? (
         <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
-          <AuthScreen onBackToGuest={handleBackToGuest} />
+          <AuthScreen initialMode={authScreenMode} onBackToGuest={handleBackToGuest} />
         </div>
       ) : lockout === "seat_limit_reached" && !isAuditMode && !isGuestMode ? (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
@@ -1544,7 +1545,10 @@ export default function App() {
 
                     <button
                       type="button"
-                      onClick={() => setShowAuthScreen(true)}
+                      onClick={() => {
+                        setAuthScreenMode("signin");
+                        setShowAuthScreen(true);
+                      }}
                       className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <LogIn className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />

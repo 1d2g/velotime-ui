@@ -147,7 +147,7 @@ const safeGetItem = (storage, key, fallback = null) => {
   return fallback;
 };
 
-export default function AuthScreen({ onBackToGuest }) {
+export default function AuthScreen({ onBackToGuest, initialMode }) {
   const posthog = usePostHog();
   const lastCapturedModeRef = useRef(null);
 
@@ -172,6 +172,7 @@ export default function AuthScreen({ onBackToGuest }) {
   };
 
   const [authMode, setAuthMode] = useState(() => {
+    if (initialMode) return initialMode;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
@@ -184,12 +185,7 @@ export default function AuthScreen({ onBackToGuest }) {
         params.has("utm_campaign") ||
         params.has("trial");
 
-      // Paid campaigns and explicit signup requests ALWAYS default to signup
-      if (mode === "signup" || hash.includes("sign-up") || isPaidCampaign) {
-        return "signup";
-      }
-
-      // Explicit signin request
+      // Explicit signin request always takes precedence
       if (
         mode === "signin" ||
         mode === "login" ||
@@ -199,6 +195,16 @@ export default function AuthScreen({ onBackToGuest }) {
         hash.includes("login")
       ) {
         return "signin";
+      }
+
+      // Explicit signup request or paid trial intent (excluding guest sandbox mode)
+      if (
+        mode === "signup" ||
+        hash.includes("sign-up") ||
+        params.get("trial") === "true" ||
+        (isPaidCampaign && mode !== "guest")
+      ) {
+        return "signup";
       }
 
       // Returning users who have previously authenticated on this browser
