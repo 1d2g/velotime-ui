@@ -31,6 +31,7 @@ import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
 import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
 import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletionModal";
+import PricingBenchmarkChart from "./components/guest/PricingBenchmarkChart";
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -1270,8 +1271,8 @@ export default function App() {
                 </button>
                 {isGuestMode ? (
                   <div className="flex items-center gap-2 sm:gap-2.5">
-                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-[11px] font-mono font-bold text-rose-800 dark:text-rose-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-[11px] font-mono font-bold text-slate-700 dark:text-zinc-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       <span>Guest Sandbox</span>
                     </div>
 
@@ -1396,30 +1397,13 @@ export default function App() {
                           ))}
                         </div>
 
-                        {/* Integrated Pricing Benchmark (Prominent & Rose Accents) */}
-                        {isGuestMode && (
-                          <div className="inline-flex items-center gap-3 px-3.5 py-1.5 bg-slate-50 dark:bg-zinc-900 border-2 border-slate-900 dark:border-zinc-700 text-sm font-semibold select-none shadow-xs">
-                            <span className="font-mono text-xs font-black px-2 py-0.5 bg-rose-500 text-white uppercase tracking-wider">
-                              Pricing Benchmark
-                            </span>
-                            <span className="text-slate-800 dark:text-slate-200 text-sm">
-                              VeloTime <strong className="text-slate-950 dark:text-white font-black text-base">$5/user/mo</strong> vs Harvest{" "}
-                              <span className="line-through text-slate-400 font-normal">$14/mo</span>
-                            </span>
-                            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline font-bold">•</span>
-                            <span className="text-rose-600 dark:text-rose-400 font-black text-sm hidden sm:inline">
-                              Save $1,296/yr (12 seats)
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Interactive Tutorial & Video Tutorial Buttons */}
+                        {/* Interactive Tutorial & Video Tutorial Buttons (Neutral B2B High-Contrast) */}
                         {isGuestMode && (
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={handleStartWalkthrough}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold border-2 border-slate-900 shadow-xs transition-colors cursor-pointer select-none"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white text-xs font-bold border border-slate-900 dark:border-zinc-300 shadow-xs transition-colors cursor-pointer select-none"
                               title="Start interactive 3-step keyboard walkthrough in the grid"
                             >
                               <Keyboard className="w-3.5 h-3.5" />
@@ -1428,10 +1412,10 @@ export default function App() {
                             <button
                               type="button"
                               onClick={handleOpenCornerVideo}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold border-2 border-slate-900 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
                               title="Watch 26-second video tutorial"
                             >
-                              <Play className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                              <Play className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400 fill-slate-600 dark:fill-slate-400" />
                               <span>Video (26s)</span>
                             </button>
                           </div>
@@ -1489,10 +1473,10 @@ export default function App() {
 
                         {isGuestMode ? (
                           <div
-                            className="bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 font-semibold py-1.5 px-3 border border-rose-300 dark:border-rose-800 text-xs flex items-center gap-1.5 select-none"
+                            className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-medium py-1.5 px-3 border border-slate-300 dark:border-zinc-700 text-xs flex items-center gap-2 select-none"
                             title="Your timesheet edits are saved in your local browser storage"
                           >
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
                             <span>Saved in Browser</span>
                           </div>
                         ) : isSaving ? (
@@ -1636,6 +1620,13 @@ export default function App() {
                         </svg>
                       </button>
                     </div>
+
+                    {/* Dedicated Pricing Benchmark Comparison Chart & Team Size Slider */}
+                    {isGuestMode && (
+                      <div className="mt-2.5">
+                        <PricingBenchmarkChart onClaimWorkspace={handleOpenClaimModal} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
                     {projects.length === 0 ? (
