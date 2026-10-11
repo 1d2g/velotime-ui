@@ -23,6 +23,8 @@ export default function TimesheetCell({
   onToggleTimer,
   dbUser,
   className = "",
+  walkthroughBadgeText = null,
+  isWalkthroughTarget = false,
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -129,11 +131,18 @@ export default function TimesheetCell({
       onMouseLeave={() => setIsHovered(false)}
       className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-primary-50/40 
  ${isFirstInProject ? "border-l " : ""}
- ${isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
- ${displayAuditRed && !isSelected ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
+ ${isWalkthroughTarget ? "ring-2 ring-rose-500 bg-rose-50/30 dark:bg-rose-950/20 z-20" : isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
+ ${displayAuditRed && !isSelected && !isWalkthroughTarget ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
  ${className}
  `}
     >
+      {/* Walkthrough Target Badge */}
+      {walkthroughBadgeText && (
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-30 whitespace-nowrap bg-rose-500 text-white text-[10px] font-mono font-bold px-2 py-0.5 shadow-lg pointer-events-none animate-bounce">
+          {walkthroughBadgeText}
+        </div>
+      )}
+
       <input
         id={`cell_input_${rowId}_${taskId}`}
         ref={inputRef}
@@ -152,8 +161,8 @@ export default function TimesheetCell({
  ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}
- ${isSelected ? "font-bold" : ""}
- ${!isSelected && value ? "text-transparent dark:text-transparent" : ""}
+ ${isSelected || isWalkthroughTarget ? "font-bold" : ""}
+ ${!isSelected && !isWalkthroughTarget && value ? "text-transparent dark:text-transparent" : ""}
  `}
       />
 

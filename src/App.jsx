@@ -26,9 +26,11 @@ import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
-import { Sparkles, LogIn } from "lucide-react";
+import { Sparkles, LogIn, Keyboard, Play } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
+import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
+import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletionModal";
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -170,8 +172,51 @@ export default function App() {
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [walkthroughActive, setWalkthroughActive] = useState(false);
+  const [walkthroughStep, setWalkthroughStep] = useState(0);
+  const [isWalkthroughModalOpen, setIsWalkthroughModalOpen] = useState(false);
+  const [isCornerVideoOpen, setIsCornerVideoOpen] = useState(() => {
+    try {
+      return sessionStorage.getItem("velotime_corner_video_dismissed") !== "true";
+    } catch {
+      return true;
+    }
+  });
 
   const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
+
+  const handleStartWalkthrough = () => {
+    if (activeTab !== "Timesheet") {
+      setActiveTab("Timesheet");
+    }
+    setWalkthroughActive(true);
+    setWalkthroughStep(0);
+  };
+
+  const handleAdvanceWalkthrough = (explicitStep) => {
+    setWalkthroughStep((prev) => {
+      const next = typeof explicitStep === "number" ? explicitStep : prev + 1;
+      if (next >= 3) {
+        setWalkthroughActive(false);
+        setIsWalkthroughModalOpen(true);
+        return 0;
+      }
+      return next;
+    });
+  };
+
+  const handleCancelWalkthrough = () => {
+    setWalkthroughActive(false);
+    setWalkthroughStep(0);
+  };
+
+  const handleOpenCornerVideo = () => {
+    try {
+      sessionStorage.removeItem("velotime_corner_video_dismissed");
+      sessionStorage.removeItem("velotime_corner_video_minimized");
+    } catch {}
+    setIsCornerVideoOpen(true);
+  };
 
   useEffect(() => {
     if (isAuditMode) {
@@ -1368,6 +1413,30 @@ export default function App() {
                           </div>
                         )}
 
+                        {/* Interactive Tutorial & Video Tutorial Buttons */}
+                        {isGuestMode && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleStartWalkthrough}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold border-2 border-slate-900 shadow-xs transition-colors cursor-pointer select-none"
+                              title="Start interactive 3-step keyboard walkthrough in the grid"
+                            >
+                              <Keyboard className="w-3.5 h-3.5" />
+                              <span>Interactive Tutorial</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleOpenCornerVideo}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold border-2 border-slate-900 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
+                              title="Watch 16-second video tutorial"
+                            >
+                              <Play className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                              <span>Video (16s)</span>
+                            </button>
+                          </div>
+                        )}
+
                         {!isGuestMode && dbUser &&
                           (dbUser.role === "admin" ||
                             dbUser.role === "manager") &&
@@ -1634,6 +1703,10 @@ export default function App() {
                             searchQuery={searchQuery}
                             onReorderProject={handleReorderProject}
                             onClearGrid={handleClearGrid}
+                            walkthroughActive={walkthroughActive}
+                            walkthroughStep={walkthroughStep}
+                            onAdvanceWalkthrough={handleAdvanceWalkthrough}
+                            onCancelWalkthrough={handleCancelWalkthrough}
                           />
                         </div>
                       </TrialLockoutOverlay>
@@ -1751,6 +1824,24 @@ export default function App() {
           </>
         )
       }
+
+      {isGuestMode && (
+        <>
+          <CornerVideoTutorial
+            isOpen={isCornerVideoOpen}
+            onClose={() => setIsCornerVideoOpen(false)}
+            onStartWalkthrough={handleStartWalkthrough}
+          />
+          <WalkthroughCompletionModal
+            isOpen={isWalkthroughModalOpen}
+            onClose={() => setIsWalkthroughModalOpen(false)}
+            onClaimWorkspace={() => {
+              setIsWalkthroughModalOpen(false);
+              setIsClaimModalOpen(true);
+            }}
+          />
+        </>
+      )}
 
       <ClaimWorkspaceModal
         isOpen={isClaimModalOpen}

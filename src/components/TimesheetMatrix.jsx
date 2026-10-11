@@ -35,6 +35,10 @@ export default function TimesheetMatrix({
   onRenameProject,
   onUpdateClient,
   onEditTask,
+  walkthroughActive = false,
+  walkthroughStep = 0,
+  onAdvanceWalkthrough,
+  onCancelWalkthrough,
 }) {
   const [selectedCell, setSelectedCell] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -263,6 +267,28 @@ export default function TimesheetMatrix({
     return rowId.split("_")[0];
   }, [selectedCell, rowKeys]);
 
+  const walkthroughDateId = useMemo(() => {
+    return dates[1]?.id || dates[0]?.id;
+  }, [dates]);
+
+  // When walkthrough starts, auto-select and focus Tuesday Task A
+  useEffect(() => {
+    if (walkthroughActive && walkthroughStep === 0) {
+      const hRowIndex = gridRows.findIndex((r) => r.id === `${walkthroughDateId}_hours`);
+      const tColIndex = visibleColKeys.indexOf("guest_t1_a");
+      if (hRowIndex >= 0 && tColIndex >= 0) {
+        setSelectedCell({ r: hRowIndex, c: tColIndex });
+        setTimeout(() => {
+          const input = document.getElementById(`cell_input_${walkthroughDateId}_hours_guest_t1_a`);
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 80);
+      }
+    }
+  }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
+
   // Flicking mouse out of the grid collapses the expanded notes
   const handleGridMouseLeave = () => {
     if (
@@ -343,6 +369,48 @@ export default function TimesheetMatrix({
             if (proj) targetProjId = proj.id;
           }
           if (targetProjId) onToggleCollapse(targetProjId);
+          return;
+        }
+      }
+
+      if (walkthroughActive) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          if (onCancelWalkthrough) onCancelWalkthrough();
+          return;
+        }
+
+        // Walkthrough Step 0: User types hours on Tuesday Task A and hits Tab or Enter
+        if (walkthroughStep === 0 && (e.key === "Tab" || e.key === "Enter")) {
+          e.preventDefault();
+          setIsEditing(false);
+          const targetKey = `${viewUserId}_${walkthroughDateId}_guest_t1_a`;
+          if (!entries[targetKey]) {
+            onCellChange(walkthroughDateId, "guest_t1_a", 4.0);
+          }
+          if (onAdvanceWalkthrough) onAdvanceWalkthrough();
+
+          const tRowIndex = gridRows.findIndex((r) => r.id === `${walkthroughDateId}_notes`);
+          const tColIndex = visibleColKeys.indexOf("guest_t1_a");
+          if (tRowIndex >= 0 && tColIndex >= 0) {
+            setSelectedCell({ r: tRowIndex, c: tColIndex });
+            setTimeout(() => {
+              const el = document.getElementById(`cell_textarea_${walkthroughDateId}_notes_guest_t1_a`);
+              el?.focus();
+            }, 60);
+          }
+          return;
+        }
+
+        // Walkthrough Step 2: Glided to Tuesday Task B, hitting Enter or Tab completes walkthrough
+        if (walkthroughStep === 2 && (e.key === "Enter" || e.key === "Tab")) {
+          e.preventDefault();
+          setIsEditing(false);
+          const targetKey = `${viewUserId}_${walkthroughDateId}_guest_t1_b`;
+          if (!entries[targetKey]) {
+            onCellChange(walkthroughDateId, "guest_t1_b", 3.5);
+          }
+          if (onAdvanceWalkthrough) onAdvanceWalkthrough();
           return;
         }
       }
@@ -812,6 +880,29 @@ export default function TimesheetMatrix({
         ))}
       </div>
 
+      {/* Interactive Walkthrough Active Banner */}
+      {walkthroughActive && (
+        <div className="bg-slate-950 text-white px-6 py-2.5 flex items-center justify-between text-xs border-b border-slate-800 shrink-0 z-30 animate-in fade-in select-none">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[10px] font-black px-2 py-0.5 bg-rose-500 text-white uppercase tracking-wider">
+              Walkthrough Step {walkthroughStep + 1} of 3
+            </span>
+            <span className="text-slate-200 font-medium">
+              {walkthroughStep === 0 && "Step 1: Type 4.0 into Tuesday Task A, then press Tab."}
+              {walkthroughStep === 1 && "Step 2: Note drawer opened! Type an audit note, then press Tab."}
+              {walkthroughStep === 2 && "Step 3: Notice focus glided into Task B without using your mouse! Press Enter to finish."}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onCancelWalkthrough}
+            className="text-slate-400 hover:text-white text-xs font-bold underline cursor-pointer"
+          >
+            Skip Walkthrough
+          </button>
+        </div>
+      )}
+
       <div 
         className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors"
         onMouseLeave={handleGridMouseLeave}
@@ -1264,6 +1355,13 @@ export default function TimesheetMatrix({
                               const isSelected =
                                 selectedCell?.r === rIndex &&
                                 selectedCell?.c === cIndex;
+
+                              const isWalkthroughNoteTarget =
+                                walkthroughActive &&
+                                walkthroughStep === 1 &&
+                                dateObj.id === walkthroughDateId &&
+                                t.id === "guest_t1_a";
+
                               return (
                                 <TimesheetNoteCell
                                   key={`note_cell_${cellKey}`}
@@ -1278,6 +1376,14 @@ export default function TimesheetMatrix({
                                   isActive={isActive}
                                   calculatedHeight={calculatedNoteRowHeight}
                                   onNoteChange={onNoteChange}
+                                  walkthroughActive={walkthroughActive}
+                                  walkthroughStep={walkthroughStep}
+                                  walkthroughDateId={walkthroughDateId}
+                                  isWalkthroughNoteTarget={isWalkthroughNoteTarget}
+                                  gridRows={gridRows}
+                                  visibleColKeys={visibleColKeys}
+                                  setSelectedCell={setSelectedCell}
+                                  onAdvanceWalkthrough={onAdvanceWalkthrough}
                                   onCollapse={() => {
                                     setSelectedCell(null);
                                     setIsEditing(false);
@@ -1404,6 +1510,22 @@ export default function TimesheetMatrix({
                           {p.tasks.map((t, i) => {
                             const cellKey = `${viewUserId}_${dateObj.id}_${t.id}`;
                             const cIndex = visibleColKeys.indexOf(t.id);
+                            const isWalkthroughHourTarget =
+                              walkthroughActive &&
+                              walkthroughStep === 0 &&
+                              dateObj.id === walkthroughDateId &&
+                              t.id === "guest_t1_a";
+                            const isWalkthroughNextTarget =
+                              walkthroughActive &&
+                              walkthroughStep === 2 &&
+                              dateObj.id === walkthroughDateId &&
+                              t.id === "guest_t1_b";
+                            const cellWalkthroughBadge = isWalkthroughHourTarget
+                              ? "Step 1: Type 4.0 & Tab"
+                              : isWalkthroughNextTarget
+                              ? "Step 3: Press Enter"
+                              : null;
+
                             return (
                               <TimesheetCell
                                 key={cellKey}
@@ -1442,6 +1564,10 @@ export default function TimesheetMatrix({
                                 }}
                                 onEditStart={() => setIsEditing(true)}
                                 onEditEnd={() => setIsEditing(false)}
+                                walkthroughBadgeText={cellWalkthroughBadge}
+                                isWalkthroughTarget={
+                                  isWalkthroughHourTarget || isWalkthroughNextTarget
+                                }
                               />
                             );
                           })}
@@ -1721,6 +1847,14 @@ function TimesheetNoteCell({
   onCollapse,
   onSelect,
   isFirstInProject,
+  walkthroughActive,
+  walkthroughStep,
+  walkthroughDateId,
+  isWalkthroughNoteTarget,
+  gridRows,
+  visibleColKeys,
+  setSelectedCell,
+  onAdvanceWalkthrough,
 }) {
   const [localValue, setLocalValue] = useState(value || "");
   const textareaRef = useRef(null);
@@ -1740,6 +1874,39 @@ function TimesheetNoteCell({
 
   const handleKeyDown = (e) => {
     e.stopPropagation();
+
+    // Walkthrough Step 1 Key Interceptor
+    if (
+      walkthroughActive &&
+      walkthroughStep === 1 &&
+      (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey))
+    ) {
+      e.preventDefault();
+      if (!localValue) {
+        onNoteChange(dateId, taskId, "Sprint kickoff and architecture planning.");
+      } else {
+        handleBlur();
+      }
+      textareaRef.current.blur();
+      if (onAdvanceWalkthrough) onAdvanceWalkthrough();
+
+      const hRowIndex = gridRows.findIndex((r) => r.id === `${walkthroughDateId}_hours`);
+      const tColIndex = visibleColKeys.indexOf("guest_t1_b");
+      if (hRowIndex >= 0 && tColIndex >= 0) {
+        if (setSelectedCell) setSelectedCell({ r: hRowIndex, c: tColIndex });
+        setTimeout(() => {
+          const nextInput = document.getElementById(
+            `cell_input_${walkthroughDateId}_hours_guest_t1_b`
+          );
+          if (nextInput) {
+            nextInput.focus();
+            nextInput.select();
+          }
+        }, 60);
+      }
+      return;
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       textareaRef.current.blur();
@@ -1771,9 +1938,14 @@ function TimesheetNoteCell({
       className={`p-0 relative transition-all duration-200 cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
  ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}
  ${isFirstInProject ? (isActive ? "border-l border-slate-300 dark:border-zinc-700" : "border-l border-transparent") : ""}
- ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/30 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-slate-50 dark:bg-zinc-950/10"}
+ ${isWalkthroughNoteTarget ? "ring-2 ring-rose-500 bg-rose-50/20 z-20" : isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/30 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-slate-50 dark:bg-zinc-950/10"}
  `}
     >
+      {isWalkthroughNoteTarget && (
+        <div className="absolute top-1 right-2 z-30 pointer-events-none bg-rose-500 text-white font-mono font-bold text-[10px] px-2 py-0.5 shadow-lg animate-bounce">
+          Step 2: Type note & press Tab
+        </div>
+      )}
       <div
         style={{
           height: isActive ? `${calculatedHeight - 8}px` : "0px",
