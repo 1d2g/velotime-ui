@@ -17,13 +17,16 @@ const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.
 
 if (typeof window !== "undefined" && POSTHOG_KEY) {
   try {
+    const isEmbedded = window.self !== window.top || new URLSearchParams(window.location.search).get("embed") === "true";
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
       person_profiles: "identified_only",
-      session_recording: {
-        minimum_duration_seconds: 3,
-        strictMinimumDuration: true,
-      },
+      session_recording: !isEmbedded
+        ? {
+            minimum_duration_seconds: 3,
+            strictMinimumDuration: true,
+          }
+        : false,
     });
   } catch (err) {
     // Non-fatal if blocked by strict browser privacy policies
