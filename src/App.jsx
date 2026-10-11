@@ -174,8 +174,10 @@ export default function App() {
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
 
-  const isAuditMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("audit_mode") === "true";
-  const isExplicitSignIn = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signin";
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const isAuditMode = searchParams?.get("audit_mode") === "true";
+  const authParam = searchParams?.get("mode");
+  const isExplicitSignIn = authParam === "signin" || authParam === "signup" || authParam === "login";
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -193,11 +195,36 @@ export default function App() {
   const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
 
   const handleStartWalkthrough = () => {
-    if (activeTab !== "Timesheet") {
-      setActiveTab("Timesheet");
+    if (activeTab !== "Timesheets") {
+      setActiveTab("Timesheets");
     }
     setWalkthroughActive(true);
     setWalkthroughStep(0);
+  };
+
+  const handleViewTimesheet = (targetUserId, weekStartDate) => {
+    if (targetUserId) {
+      setViewUserId(targetUserId);
+    }
+    setActiveTab("Timesheets");
+    const targetUser = orgUsers.find((u) => u.id === targetUserId);
+    const userName = targetUser ? `${targetUser.firstName} ${targetUser.lastName}` : "User";
+    addToast(`Viewing ${userName}'s timesheet${weekStartDate ? ` (${weekStartDate})` : ""}`, "info");
+  };
+
+  const handleBackToGuest = () => {
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("mode");
+        url.searchParams.delete("sign-in");
+        url.searchParams.delete("sign-up");
+        url.searchParams.delete("trial");
+        const cleanSearch = url.searchParams.toString();
+        window.history.replaceState({}, document.title, url.pathname + (cleanSearch ? `?${cleanSearch}` : ""));
+      } catch (err) {}
+    }
+    setShowAuthScreen(false);
   };
 
   const handleAdvanceWalkthrough = (explicitStep) => {
@@ -496,7 +523,7 @@ export default function App() {
   useEffect(() => {
     if (isGuestMode) {
       const templateVer = safeGetItem("localStorage", "velotime_guest_template_ver");
-      const isCurrentTemplate = templateVer === "v4";
+      const isCurrentTemplate = templateVer === "v5";
 
       if (isCurrentTemplate) {
         try {
@@ -529,8 +556,8 @@ export default function App() {
         }
       }
 
-      // Hybrid Default (v4: complete rich demo dataset for all tabs)
-      safeSetItem("localStorage", "velotime_guest_template_ver", "v4");
+      // Hybrid Default (v5: complete rich demo dataset for all tabs with full week for Sarah Chen)
+      safeSetItem("localStorage", "velotime_guest_template_ver", "v5");
       setDbUser(GUEST_MOCK_USER);
       setClients(INITIAL_GUEST_CLIENTS);
       setProjects(INITIAL_GUEST_PROJECTS);
@@ -1337,7 +1364,7 @@ export default function App() {
 
       {showAuthScreen && !isSignedIn && !isAuditMode ? (
         <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
-          <AuthScreen onBackToGuest={() => setShowAuthScreen(false)} />
+          <AuthScreen onBackToGuest={handleBackToGuest} />
         </div>
       ) : lockout === "seat_limit_reached" && !isAuditMode && !isGuestMode ? (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
@@ -1682,7 +1709,7 @@ export default function App() {
                           </div>
 
                           {/* Org Selector for Admin */}
-                          {!isGuestMode && dbUser &&
+                          {dbUser &&
                             (dbUser.role === "admin" || dbUser.role === "manager") &&
                             orgUsers && orgUsers.length > 1 && (
                               <div className="flex items-center gap-1.5 border-l border-slate-300 dark:border-zinc-700 pl-2">
@@ -1972,6 +1999,12 @@ export default function App() {
                     submissions={submissions}
                     apiCall={apiCall}
                     forceSync={forceSync}
+                    onViewTimesheet={handleViewTimesheet}
+                    projects={projects}
+                    entries={entries}
+                    notes={notes}
+                    dates={dates}
+                    rawEntries={rawEntries}
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Integrations" ? (

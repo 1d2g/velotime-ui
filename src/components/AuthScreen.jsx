@@ -151,11 +151,25 @@ export default function AuthScreen({ onBackToGuest }) {
   const posthog = usePostHog();
   const lastCapturedModeRef = useRef(null);
 
-  // Calculate destination URL back to interactive demo preserving search params if any
-  const demoUrl =
-    typeof window !== "undefined" && window.location.search
-      ? `https://velotime.dg.tools/demo${window.location.search}`
-      : "https://velotime.dg.tools/demo";
+  const handleBackToDemo = (e) => {
+    e?.preventDefault?.();
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("mode");
+        url.searchParams.delete("sign-in");
+        url.searchParams.delete("sign-up");
+        url.searchParams.delete("trial");
+        const cleanSearch = url.searchParams.toString();
+        window.history.replaceState({}, document.title, url.pathname + (cleanSearch ? `?${cleanSearch}` : ""));
+      } catch (err) {}
+    }
+    if (onBackToGuest) {
+      onBackToGuest();
+    } else if (typeof window !== "undefined") {
+      window.location.href = "/?mode=guest";
+    }
+  };
 
   const [authMode, setAuthMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -309,13 +323,14 @@ export default function AuthScreen({ onBackToGuest }) {
       <div className="w-full max-w-[360px] sm:max-w-md flex flex-col items-center pt-6 sm:pt-10 pb-24 sm:pb-36 px-3 sm:px-4 m-auto relative z-10">
         {/* Top Back to Interactive Demo Navigation Bar */}
         <div className="w-full flex items-center justify-between mb-3 px-1">
-          <a
-            href={demoUrl}
+          <button
+            type="button"
+            onClick={handleBackToDemo}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-white/20 text-xs font-semibold transition-all shadow-sm group cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Interactive Demo</span>
-          </a>
+          </button>
           <span className="text-[11px] font-medium text-zinc-400 hidden sm:inline">
             No account required to test
           </span>
@@ -410,13 +425,14 @@ export default function AuthScreen({ onBackToGuest }) {
                   </span>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-center">
-                  <a
-                    href={demoUrl}
-                    className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors font-medium hover:underline underline-offset-2"
+                  <button
+                    type="button"
+                    onClick={handleBackToDemo}
+                    className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors font-medium hover:underline underline-offset-2 bg-transparent border-none cursor-pointer"
                   >
                     <ArrowLeft className="w-3 h-3 text-zinc-500" />
                     <span>Want to test the matrix first? Back to live demo</span>
-                  </a>
+                  </button>
                 </div>
               </>
             ) : (
@@ -470,24 +486,14 @@ export default function AuthScreen({ onBackToGuest }) {
         {/* Trust & Back Links */}
         <div className="mt-4 sm:mt-6 pb-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-zinc-400 font-medium flex-wrap">
-            {onBackToGuest ? (
-              <button
-                type="button"
-                onClick={onBackToGuest}
-                className="hover:text-rose-400 transition-colors underline flex items-center gap-1 cursor-pointer bg-transparent border-none text-[11px] sm:text-xs text-zinc-400 font-medium"
-              >
-                <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
-                <span>Back to Interactive Sandbox</span>
-              </button>
-            ) : (
-              <a
-                href={demoUrl}
-                className="hover:text-rose-400 transition-colors underline flex items-center gap-1"
-              >
-                <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
-                <span>Back to Interactive Sandbox Demo</span>
-              </a>
-            )}
+            <button
+              type="button"
+              onClick={handleBackToDemo}
+              className="hover:text-rose-400 transition-colors underline flex items-center gap-1 cursor-pointer bg-transparent border-none text-[11px] sm:text-xs text-zinc-400 font-medium"
+            >
+              <ArrowLeft className="w-3 h-3 text-zinc-500 inline" />
+              <span>Back to Interactive Demo</span>
+            </button>
             <span>•</span>
             <a
               href="/privacy"

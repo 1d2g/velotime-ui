@@ -265,19 +265,41 @@ export function buildInitialGuestEntries(weekDates) {
   const entries = {};
   if (!Array.isArray(weekDates) || weekDates.length === 0) return entries;
 
-  const monday = weekDates[0];
-  if (!monday) return entries;
+  const [mon, tue, wed, thu, fri] = weekDates;
 
   // Guest Evaluator's Monday logged tasks (8.0h)
-  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_a`] = 4.0;
-  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_b`] = 2.5;
-  entries[`${GUEST_USER_ID}_${monday.id}_guest_t1_c`] = 1.5;
+  if (mon) {
+    entries[`${GUEST_USER_ID}_${mon.id}_guest_t1_a`] = 4.0;
+    entries[`${GUEST_USER_ID}_${mon.id}_guest_t1_b`] = 2.5;
+    entries[`${GUEST_USER_ID}_${mon.id}_guest_t1_c`] = 1.5;
+  }
 
-  // Sarah Chen's Monday logged tasks (6.0h)
-  entries[`guest_u_sarah_${monday.id}_guest_t2_a`] = 6.0;
+  // Sarah Chen's full submitted week (40.0h total: 37.5h billable, 2.5h non-billable)
+  if (mon) {
+    entries[`guest_u_sarah_${mon.id}_guest_t2_a`] = 6.0;
+    entries[`guest_u_sarah_${mon.id}_guest_t1_b`] = 2.0;
+  }
+  if (tue) {
+    entries[`guest_u_sarah_${tue.id}_guest_t2_a`] = 5.0;
+    entries[`guest_u_sarah_${tue.id}_guest_t2_b`] = 3.0;
+  }
+  if (wed) {
+    entries[`guest_u_sarah_${wed.id}_guest_t2_a`] = 6.5;
+    entries[`guest_u_sarah_${wed.id}_guest_t1_c`] = 1.5;
+  }
+  if (thu) {
+    entries[`guest_u_sarah_${thu.id}_guest_t2_a`] = 7.0;
+    entries[`guest_u_sarah_${thu.id}_guest_t1_a`] = 1.0;
+  }
+  if (fri) {
+    entries[`guest_u_sarah_${fri.id}_guest_t2_a`] = 5.5;
+    entries[`guest_u_sarah_${fri.id}_guest_t1_b`] = 2.5;
+  }
 
   // Alex Rivera's Monday logged tasks (7.0h)
-  entries[`guest_u_alex_${monday.id}_guest_t2_b`] = 7.0;
+  if (mon) {
+    entries[`guest_u_alex_${mon.id}_guest_t2_b`] = 7.0;
+  }
 
   return entries;
 }
@@ -286,75 +308,86 @@ export function buildInitialGuestNotes(weekDates) {
   const notes = {};
   if (!Array.isArray(weekDates) || weekDates.length === 0) return notes;
 
-  const monday = weekDates[0];
-  if (!monday) return notes;
+  const [mon, tue, wed, thu, fri] = weekDates;
 
-  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_a`] = "Sprint architecture and UX wireframing.";
-  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_b`] = "Component library setup and token styling.";
-  notes[`${GUEST_USER_ID}_${monday.id}_guest_t1_c`] = "Client sync and backlog refinement.";
-  notes[`guest_u_sarah_${monday.id}_guest_t2_a`] = "Client B API endpoint integration.";
-  notes[`guest_u_alex_${monday.id}_guest_t2_b`] = "Data models and migration testing.";
+  // Guest Evaluator
+  if (mon) {
+    notes[`${GUEST_USER_ID}_${mon.id}_guest_t1_a`] = "Sprint architecture and UX wireframing.";
+    notes[`${GUEST_USER_ID}_${mon.id}_guest_t1_b`] = "Component library setup and token styling.";
+    notes[`${GUEST_USER_ID}_${mon.id}_guest_t1_c`] = "Client sync and backlog refinement.";
+  }
+
+  // Sarah Chen
+  if (mon) {
+    notes[`guest_u_sarah_${mon.id}_guest_t2_a`] = "Client B API endpoint integration.";
+    notes[`guest_u_sarah_${mon.id}_guest_t1_b`] = "Design system token schema alignment.";
+  }
+  if (tue) {
+    notes[`guest_u_sarah_${tue.id}_guest_t2_a`] = "Responsive layouts and spacing ramp audit.";
+    notes[`guest_u_sarah_${tue.id}_guest_t2_b`] = "Mobile gesture prototypes and touch targets.";
+  }
+  if (wed) {
+    notes[`guest_u_sarah_${wed.id}_guest_t2_a`] = "Engineering handoff and token export script.";
+    notes[`guest_u_sarah_${wed.id}_guest_t1_c`] = "Design critique and UX feedback synthesis.";
+  }
+  if (thu) {
+    notes[`guest_u_sarah_${thu.id}_guest_t2_a`] = "Dark mode color ramp definitions and contrast audit.";
+    notes[`guest_u_sarah_${thu.id}_guest_t1_a`] = "Figma library release testing.";
+  }
+  if (fri) {
+    notes[`guest_u_sarah_${fri.id}_guest_t2_a`] = "Sprint 12 design system tokens and component library finalized.";
+    notes[`guest_u_sarah_${fri.id}_guest_t1_b`] = "Internal team retrospective and asset documentation.";
+  }
+
+  // Alex Rivera
+  if (mon) {
+    notes[`guest_u_alex_${mon.id}_guest_t2_b`] = "Data models and migration testing.";
+  }
 
   return notes;
 }
 
 export function buildInitialGuestRawEntries(weekDates) {
   if (!Array.isArray(weekDates) || weekDates.length === 0) return [];
-  const monday = weekDates[0];
-  if (!monday) return [];
+  const [mon, tue, wed, thu, fri] = weekDates;
+  const raw = [];
 
-  return [
-    {
-      id: "raw_entry_1",
-      userId: GUEST_USER_ID,
-      dateId: monday.id,
-      taskId: "guest_t1_a",
-      hours: 4.0,
-      note: "Sprint architecture and UX wireframing.",
-      isBillable: true,
-      invoiceId: null,
-    },
-    {
-      id: "raw_entry_2",
-      userId: GUEST_USER_ID,
-      dateId: monday.id,
-      taskId: "guest_t1_b",
-      hours: 2.5,
-      note: "Component library setup and token styling.",
-      isBillable: true,
-      invoiceId: null,
-    },
-    {
-      id: "raw_entry_3",
-      userId: GUEST_USER_ID,
-      dateId: monday.id,
-      taskId: "guest_t1_c",
-      hours: 1.5,
-      note: "Client sync and backlog refinement.",
-      isBillable: true,
-      invoiceId: null,
-    },
-    {
-      id: "raw_entry_4",
-      userId: "guest_u_sarah",
-      dateId: monday.id,
-      taskId: "guest_t2_a",
-      hours: 6.0,
-      note: "Client B API endpoint integration.",
-      isBillable: true,
-      invoiceId: null,
-    },
-    {
-      id: "raw_entry_5",
-      userId: "guest_u_alex",
-      dateId: monday.id,
-      taskId: "guest_t2_b",
-      hours: 7.0,
-      note: "Data models and migration testing.",
-      isBillable: true,
-      invoiceId: null,
-    },
-  ];
+  if (mon) {
+    raw.push(
+      { id: "raw_1", userId: GUEST_USER_ID, dateId: mon.id, taskId: "guest_t1_a", hours: 4.0, note: "Sprint architecture and UX wireframing.", isBillable: true, invoiceId: null },
+      { id: "raw_2", userId: GUEST_USER_ID, dateId: mon.id, taskId: "guest_t1_b", hours: 2.5, note: "Component library setup and token styling.", isBillable: true, invoiceId: null },
+      { id: "raw_3", userId: GUEST_USER_ID, dateId: mon.id, taskId: "guest_t1_c", hours: 1.5, note: "Client sync and backlog refinement.", isBillable: true, invoiceId: null },
+      { id: "raw_s1", userId: "guest_u_sarah", dateId: mon.id, taskId: "guest_t2_a", hours: 6.0, note: "Client B API endpoint integration.", isBillable: true, invoiceId: null },
+      { id: "raw_s2", userId: "guest_u_sarah", dateId: mon.id, taskId: "guest_t1_b", hours: 2.0, note: "Design system token schema alignment.", isBillable: true, invoiceId: null },
+      { id: "raw_a1", userId: "guest_u_alex", dateId: mon.id, taskId: "guest_t2_b", hours: 7.0, note: "Data models and migration testing.", isBillable: true, invoiceId: null }
+    );
+  }
+  if (tue) {
+    raw.push(
+      { id: "raw_s3", userId: "guest_u_sarah", dateId: tue.id, taskId: "guest_t2_a", hours: 5.0, note: "Responsive layouts and spacing ramp audit.", isBillable: true, invoiceId: null },
+      { id: "raw_s4", userId: "guest_u_sarah", dateId: tue.id, taskId: "guest_t2_b", hours: 3.0, note: "Mobile gesture prototypes and touch targets.", isBillable: true, invoiceId: null }
+    );
+  }
+  if (wed) {
+    raw.push(
+      { id: "raw_s5", userId: "guest_u_sarah", dateId: wed.id, taskId: "guest_t2_a", hours: 6.5, note: "Engineering handoff and token export script.", isBillable: true, invoiceId: null },
+      { id: "raw_s6", userId: "guest_u_sarah", dateId: wed.id, taskId: "guest_t1_c", hours: 1.5, note: "Design critique and UX feedback synthesis.", isBillable: true, invoiceId: null }
+    );
+  }
+  if (thu) {
+    raw.push(
+      { id: "raw_s7", userId: "guest_u_sarah", dateId: thu.id, taskId: "guest_t2_a", hours: 7.0, note: "Dark mode color ramp definitions and contrast audit.", isBillable: true, invoiceId: null },
+      { id: "raw_s8", userId: "guest_u_sarah", dateId: thu.id, taskId: "guest_t1_a", hours: 1.0, note: "Figma library release testing.", isBillable: true, invoiceId: null }
+    );
+  }
+  if (fri) {
+    raw.push(
+      { id: "raw_s9", userId: "guest_u_sarah", dateId: fri.id, taskId: "guest_t2_a", hours: 5.5, note: "Sprint 12 design system tokens and component library finalized.", isBillable: true, invoiceId: null },
+      { id: "raw_s10", userId: "guest_u_sarah", dateId: fri.id, taskId: "guest_t1_b", hours: 2.5, note: "Internal team retrospective and asset documentation.", isBillable: false, invoiceId: null }
+    );
+  }
+
+  return raw;
 }
 
 export const INITIAL_GUEST_NOTES = {};
