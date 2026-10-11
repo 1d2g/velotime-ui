@@ -141,7 +141,7 @@ export default function InvoiceTrackingView({
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    return invoices.map((inv) => {
+    return (Array.isArray(invoices) ? invoices : []).map((inv) => {
       const subtotal = (inv.lineItems || []).reduce((sum, li) => sum + (li.amount || 0), 0);
       const tax = inv.taxRate ? (subtotal * inv.taxRate) / 100 : 0;
       const total = subtotal + tax;
@@ -306,7 +306,7 @@ export default function InvoiceTrackingView({
 
   // Filter and sort individual invoices
   const filteredInvoices = useMemo(() => {
-    return enrichedInvoices
+    return (Array.isArray(enrichedInvoices) ? enrichedInvoices : [])
       .filter((inv) => {
         // Search query
         if (searchQuery.trim()) {
@@ -450,8 +450,8 @@ export default function InvoiceTrackingView({
   };
 
   // Top 3 Client and Project Exposure widgets
-  const topClients = clientAggregations.filter((c) => c.totalOutstanding > 0).slice(0, 3);
-  const topProjects = projectAggregations.filter((p) => p.totalOutstanding > 0).slice(0, 3);
+  const topClients = (Array.isArray(clientAggregations) ? clientAggregations : []).filter((c) => c.totalOutstanding > 0).slice(0, 3);
+  const topProjects = (Array.isArray(projectAggregations) ? projectAggregations : []).filter((p) => p.totalOutstanding > 0).slice(0, 3);
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-100 dark:bg-zinc-950 overflow-y-auto p-4 sm:p-8">

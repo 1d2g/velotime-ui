@@ -300,14 +300,14 @@ export default function ReportsTab({
 
   const enrichedEntries = useMemo(() => {
     const taskMap = {};
-    projects.forEach((p) => {
-      p.tasks.forEach((t) => {
+    (Array.isArray(projects) ? projects : []).forEach((p) => {
+      (Array.isArray(p.tasks) ? p.tasks : []).forEach((t) => {
         taskMap[t.id] = { project: p, task: t };
       });
     });
 
     const userMap = {};
-    orgUsers.forEach((u) => {
+    (Array.isArray(orgUsers) ? orgUsers : []).forEach((u) => {
       userMap[u.id] = u;
     });
 
@@ -317,7 +317,7 @@ export default function ReportsTab({
       const projectObj = mapObj ? mapObj.project : null;
       const taskObj = mapObj ? mapObj.task : null;
 
-      const taskRateOverride = taskRates.find(
+      const taskRateOverride = (Array.isArray(taskRates) ? taskRates : []).find(
         (tr) => tr.taskId === e.taskId && tr.userId === e.userId,
       );
       const billingRate = taskRateOverride?.billingRate || userObj.defaultBillingRate || 150;

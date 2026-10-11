@@ -37,8 +37,14 @@ import {
   GUEST_MOCK_USER,
   INITIAL_GUEST_CLIENTS,
   INITIAL_GUEST_PROJECTS,
+  INITIAL_GUEST_ORG_USERS,
+  INITIAL_GUEST_EXPENSES,
+  INITIAL_GUEST_INVOICES,
+  INITIAL_GUEST_SUBMISSIONS,
+  INITIAL_GUEST_TASK_RATES,
   buildInitialGuestEntries,
   buildInitialGuestNotes,
+  buildInitialGuestRawEntries,
   INITIAL_GUEST_NOTES,
 } from "./components/guest/guestInitialData";
 
@@ -490,7 +496,7 @@ export default function App() {
   useEffect(() => {
     if (isGuestMode) {
       const templateVer = safeGetItem("localStorage", "velotime_guest_template_ver");
-      const isCurrentTemplate = templateVer === "v3";
+      const isCurrentTemplate = templateVer === "v4";
 
       if (isCurrentTemplate) {
         try {
@@ -502,7 +508,18 @@ export default function App() {
               setClients(parsed.clients || INITIAL_GUEST_CLIENTS);
               setEntries(parsed.entries || {});
               setNotes(parsed.notes || {});
+              setOrgUsers(parsed.orgUsers || INITIAL_GUEST_ORG_USERS);
+              setExpenses(parsed.expenses || INITIAL_GUEST_EXPENSES);
+              setSubmissions(parsed.submissions || INITIAL_GUEST_SUBMISSIONS);
+              setTaskRates(parsed.taskRates || INITIAL_GUEST_TASK_RATES);
+              setRawEntries(parsed.rawEntries || buildInitialGuestRawEntries(dates));
               setDbUser(GUEST_MOCK_USER);
+
+              // Ensure guest invoices are initialized
+              if (!safeGetItem("localStorage", "velotime_guest_invoices")) {
+                safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(INITIAL_GUEST_INVOICES));
+              }
+
               setIsSyncing(false);
               return;
             }
@@ -512,13 +529,20 @@ export default function App() {
         }
       }
 
-      // Hybrid Default (3 clients, 3 projects, 3 tasks each, 1 pre-seeded day row on Monday of 8.0h)
-      safeSetItem("localStorage", "velotime_guest_template_ver", "v3");
+      // Hybrid Default (v4: complete rich demo dataset for all tabs)
+      safeSetItem("localStorage", "velotime_guest_template_ver", "v4");
       setDbUser(GUEST_MOCK_USER);
       setClients(INITIAL_GUEST_CLIENTS);
       setProjects(INITIAL_GUEST_PROJECTS);
       setEntries(buildInitialGuestEntries(dates));
       setNotes(buildInitialGuestNotes(dates));
+      setOrgUsers(INITIAL_GUEST_ORG_USERS);
+      setExpenses(INITIAL_GUEST_EXPENSES);
+      setSubmissions(INITIAL_GUEST_SUBMISSIONS);
+      setTaskRates(INITIAL_GUEST_TASK_RATES);
+      setRawEntries(buildInitialGuestRawEntries(dates));
+      safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(INITIAL_GUEST_INVOICES));
+      safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(INITIAL_GUEST_EXPENSES));
       setIsSyncing(false);
     }
   }, [isGuestMode, dates.length]);
@@ -531,10 +555,15 @@ export default function App() {
         projects,
         entries,
         notes,
+        orgUsers,
+        expenses,
+        submissions,
+        taskRates,
+        rawEntries,
       };
       safeSetItem("localStorage", "velotime_guest_workspace", JSON.stringify(payload));
     }
-  }, [isGuestMode, clients, projects, entries, notes]);
+  }, [isGuestMode, clients, projects, entries, notes, orgUsers, expenses, submissions, taskRates, rawEntries]);
 
   // Handshake: Automatically claim stashed guest data upon successful sign-in
   useEffect(() => {
@@ -702,12 +731,212 @@ export default function App() {
     triggerSync,
   ]);
 
+  const handleGuestApiCall = (endpoint, method = "GET", body, options = {}) => {
+    const upperMethod = (method || "GET").toUpperCase();
+
+    // 1. Invoices Endpoints
+    if (endpoint === "/api/invoices") {
+      let invList = [];
+      try {
+        const raw = safeGetItem("localStorage", "velotime_guest_invoices");
+        invList = raw ? JSON.parse(raw) : INITIAL_GUEST_INVOICES;
+      } catch {
+        invList = INITIAL_GUEST_INVOICES;
+      }
+      if (!Array.isArray(invList) || invList.length === 0) {
+        invList = INITIAL_GUEST_INVOICES;
+        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(invList));
+      }
+
+      if (upperMethod === "GET") {
+        return invList;
+      }
+
+      if (upperMethod === "POST") {
+        const newInvoice = {
+          ...body,
+          id: `guest_inv_${Date.now()}`,
+          invoiceNumber: body.invoiceNumber || `INV-${1000 + invList.length + 1}`,
+          status: body.status || "draft",
+          dateIssued: body.dateIssued || new Date().toISOString().split("T")[0],
+          dueDate: body.dueDate || "",
+          lineItems: body.lineItems || [],
+          organization: GUEST_MOCK_USER.organization,
+        };
+        const updated = [newInvoice, ...invList];
+        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
+        return newInvoice;
+      }
+    }
+
+    if (endpoint.startsWith("/api/invoices/")) {
+      const parts = endpoint.split("/");
+      const invId = parts[3];
+      const isPdf = parts[4] === "pdf";
+
+      if (isPdf) {
+        return new Blob(["Mock PDF simulated preview in Guest Sandbox"], { type: "application/pdf" });
+      }
+
+      let invList = [];
+      try {
+        const raw = safeGetItem("localStorage", "velotime_guest_invoices");
+        invList = raw ? JSON.parse(raw) : INITIAL_GUEST_INVOICES;
+      } catch {
+        invList = INITIAL_GUEST_INVOICES;
+      }
+
+      if (upperMethod === "PUT") {
+        const updated = invList.map((inv) => (inv.id === invId ? { ...inv, ...body } : inv));
+        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
+        const matched = updated.find((i) => i.id === invId) || { id: invId, ...body };
+        return matched;
+      }
+
+      if (upperMethod === "DELETE") {
+        const updated = invList.filter((inv) => inv.id !== invId);
+        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
+        return { success: true };
+      }
+    }
+
+    // 2. Expenses Endpoints
+    if (endpoint === "/api/expenses") {
+      let expList = expenses;
+      if (!Array.isArray(expList) || expList.length === 0) {
+        try {
+          const raw = safeGetItem("localStorage", "velotime_guest_expenses");
+          expList = raw ? JSON.parse(raw) : INITIAL_GUEST_EXPENSES;
+        } catch {
+          expList = INITIAL_GUEST_EXPENSES;
+        }
+      }
+
+      if (upperMethod === "GET") {
+        return expList;
+      }
+
+      if (upperMethod === "POST") {
+        const newExpense = {
+          ...body,
+          id: `guest_exp_${Date.now()}`,
+          date: body.date || new Date().toISOString().split("T")[0],
+        };
+        const updated = [newExpense, ...expList];
+        setExpenses(updated);
+        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
+        return newExpense;
+      }
+    }
+
+    if (endpoint.startsWith("/api/expenses/")) {
+      const expId = endpoint.split("/")[3];
+      if (upperMethod === "PUT") {
+        const updated = expenses.map((exp) => (exp.id === expId ? { ...exp, ...body } : exp));
+        setExpenses(updated);
+        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
+        return { id: expId, ...body };
+      }
+      if (upperMethod === "DELETE") {
+        const updated = expenses.filter((exp) => exp.id !== expId);
+        setExpenses(updated);
+        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
+        return { success: true };
+      }
+    }
+
+    // 3. Timesheet Submissions Endpoints
+    if (endpoint === "/api/timesheet-submissions") {
+      if (upperMethod === "GET") {
+        return submissions;
+      }
+      if (upperMethod === "POST") {
+        const newSub = {
+          id: `sub_${Date.now()}`,
+          userId: GUEST_USER_ID,
+          user: { firstName: "Guest", lastName: "Evaluator", email: "guest@velotime.local" },
+          weekStartDate: body.weekStartDate || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          totalHours: totalGuestHours,
+          billableHours: totalGuestHours,
+          status: "submitted",
+          submittedAt: new Date().toISOString(),
+          note: body.note || null,
+        };
+        const updated = [newSub, ...submissions];
+        setSubmissions(updated);
+        return newSub;
+      }
+    }
+
+    if (endpoint.startsWith("/api/timesheet-submissions/") && endpoint.endsWith("/status")) {
+      const subId = endpoint.split("/")[3];
+      const updated = submissions.map((s) => (s.id === subId ? { ...s, status: body.status, note: body.note || s.note } : s));
+      setSubmissions(updated);
+      return { success: true };
+    }
+
+    // 4. Users / Team Endpoints
+    if (endpoint === "/api/users") {
+      return orgUsers;
+    }
+
+    if (endpoint.startsWith("/api/users/") && endpoint.endsWith("/rates")) {
+      const uId = endpoint.split("/")[3];
+      const updated = orgUsers.map((u) => (u.id === uId ? { ...u, defaultCostRate: body.defaultCostRate, defaultBillingRate: body.defaultBillingRate } : u));
+      setOrgUsers(updated);
+      return { success: true };
+    }
+
+    if (endpoint.startsWith("/api/users/") && endpoint.endsWith("/role")) {
+      const uId = endpoint.split("/")[3];
+      const updated = orgUsers.map((u) => (u.id === uId ? { ...u, role: body.role } : u));
+      setOrgUsers(updated);
+      return { success: true };
+    }
+
+    // 5. Tasks / Rates Endpoints
+    if (endpoint.startsWith("/api/tasks/") && endpoint.includes("/rates")) {
+      const taskId = endpoint.split("/")[3];
+      setTaskRates((prev) => {
+        const filtered = prev.filter((tr) => !(tr.taskId === taskId && tr.userId === (body.targetUserId || GUEST_USER_ID)));
+        return [...filtered, { taskId, userId: body.targetUserId || GUEST_USER_ID, billingRate: body.billingRate, costRate: body.costRate }];
+      });
+      return { success: true };
+    }
+
+    // 6. Organization Settings
+    if (endpoint === "/api/organization") {
+      if (body?.name) {
+        setDbUser((prev) => prev ? { ...prev, organization: { ...prev.organization, name: body.name } } : prev);
+      }
+      return { success: true };
+    }
+
+    if (endpoint === "/api/organization/invoice-settings") {
+      if (body?.invoicePrefix || body?.nextInvoiceNumber) {
+        setDbUser((prev) => prev ? { ...prev, organization: { ...prev.organization, invoicePrefix: body.invoicePrefix || prev.organization.invoicePrefix, nextInvoiceNumber: body.nextInvoiceNumber || prev.organization.nextInvoiceNumber } } : prev);
+      }
+      return { success: true };
+    }
+
+    // 7. Stripe / Billing Simulation
+    if (endpoint.includes("/stripe")) {
+      return { url: "#" };
+    }
+
+    // Fallbacks
+    if (upperMethod === "GET") {
+      return [];
+    }
+    return { success: true };
+  };
+
   const apiCall = async (endpoint, method, body, successMessage = "", options = {}) => {
     if (isGuestMode) {
       if (successMessage) {
         addToast(successMessage, "success");
       }
-      return {};
+      return handleGuestApiCall(endpoint, method, body, options);
     }
     const isWrite = ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
     if (isWrite) {

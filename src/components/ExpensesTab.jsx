@@ -177,7 +177,7 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
                     className="w-full border border-slate-300 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                   >
                     <option value="">-- None --</option>
-                    {projects.map(p => (
+                    {(Array.isArray(projects) ? projects : []).map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
@@ -230,8 +230,8 @@ export default function ExpensesTab({ expenses, projects, apiCall, forceSync, db
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-              {expenses.map((expense) => {
-                const project = projects.find(p => p.id === expense.projectId);
+              {(Array.isArray(expenses) ? expenses : []).map((expense) => {
+                const project = (Array.isArray(projects) ? projects : []).find(p => p.id === expense.projectId);
                 return (
                   <tr key={expense.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                     <td className="p-3 border-r border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300">

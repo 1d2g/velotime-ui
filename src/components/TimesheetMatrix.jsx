@@ -61,7 +61,7 @@ export default function TimesheetMatrix({
   const { t } = useTranslation();
 
   const dates = useMemo(() => {
-    return propDates.filter(d => {
+    return (Array.isArray(propDates) ? propDates : []).filter(d => {
       if (timeframe !== 'week') return true;
       if (showWeekends) return true;
       const dateObj = new Date(d.id + 'T12:00:00');
@@ -72,10 +72,10 @@ export default function TimesheetMatrix({
 
   // Compute if the current view is locked
   const isLocked = useMemo(() => {
-    if (timeframe !== 'week' || !propDates.length) return false;
+    if (timeframe !== 'week' || !propDates?.length) return false;
     // propDates[0] is always the Monday when timeframe is 'week'
-    const weekStart = propDates[0].id; 
-    const sub = submissions.find(s => s.weekStartDate === weekStart && s.userId === viewUserId);
+    const weekStart = propDates[0]?.id; 
+    const sub = (Array.isArray(submissions) ? submissions : []).find(s => s.weekStartDate === weekStart && s.userId === viewUserId);
     return sub && (sub.status === 'submitted' || sub.status === 'approved');
   }, [timeframe, propDates, submissions, viewUserId]);
 

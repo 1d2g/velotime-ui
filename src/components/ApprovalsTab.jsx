@@ -38,8 +38,9 @@ export default function ApprovalsTab({ dbUser, orgUsers, submissions, apiCall, f
     return <div className="p-8 text-center">Access Denied</div>;
   }
 
-  const pendingSubmissions = submissions.filter(s => s.status === 'submitted');
-  const pastSubmissions = submissions.filter(s => s.status !== 'submitted');
+  const safeSubmissions = Array.isArray(submissions) ? submissions : [];
+  const pendingSubmissions = safeSubmissions.filter(s => s.status === 'submitted');
+  const pastSubmissions = safeSubmissions.filter(s => s.status !== 'submitted');
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 dark:bg-[#111111] p-4 sm:p-8">

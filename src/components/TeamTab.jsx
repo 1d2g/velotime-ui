@@ -16,7 +16,7 @@ export default function TeamTab({
 
   useEffect(() => {
     const initial = {};
-    orgUsers.forEach((u) => {
+    (Array.isArray(orgUsers) ? orgUsers : []).forEach((u) => {
       initial[u.id] = {
         costRate: u.defaultCostRate ?? "",
         billingRate: u.defaultBillingRate ?? "",
@@ -43,7 +43,7 @@ export default function TeamTab({
 
   const getEmployeeProjectHours = (userId) => {
     const breakdown = [];
-    projects.forEach((p) => {
+    (Array.isArray(projects) ? projects : []).forEach((p) => {
       let sum = 0;
       p.tasks.forEach((t) => {
         Object.entries(entries).forEach(([key, hours]) => {
@@ -207,7 +207,7 @@ export default function TeamTab({
       )}
 
       <div className="grid gap-6">
-        {orgUsers.map((u) => {
+        {(Array.isArray(orgUsers) ? orgUsers : []).map((u) => {
           const projectHours = getEmployeeProjectHours(u.id);
           const totalHours = projectHours.reduce((sum, p) => sum + p.hours, 0);
 

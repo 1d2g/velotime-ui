@@ -23,7 +23,7 @@ export default function InvoicesTab({
   const [subTab, setSubTab] = useState("editor"); // 'editor' | 'tracking'
 
   const unpaidCount = useMemo(() => {
-    return invoices.filter((i) => i.status !== "paid").length;
+    return (Array.isArray(invoices) ? invoices : []).filter((i) => i.status !== "paid").length;
   }, [invoices]);
 
   // Live Sheet Fields State (WYSIWYG directly on invoice paper)
@@ -157,15 +157,21 @@ export default function InvoicesTab({
   const fetchInvoices = async () => {
     try {
       const data = await apiCall("/api/invoices", "GET");
-      setInvoices(data);
+      const list = Array.isArray(data)
+        ? data
+        : data?.invoices && Array.isArray(data.invoices)
+        ? data.invoices
+        : [];
+      setInvoices(list);
       if (activeInvoiceId) {
-        const matched = data.find((i) => i.id === activeInvoiceId);
+        const matched = list.find((i) => i.id === activeInvoiceId);
         if (matched) selectInvoice(matched);
-      } else if (data.length > 0 && !activeInvoice) {
-        selectInvoice(data[0]);
+      } else if (list.length > 0 && !activeInvoice) {
+        selectInvoice(list[0]);
       }
     } catch (e) {
       console.error(e);
+      setInvoices([]);
     } finally {
       setIsLoading(false);
     }
@@ -386,7 +392,7 @@ export default function InvoicesTab({
     if (!window.confirm("Are you sure you want to delete this entire invoice?")) return;
     try {
       await apiCall(`/api/invoices/${activeInvoice.id}`, "DELETE");
-      const remaining = invoices.filter((i) => i.id !== activeInvoice.id);
+      const remaining = (Array.isArray(invoices) ? invoices : []).filter((i) => i.id !== activeInvoice.id);
       setInvoices(remaining);
       if (remaining.length > 0) {
         selectInvoice(remaining[0]);
@@ -434,7 +440,7 @@ export default function InvoicesTab({
         payload.dueDate = due.toISOString().split("T")[0];
       }
       const updated = await apiCall(`/api/invoices/${inv.id}`, "PUT", payload);
-      setInvoices((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      setInvoices((prev) => (Array.isArray(prev) ? prev : []).map((i) => (i.id === updated.id ? updated : i)));
       if (activeInvoice?.id === updated.id) {
         setActiveInvoice(updated);
         setSheetForm((prev) => ({ ...prev, ...payload }));
@@ -448,19 +454,19 @@ export default function InvoicesTab({
   const calculateHourlyData = () => {
     if (!liTaskId || !liUserId) return { hours: 0, rate: 0, amount: 0 };
     const unbilled =
-      rawEntries?.filter(
+      (Array.isArray(rawEntries) ? rawEntries : []).filter(
         (e) => e.taskId === liTaskId && e.userId === liUserId && !e.invoiceId,
-      ) || [];
+      );
     const totalHours = unbilled.reduce((sum, e) => sum + e.hours, 0);
 
     let rate = 0;
-    const tRate = taskRates.find(
+    const tRate = (Array.isArray(taskRates) ? taskRates : []).find(
       (tr) => tr.taskId === liTaskId && tr.userId === liUserId,
     );
     if (tRate && tRate.billingRate) {
       rate = tRate.billingRate;
     } else {
-      const user = orgUsers.find((u) => u.id === liUserId);
+      const user = (Array.isArray(orgUsers) ? orgUsers : []).find((u) => u.id === liUserId);
       rate = user?.defaultBillingRate || 0;
     }
     return { hours: totalHours, rate, amount: totalHours * rate };
@@ -468,7 +474,7 @@ export default function InvoicesTab({
 
   const detectPreviousBilledPercent = (phase) => {
     if (!phase || !activeInvoice?.projectId) return 0;
-    const projInvoices = invoices.filter(
+    const projInvoices = (Array.isArray(invoices) ? invoices : []).filter(
       (i) => i.projectId === activeInvoice.projectId && i.id !== activeInvoice.id,
     );
 
@@ -1387,7 +1393,7 @@ export default function InvoicesTab({
                           className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-none-none p-2 text-xs text-slate-900 dark:text-white"
                         >
                           <option value="">-- Choose Unbilled Expense --</option>
-                          {expenses.filter((exp) => !exp.invoiceId).map((exp) => (
+                          {(Array.isArray(expenses) ? expenses : []).filter((exp) => !exp.invoiceId).map((exp) => (
                             <option key={exp.id} value={exp.id}>
                               {exp.description} - ${exp.amount} ({exp.project?.name || "General"})
                             </option>
