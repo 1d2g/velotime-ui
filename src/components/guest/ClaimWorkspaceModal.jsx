@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, Sparkles, ShieldCheck, Download, ArrowRight, Check, ArrowLeft } from "lucide-react";
 import { SignUp } from "@clerk/clerk-react";
+import GoogleAuthButton from "../auth/GoogleAuthButton";
 
 /**
  * ClaimWorkspaceModal
@@ -61,7 +62,15 @@ export default function ClaimWorkspaceModal({
         {/* Modal Body */}
         <div className="p-6 space-y-5">
           {showClerkSignUp ? (
-            <div className="py-2 flex justify-center">
+            <div className="py-2 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => setShowClerkSignUp(false)}
+                className="self-start mb-3 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-zinc-200 flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to claim options</span>
+              </button>
               <SignUp
                 routing="hash"
                 signInUrl="/?mode=signin"
@@ -113,37 +122,56 @@ export default function ClaimWorkspaceModal({
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
+              {/* Action Buttons: 1-Click Google Sign Up + Email Fallback */}
+              <div className="pt-2 space-y-2.5">
+                <GoogleAuthButton
+                  mode="signup"
+                  label="Sign up with Google (1-Click)"
+                  source="claim_workspace_modal"
+                  onBeforeRedirect={() => {
                     if (onInitiateSignUp) onInitiateSignUp();
-                    try {
-                      if (typeof window !== "undefined" && window.posthog) {
-                        window.posthog.capture("signup_page_viewed", { source: "claim_workspace_modal" });
-                      }
-                    } catch (e) {}
-                    setShowClerkSignUp(true);
                   }}
-                  className="w-full sm:flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-rose-400 dark:text-rose-500" />
-                  <span>Create Free Account (1-Click)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-900 dark:border-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md hover:shadow-lg cursor-pointer"
+                />
 
-                {onExportCsv && (
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200 dark:border-zinc-800"></div>
+                  <span className="flex-shrink mx-3 text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-semibold">
+                    or continue with email
+                  </span>
+                  <div className="flex-grow border-t border-slate-200 dark:border-zinc-800"></div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2">
                   <button
                     type="button"
-                    onClick={onExportCsv}
-                    className="w-full sm:w-auto py-2.5 px-3 bg-white dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    title="Download raw timesheet hours as a CSV file"
+                    onClick={() => {
+                      if (onInitiateSignUp) onInitiateSignUp();
+                      try {
+                        if (typeof window !== "undefined" && window.posthog) {
+                          window.posthog.capture("signup_page_viewed", { source: "claim_workspace_modal_email" });
+                        }
+                      } catch (e) {}
+                      setShowClerkSignUp(true);
+                    }}
+                    className="w-full sm:flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-800 dark:hover:bg-zinc-700 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Download CSV</span>
+                    <span>Continue with Email</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
-                )}
+
+                  {onExportCsv && (
+                    <button
+                      type="button"
+                      onClick={onExportCsv}
+                      className="w-full sm:w-auto py-2.5 px-3 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      title="Download raw timesheet hours as a CSV file"
+                    >
+                      <Download className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Download CSV</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="text-center pt-2">

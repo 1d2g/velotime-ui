@@ -26,6 +26,15 @@ if (fs.existsSync(indexHtmlPath)) {
   // 3. Create dist/control.html
   fs.writeFileSync(path.join(distDir, 'control.html'), indexContent, 'utf8');
   console.log('[SPA] Created dist/control.html');
+
+  // 4. Create dist/sso-callback/index.html for direct 200 OK access to /sso-callback
+  const ssoDir = path.join(distDir, 'sso-callback');
+  if (!fs.existsSync(ssoDir)) {
+    fs.mkdirSync(ssoDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(ssoDir, 'index.html'), indexContent, 'utf8');
+  fs.writeFileSync(path.join(distDir, 'sso-callback.html'), indexContent, 'utf8');
+  console.log('[SPA] Created dist/sso-callback/index.html and dist/sso-callback.html');
 } else {
   console.warn('[SPA] dist/index.html not found, skipping route copies');
 }

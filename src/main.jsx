@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 import "./i18n";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkProvider, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
@@ -45,6 +45,7 @@ if (!PUBLISHABLE_KEY) {
 }
 
 const path = window.location.pathname;
+const isSsoCallback = path === "/sso-callback" || path.startsWith("/sso-callback");
 const isControlPage = path === "/control" || path.startsWith("/control");
 const isPublicPage = [
   "/privacy",
@@ -73,7 +74,21 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         >
           <PostHogProvider client={posthog}>
             <ToastProvider>
-              {isControlPage ? <ControlPortal /> : <App />}
+              {isSsoCallback ? (
+                <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+                  <div className="text-xs font-mono text-slate-400 mb-2">Connecting Google Account...</div>
+                  <AuthenticateWithRedirectCallback
+                    signInForceRedirectUrl="/"
+                    signUpForceRedirectUrl="/"
+                    signInFallbackRedirectUrl="/"
+                    signUpFallbackRedirectUrl="/"
+                  />
+                </div>
+              ) : isControlPage ? (
+                <ControlPortal />
+              ) : (
+                <App />
+              )}
             </ToastProvider>
           </PostHogProvider>
         </ClerkProvider>

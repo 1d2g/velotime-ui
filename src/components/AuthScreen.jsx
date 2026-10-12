@@ -4,6 +4,7 @@ import { Check, Lock, ArrowLeft } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import FounderChatBubble from "./FounderChatBubble";
 import FounderAdBanner from "./FounderAdBanner";
+import GoogleAuthButton from "./auth/GoogleAuthButton";
 
 function LogoPatternBackground() {
   return (
@@ -304,8 +305,10 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
       card: "w-full max-w-full shadow-2xl border border-zinc-800/80 rounded-xl bg-zinc-900/90 backdrop-blur-md p-3 sm:p-6 text-zinc-100",
       formButtonPrimary:
         "bg-white hover:bg-zinc-200 text-zinc-950 transition-all rounded-lg font-bold text-xs uppercase tracking-wider py-2.5 shadow-md shadow-white/10 active:scale-[0.99]",
-      socialButtonsBlockButton:
-        "border border-zinc-700/80 hover:bg-zinc-800/80 text-zinc-200 text-xs font-semibold rounded-lg transition-colors",
+      socialButtonsRoot: "hidden",
+      socialButtons: "hidden",
+      socialButtonsBlockButton: "hidden",
+      dividerRow: "hidden",
       formFieldInput:
         "rounded-lg border-zinc-700 bg-zinc-800/70 text-zinc-100 placeholder:text-zinc-500 text-xs focus:border-rose-500 focus:ring-1 focus:ring-rose-500",
       formFieldLabel: "text-zinc-300 text-xs font-medium",
@@ -461,6 +464,24 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Distinct 1-Click Google Authentication Button */}
+        <div className="w-full mb-3 select-none">
+          <GoogleAuthButton
+            mode={authMode === "signup" ? "signup" : "signin"}
+            label={authMode === "signup" ? "Sign up with Google (1-Click)" : "Sign in with Google"}
+            source="auth_screen"
+            className="w-full py-3 rounded-xl border border-white/20 bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs sm:text-sm shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+          />
+
+          <div className="relative flex py-3 items-center">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="flex-shrink mx-3 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">
+              or continue with email
+            </span>
+            <div className="flex-grow border-t border-white/10"></div>
           </div>
         </div>
 
