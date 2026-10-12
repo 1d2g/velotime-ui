@@ -34,6 +34,7 @@ import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletion
 import PricingBenchmarkChart from "./components/guest/PricingBenchmarkChart";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
+import GoogleAuthButton from "./components/auth/GoogleAuthButton";
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -1461,8 +1462,16 @@ export default function App() {
               <div className="flex items-center w-full lg:w-64 shrink-0">
                 <a
                   href="https://velotime.dg.tools"
+                  target="_top"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    if (typeof window !== "undefined" && window.top && window.top !== window.self) {
+                      e.preventDefault();
+                      window.top.location.href = "https://velotime.dg.tools";
+                    }
+                  }}
                   className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2 hover:opacity-90 transition-opacity"
-                  title="Return to VeloTime Product Site (Overview, Features & Pricing)"
+                  title="Return to VeloTime Landing Page (Overview, Features & Pricing)"
                 >
                   <svg
                     className="w-6 h-6 shrink-0"
@@ -1574,26 +1583,45 @@ export default function App() {
                   )}
                 </button>
                 {isGuestMode ? (
-                  <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <a
                       href="https://velotime.dg.tools"
-                      className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer select-none"
+                      target="_top"
+                      className="px-2 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer select-none"
                       title="Return to main site (Overview, Pricing & Features)"
                     >
                       <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="hidden sm:inline">Main Site</span>
-                      <span className="sm:hidden">Site</span>
+                      <span className="hidden xl:inline">Main Site</span>
+                      <span className="xl:hidden">Site</span>
                     </a>
 
-                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-[11px] font-mono font-bold text-slate-700 dark:text-zinc-300">
+                    <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-[11px] font-mono font-bold text-slate-700 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>Guest Sandbox</span>
+                      <span>Sandbox</span>
                     </div>
+
+                    {/* Distinct 1-Click Google Sign Up Button */}
+                    <GoogleAuthButton
+                      mode="signup"
+                      label="Sign up with Google"
+                      shortLabel="Google"
+                      source="top_navbar_guest"
+                      onBeforeRedirect={() => {
+                        safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
+                          clients,
+                          projects,
+                          entries,
+                          notes,
+                          totalHours: totalGuestHours,
+                        }));
+                      }}
+                      className="w-auto px-2.5 sm:px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-900 dark:border-white font-bold text-xs flex items-center gap-2 transition-all shadow-xs hover:shadow cursor-pointer select-none shrink-0"
+                    />
 
                     <button
                       type="button"
                       onClick={handleOpenClaimModal}
-                      className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm shrink-0"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-white" />
                       <span className="hidden sm:inline">Save & Claim</span>
@@ -1606,10 +1634,10 @@ export default function App() {
                         setAuthScreenMode("signin");
                         setShowAuthScreen(true);
                       }}
-                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer shrink-0"
                     >
                       <LogIn className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                      <span>Sign In</span>
+                      <span className="hidden sm:inline">Sign In</span>
                     </button>
                   </div>
                 ) : (

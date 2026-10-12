@@ -27,6 +27,7 @@ export function GoogleIcon({ className = "w-4 h-4" }) {
 export default function GoogleAuthButton({
   mode = "signup", // "signup" or "signin"
   label,
+  shortLabel,
   className = "",
   onBeforeRedirect,
   source = "unknown",
@@ -109,16 +110,28 @@ export default function GoogleAuthButton({
     }
   };
 
+  const hasExplicitWidth = /\bw-\S+/.test(className);
+  const widthClass = hasExplicitWidth ? "" : "w-full";
+
   return (
     <button
       type="button"
       onClick={handleGoogleAuth}
       disabled={isLoading}
-      className={`w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer select-none disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`${widthClass} py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow cursor-pointer select-none disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
       title={label || defaultLabel}
     >
       <GoogleIcon className="w-4 h-4 shrink-0" />
-      <span>{isLoading ? "Connecting to Google..." : (label || defaultLabel)}</span>
+      {isLoading ? (
+        <span>Connecting...</span>
+      ) : shortLabel ? (
+        <>
+          <span className="hidden md:inline">{label || defaultLabel}</span>
+          <span className="md:hidden">{shortLabel}</span>
+        </>
+      ) : (
+        <span>{label || defaultLabel}</span>
+      )}
     </button>
   );
 }

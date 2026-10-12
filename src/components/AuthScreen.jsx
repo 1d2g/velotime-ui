@@ -360,27 +360,35 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
           />
 
           {/* Brand Logo Header */}
-          <div className="flex items-center gap-3 sm:gap-3.5 mb-3 sm:mb-4 select-none relative z-10">
-            <svg
-              className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 select-none shadow-md rounded-lg"
-              viewBox="0 0 200 200"
-              fill="none"
+          <div className="mb-3 sm:mb-4 select-none relative z-10">
+            <a
+              href="https://velotime.dg.tools"
+              target="_top"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 sm:gap-3.5 hover:opacity-90 transition-opacity cursor-pointer"
+              title="Return to VeloTime Landing Page"
             >
-              <rect width="200" height="200" rx="36" fill="#0F172A" />
-              <path
-                d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
-                fill="#F43F5E"
-              />
-              <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
-              <path
-                d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
-                fill="#FFFFFF"
-              />
-            </svg>
-            <span className="font-extrabold text-lg sm:text-xl tracking-[0.24em] uppercase font-sans">
-              <span className="text-white">VELO</span>
-              <span className="text-rose-500">TIME</span>
-            </span>
+              <svg
+                className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 select-none shadow-md rounded-lg"
+                viewBox="0 0 200 200"
+                fill="none"
+              >
+                <rect width="200" height="200" rx="36" fill="#0F172A" />
+                <path
+                  d="M 60 48 L 140 48 L 155 63 L 155 72 H 45 V 63 Z"
+                  fill="#F43F5E"
+                />
+                <path d="M 90 72 H 110 V 94 H 90 Z" fill="#F43F5E" />
+                <path
+                  d="M 45 94 H 68 L 100 132 L 132 94 H 155 L 110 148 C 105 153 95 153 90 148 Z"
+                  fill="#FFFFFF"
+                />
+              </svg>
+              <span className="font-extrabold text-lg sm:text-xl tracking-[0.24em] uppercase font-sans">
+                <span className="text-white">VELO</span>
+                <span className="text-rose-500">TIME</span>
+              </span>
+            </a>
           </div>
 
           {/* Tab Toggle */}
