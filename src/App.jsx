@@ -26,12 +26,14 @@ import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
-import { Sparkles, LogIn, Keyboard, Play } from "lucide-react";
+import { Sparkles, LogIn, Keyboard, Play, Download } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
 import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
 import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletionModal";
 import PricingBenchmarkChart from "./components/guest/PricingBenchmarkChart";
+import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
+import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -374,7 +376,33 @@ export default function App() {
     "Settings",
   ];
 
-  const [timeframe, setTimeframe] = useState("week"); // 'day', 'week', 'month'
+  const [timeframe, setTimeframe] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = safeGetItem("localStorage", "velotime_timeframe");
+      if (stored) return stored;
+      if (window.innerWidth < 640) return "day";
+    }
+    return "week";
+  }); // 'day', 'week', 'month'
+
+  useEffect(() => {
+    safeSetItem("localStorage", "velotime_timeframe", timeframe);
+  }, [timeframe]);
+
+  const [userCellEditCount, setUserCellEditCount] = useState(0);
+  const [isReturningGuest, setIsReturningGuest] = useState(() => {
+    try {
+      const hasVisited = safeGetItem("localStorage", "velotime_guest_has_visited");
+      const hasWorkspace = safeGetItem("localStorage", "velotime_guest_workspace");
+      return Boolean(hasVisited === "true" && hasWorkspace);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    safeSetItem("localStorage", "velotime_guest_has_visited", "true");
+  }, []);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [currentDate, setCurrentDate] = useState(() => {
     const today = new Date();
@@ -670,7 +698,11 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    addToast("Timesheet CSV exported successfully", "success");
+    if (isGuestMode) {
+      addToast("Timesheet CSV exported. Save your workspace to sync with your team.", "success");
+    } else {
+      addToast("Timesheet CSV exported successfully", "success");
+    }
   };
 
   const handleClearGrid = () => {
@@ -1261,7 +1293,11 @@ export default function App() {
       ...prev,
       [`${uid}_${dateId}_${taskId}`]: numValue,
     }));
-    if (isGuestMode || taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
+    if (isGuestMode) {
+      setUserCellEditCount((prev) => prev + 1);
+      return;
+    }
+    if (taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
     try {
       await apiCall("/api/entries", "POST", {
         dateId,
@@ -1403,6 +1439,13 @@ export default function App() {
         </div>
       ) : (
         <>
+          {isGuestMode && isReturningGuest && (
+            <GuestReturnBanner
+              totalHours={totalGuestHours}
+              clientsCount={clients.length}
+              onClaimWorkspace={() => setIsClaimModalOpen(true)}
+            />
+          )}
           {isGuestMode && (
             <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" />
           )}
@@ -1757,6 +1800,15 @@ export default function App() {
                                   <Play className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400 fill-slate-600 dark:fill-slate-400" />
                                   <span>Video (26s)</span>
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={handleExportCsv}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
+                                  title="Export current timesheet entries to CSV"
+                                >
+                                  <Download className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" />
+                                  <span>Export CSV</span>
+                                </button>
                               </div>
                             </>
                           )}
@@ -2065,6 +2117,14 @@ export default function App() {
               setIsWalkthroughModalOpen(false);
               setIsClaimModalOpen(true);
             }}
+          />
+          <GuestFloatingActionBar
+            totalHours={totalGuestHours}
+            projectsCount={projects.length}
+            clientsCount={clients.length}
+            userCellEditCount={userCellEditCount}
+            onClaimWorkspace={() => setIsClaimModalOpen(true)}
+            onExportCsv={handleExportCsv}
           />
         </>
       )}
