@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Copy, Check, X } from "lucide-react";
+import { Mail, Copy, Check, X, ArrowLeft } from "lucide-react";
 
 /**
  * FounderTrustBanner
@@ -73,6 +73,15 @@ export default function FounderTrustBanner({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+          <a
+            href="https://velotime.dg.tools"
+            className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            title="Read overview, features, and pricing on main site"
+          >
+            <ArrowLeft className="w-3 h-3 text-slate-400" />
+            <span>Main Site</span>
+          </a>
+
           <a
             href={`mailto:${founderEmail}?subject=Question%20about%20VeloTime%20workspace`}
             className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-900 font-bold text-[11px] tracking-wider transition-colors inline-flex items-center gap-1 shadow-sm cursor-pointer"

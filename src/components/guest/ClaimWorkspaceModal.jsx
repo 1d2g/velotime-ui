@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Sparkles, ShieldCheck, Download, ArrowRight, Check } from "lucide-react";
+import { X, Sparkles, ShieldCheck, Download, ArrowRight, Check, ArrowLeft } from "lucide-react";
 import { SignUp } from "@clerk/clerk-react";
 
 /**
@@ -144,6 +144,16 @@ export default function ClaimWorkspaceModal({
                     <span>Download CSV</span>
                   </button>
                 )}
+              </div>
+
+              <div className="text-center pt-2">
+                <a
+                  href="https://velotime.dg.tools"
+                  className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium inline-flex items-center gap-1 transition-colors"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  <span>Return to main site (Features, Comparison & Pricing)</span>
+                </a>
               </div>
             </>
           )}

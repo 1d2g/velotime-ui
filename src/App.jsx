@@ -26,7 +26,7 @@ import DevModeBadge from "./components/DevModeBadge";
 import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
-import { Sparkles, LogIn, Keyboard, Play, Download } from "lucide-react";
+import { Sparkles, LogIn, Keyboard, Play, Download, ArrowLeft } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
 import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
@@ -1459,7 +1459,11 @@ export default function App() {
           />
           <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
               <div className="flex items-center w-full lg:w-64 shrink-0">
-                <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2">
+                <a
+                  href="https://velotime.dg.tools"
+                  className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tighter cursor-pointer flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  title="Return to VeloTime Product Site (Overview, Features & Pricing)"
+                >
                   <svg
                     className="w-6 h-6 shrink-0"
                     viewBox="0 0 200 200"
@@ -1479,7 +1483,7 @@ export default function App() {
                   <span>
                     VELO<span className="text-rose-600">TIME</span>
                   </span>
-                </div>
+                </a>
               </div>
               <div className="hidden md:flex flex-1 justify-center max-w-3xl px-4">
                 <nav className="flex w-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
@@ -1571,6 +1575,16 @@ export default function App() {
                 </button>
                 {isGuestMode ? (
                   <div className="flex items-center gap-2 sm:gap-2.5">
+                    <a
+                      href="https://velotime.dg.tools"
+                      className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-zinc-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer select-none"
+                      title="Return to main site (Overview, Pricing & Features)"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="hidden sm:inline">Main Site</span>
+                      <span className="sm:hidden">Site</span>
+                    </a>
+
                     <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-[11px] font-mono font-bold text-slate-700 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       <span>Guest Sandbox</span>
@@ -1809,6 +1823,14 @@ export default function App() {
                                   <Download className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" />
                                   <span>Export CSV</span>
                                 </button>
+                                <a
+                                  href="https://velotime.dg.tools"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
+                                  title="Return to main site (Overview, Comparisons & Pricing)"
+                                >
+                                  <ArrowLeft className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" />
+                                  <span>Main Site</span>
+                                </a>
                               </div>
                             </>
                           )}

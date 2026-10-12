@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Download, ArrowRight, X, ShieldCheck } from "lucide-react";
+import { Sparkles, Download, ArrowRight, X, ShieldCheck, ArrowLeft } from "lucide-react";
 
 /**
  * GuestFloatingActionBar
@@ -70,6 +70,15 @@ export default function GuestFloatingActionBar({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+          <a
+            href="https://velotime.dg.tools"
+            className="px-2 py-1.5 text-slate-400 hover:text-white text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+            title="Read overview, features, and pricing on main site"
+          >
+            <ArrowLeft className="w-3 h-3 text-slate-400" />
+            <span className="hidden sm:inline">Main Site</span>
+          </a>
+
           {onExportCsv && (
             <button
               type="button"

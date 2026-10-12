@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, ArrowRight, X, ShieldCheck } from "lucide-react";
+import { Sparkles, ArrowRight, X, ShieldCheck, ArrowLeft } from "lucide-react";
 
 /**
  * GuestReturnBanner
@@ -48,6 +48,15 @@ export default function GuestReturnBanner({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <a
+            href="https://velotime.dg.tools"
+            className="text-slate-400 hover:text-white text-xs font-semibold inline-flex items-center gap-1 px-1.5 py-1 transition-colors"
+            title="Read overview, features, and pricing on main site"
+          >
+            <ArrowLeft className="w-3 h-3 text-slate-400" />
+            <span className="hidden sm:inline">Main Site</span>
+          </a>
+
           <button
             type="button"
             onClick={onClaimWorkspace}
