@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import { Check, Lock, ArrowLeft } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
@@ -152,6 +152,12 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
   const posthog = usePostHog();
   const lastCapturedModeRef = useRef(null);
 
+  const targetCompany = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("company") || params.get("agency") || params.get("studio") || "").trim();
+  }, []);
+
   const handleBackToDemo = (e) => {
     e?.preventDefault?.();
     if (typeof window !== "undefined") {
@@ -273,6 +279,7 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
         utm_medium: params.get("utm_medium") || null,
         utm_content: params.get("utm_content") || null,
         trial: params.get("trial") === "true",
+        company: targetCompany || null,
         referrer: typeof document !== "undefined" ? document.referrer : null,
         viewport_width: window.innerWidth,
         viewport_height: window.innerHeight,
@@ -422,10 +429,10 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
             {authMode === "signup" ? (
               <>
                 <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
-                  Start your 14-day free trial
+                  {targetCompany ? `Start ${targetCompany}'s 14-day free trial` : "Start your 14-day free trial"}
                 </h1>
                 <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
-                  Zero credit card required. Full team matrix & margin telemetry.
+                  Zero credit card required. Full team matrix & margin telemetry{targetCompany ? ` for ${targetCompany}` : ""}.
                 </p>
                 <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-semibold text-zinc-300">
                   <span className="inline-flex items-center gap-1 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
@@ -441,7 +448,7 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
                     Full team features
                   </span>
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-center">
+                <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex flex-col items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={handleBackToDemo}
@@ -450,6 +457,12 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
                     <ArrowLeft className="w-3 h-3 text-zinc-500" />
                     <span>Want to test the matrix first? Back to live demo</span>
                   </button>
+                  <a
+                    href={`https://velotime.dg.tools/migrate${targetCompany ? `?company=${encodeURIComponent(targetCompany)}` : ""}`}
+                    className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors font-medium hover:underline underline-offset-2"
+                  >
+                    Migrating from Harvest or Toggl? Free 15-minute concierge setup &rarr;
+                  </a>
                 </div>
               </>
             ) : (
