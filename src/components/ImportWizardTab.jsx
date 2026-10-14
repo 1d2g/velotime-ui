@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
-export default function ImportWizardTab({ dbUser, clients, projects, apiCall, forceSync }) {
+export default function ImportWizardTab({ dbUser, clients, projects, apiCall, forceSync, onBack }) {
   const { addToast } = useToast();
 
   const [platform, setPlatform] = useState('harvest'); // 'harvest', 'toggl', 'clockify', 'csv'
@@ -154,6 +154,15 @@ export default function ImportWizardTab({ dbUser, clients, projects, apiCall, fo
             </div>
             
             <div className="flex items-center gap-2">
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-semibold transition-colors"
+                >
+                  &larr; Exit to Timesheets
+                </button>
+              )}
               <button
                 onClick={handleLoadSampleData}
                 className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-semibold transition-colors"

@@ -5,7 +5,8 @@ export default function DevModeBadge({
   isDevModeActive,
   onToggle,
   user,
-  dbUser
+  dbUser,
+  setActiveTab,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -85,13 +86,26 @@ export default function DevModeBadge({
             </div>
 
             {/* Feature Flags Section */}
-            <div className="space-y-1.5 mb-3 text-[11px]">
+            <div className="space-y-2 mb-3 text-[11px]">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                 Active Beta Modules
               </div>
-              <div className="flex items-center justify-between py-0.5 text-slate-700 dark:text-slate-300">
+              <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-zinc-800 text-slate-700 dark:text-slate-300">
                 <span>Migration & Import Wizard</span>
-                <span className="font-mono text-emerald-600 font-bold">ACTIVE</span>
+                {setActiveTab ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Migration (Dev)");
+                      setIsOpen(false);
+                    }}
+                    className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] rounded cursor-pointer transition-colors"
+                  >
+                    Launch Wizard
+                  </button>
+                ) : (
+                  <span className="font-mono text-emerald-600 font-bold">ACTIVE</span>
+                )}
               </div>
               <div className="flex items-center justify-between py-0.5 text-slate-700 dark:text-slate-300">
                 <span>Harvest & Toggl Importers</span>

@@ -373,7 +373,6 @@ export default function App() {
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
       : []),
-    ...(isDevActive ? ["Migration (Dev)"] : []),
     "Settings",
   ];
 
@@ -1535,6 +1534,7 @@ export default function App() {
                   onToggle={() => setIsDevModeActive((prev) => !prev)}
                   user={user}
                   dbUser={dbUser}
+                  setActiveTab={setActiveTab}
                 />
 
                 {/* Connected Integrations & Speed Layer Button */}
@@ -2136,6 +2136,7 @@ export default function App() {
                   projects={projects}
                   apiCall={apiCall}
                   forceSync={forceSync}
+                  onBack={() => setActiveTab("Timesheets")}
                 />
               ) : activeTab === "Settings" ? (
                 <OrganizationSettingsTab
