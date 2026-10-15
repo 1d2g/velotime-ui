@@ -178,6 +178,7 @@ export default function App() {
   const [taskRates, setTaskRates] = useState([]);
 
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const companyParam = searchParams?.get("company")?.trim() || "";
   const isAuditMode = searchParams?.get("audit_mode") === "true";
   const authParam = searchParams?.get("mode");
   const isExplicitSignIn = authParam === "signin" || authParam === "signup" || authParam === "login";
@@ -587,9 +588,37 @@ export default function App() {
 
       // Hybrid Default (v5: complete rich demo dataset for all tabs with full week for Sarah Chen)
       safeSetItem("localStorage", "velotime_guest_template_ver", "v5");
-      setDbUser(GUEST_MOCK_USER);
-      setClients(INITIAL_GUEST_CLIENTS);
-      setProjects(INITIAL_GUEST_PROJECTS);
+      const dynamicUser = companyParam
+        ? {
+            ...GUEST_MOCK_USER,
+            organization: {
+              ...GUEST_MOCK_USER.organization,
+              name: `${companyParam} Workspace`,
+            },
+          }
+        : GUEST_MOCK_USER;
+      setDbUser(dynamicUser);
+
+      const dynamicClients = companyParam
+        ? [
+            { id: "guest_c1", name: `${companyParam} Client Engagements`, address: "100 Innovation Way, Suite 400" },
+            ...INITIAL_GUEST_CLIENTS.slice(1),
+          ]
+        : INITIAL_GUEST_CLIENTS;
+      setClients(dynamicClients);
+
+      const dynamicProjects = companyParam
+        ? [
+            {
+              ...INITIAL_GUEST_PROJECTS[0],
+              name: `${companyParam} Operations & Retainer`,
+              clientName: `${companyParam} Client Engagements`,
+            },
+            ...INITIAL_GUEST_PROJECTS.slice(1),
+          ]
+        : INITIAL_GUEST_PROJECTS;
+      setProjects(dynamicProjects);
+
       setEntries(buildInitialGuestEntries(dates));
       setNotes(buildInitialGuestNotes(dates));
       setOrgUsers(INITIAL_GUEST_ORG_USERS);
@@ -1447,7 +1476,7 @@ export default function App() {
             />
           )}
           {isGuestMode && (
-            <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" />
+            <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" companyName={companyParam} />
           )}
           <WorkspaceOnboardingModal
             isOpen={shouldShowOnboarding}

@@ -10,6 +10,7 @@ import { Mail, Copy, Check, X, ArrowLeft } from "lucide-react";
 export default function FounderTrustBanner({
   founderName = "Dustin Gray",
   founderEmail = "dgray@dg.tools",
+  companyName = "",
   onDismiss,
 }) {
   const [copied, setCopied] = useState(false);
@@ -59,9 +60,9 @@ export default function FounderTrustBanner({
           <div className="text-[11px] leading-tight text-slate-200">
             <span className="font-bold text-white mr-1.5">{founderName} (Founder):</span>
             <span className="text-slate-300">
-              Building VeloTime for independent studios and agencies. Evaluating for your team or have questions on custom rates and migration? Direct line:{" "}
+              {companyName ? `Welcome to the ${companyName} evaluation workspace! ` : "Building VeloTime for independent studios and agencies. "}Evaluating for your team or have questions on custom rates and migration? Direct line:{" "}
               <a
-                href={`mailto:${founderEmail}?subject=Question%20about%20VeloTime%20workspace`}
+                href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime')}%20workspace`}
                 className="text-white underline font-semibold hover:text-slate-200"
               >
                 {founderEmail}
