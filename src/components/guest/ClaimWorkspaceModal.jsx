@@ -174,14 +174,32 @@ export default function ClaimWorkspaceModal({
                 </div>
               </div>
 
-              <div className="text-center pt-2">
-                <a
-                  href="https://velotime.dg.tools"
-                  className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium inline-flex items-center gap-1 transition-colors"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  <span>Return to main site (Features, Comparison & Pricing)</span>
-                </a>
+              <div className="pt-2 text-center border-t border-slate-200 dark:border-zinc-800 space-y-1.5">
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  Ready to activate team billing?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        sessionStorage.setItem("velotime_auto_upgrade_checkout", "true");
+                      } catch {}
+                      if (onInitiateSignUp) onInitiateSignUp();
+                      setShowClerkSignUp(true);
+                    }}
+                    className="text-slate-900 dark:text-white font-bold hover:underline cursor-pointer"
+                  >
+                    Subscribe directly to Pro ($5/seat/mo) &rarr;
+                  </button>
+                </p>
+                <div>
+                  <a
+                    href="https://velotime.dg.tools"
+                    className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium inline-flex items-center gap-1 transition-colors"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    <span>Return to main site (Features, Comparison & Pricing)</span>
+                  </a>
+                </div>
               </div>
             </>
           )}

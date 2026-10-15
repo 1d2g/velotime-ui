@@ -374,6 +374,23 @@ export default function WorkspaceOnboardingModal({
 
                 <button
                   type="button"
+                  onClick={async () => {
+                    try {
+                      setIsSubmitting(true);
+                      const { url } = await apiCall("/api/stripe/checkout", "POST");
+                      window.location.href = url;
+                    } catch (e) {
+                      addToast("Failed to initiate checkout. Please try again.", "error");
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  className="w-full py-2.5 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <span>Activate Pro Subscription ($5/seat/mo) &rarr;</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleSkip}
                   className="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                 >
