@@ -45,6 +45,10 @@ export default function GuestReturnBanner({
             <ShieldCheck className="w-3 h-3 text-emerald-400 inline" />
             Zero credit card required
           </span>
+          <span className="text-slate-500 hidden lg:inline">•</span>
+          <span className="text-slate-400 text-xs hidden lg:inline">
+            Questions? <a href="mailto:dgray@dg.tools?subject=Question%20about%20VeloTime%20workspace" className="underline text-slate-300 hover:text-white font-medium">dgray@dg.tools</a>
+          </span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

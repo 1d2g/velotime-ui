@@ -1497,24 +1497,25 @@ export default function App() {
         </div>
       ) : (
         <>
-          {isGuestMode && isReturningGuest && (
-            <GuestReturnBanner
-              totalHours={totalGuestHours}
-              clientsCount={clients.length}
-              onClaimWorkspace={() => setIsClaimModalOpen(true)}
-            />
-          )}
           {isGuestMode && (
             <>
-              <FounderTrustBanner
-                founderName="Dustin Gray"
-                founderEmail="dgray@dg.tools"
-                companyName={companyParam}
-                isTrial={isTrialParam}
-                trialSeats={validSeats}
-                competitor={competitorParam}
-                onClaimWorkspace={() => setIsClaimModalOpen(true)}
-              />
+              {isReturningGuest ? (
+                <GuestReturnBanner
+                  totalHours={totalGuestHours}
+                  clientsCount={clients.length}
+                  onClaimWorkspace={() => setIsClaimModalOpen(true)}
+                />
+              ) : (
+                <FounderTrustBanner
+                  founderName="Dustin Gray"
+                  founderEmail="dgray@dg.tools"
+                  companyName={companyParam}
+                  isTrial={isTrialParam}
+                  trialSeats={validSeats}
+                  competitor={competitorParam}
+                  onClaimWorkspace={() => setIsClaimModalOpen(true)}
+                />
+              )}
               {typeof window !== "undefined" && window.innerWidth < 768 && (
                 <div className="bg-slate-900 border-b border-slate-700 px-4 py-2 text-white flex items-center justify-between text-xs sm:hidden z-40">
                   <span className="text-slate-300 font-medium">Using a phone or tablet?</span>

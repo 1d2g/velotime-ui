@@ -25,6 +25,7 @@ export default function TimesheetCell({
   className = "",
   walkthroughBadgeText = null,
   isWalkthroughTarget = false,
+  isCompact = false,
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -129,7 +130,7 @@ export default function TimesheetCell({
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative h-12 transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-primary-50/40 
+      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative ${isCompact ? "h-9" : "h-12"} transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-primary-50/40 
  ${isFirstInProject ? "border-l " : ""}
  ${isWalkthroughTarget ? "ring-2 ring-rose-500 bg-rose-50/30 dark:bg-rose-950/20 z-20" : isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
  ${displayAuditRed && !isSelected && !isWalkthroughTarget ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
@@ -157,7 +158,7 @@ export default function TimesheetCell({
           initialEditValue.current = value;
         }}
         onBlur={onEditEnd}
-        className={`w-full h-full min-h-[40px] block text-center outline-none transition-all cursor-cell bg-transparent
+        className={`w-full h-full ${isCompact ? "min-h-[28px] text-xs py-0.5" : "min-h-[40px] text-sm"} block text-center outline-none transition-all cursor-cell bg-transparent
  ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}

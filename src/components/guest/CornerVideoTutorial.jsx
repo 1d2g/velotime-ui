@@ -15,7 +15,12 @@ export default function CornerVideoTutorial({
 }) {
   const [isMinimized, setIsMinimized] = useState(() => {
     try {
-      return sessionStorage.getItem("velotime_corner_video_minimized") === "true";
+      const stored = sessionStorage.getItem("velotime_corner_video_minimized");
+      if (stored !== null) return stored === "true";
+      if (typeof window !== "undefined") {
+        return window.innerHeight < 860 || window.innerWidth < 1280;
+      }
+      return false;
     } catch {
       return false;
     }
@@ -28,12 +33,29 @@ export default function CornerVideoTutorial({
     if (isOpen) {
       setIsDismissed(false);
       try {
-        const wasMinimized = sessionStorage.getItem("velotime_corner_video_minimized") === "true";
-        setIsMinimized(wasMinimized);
+        const stored = sessionStorage.getItem("velotime_corner_video_minimized");
+        if (stored !== null) {
+          setIsMinimized(stored === "true");
+        } else if (typeof window !== "undefined") {
+          setIsMinimized(window.innerHeight < 860 || window.innerWidth < 1280);
+        }
       } catch {
         setIsMinimized(false);
       }
     }
+
+    const handleResize = () => {
+      // If user hasn't manually expanded, auto-minimize when window is small
+      if (typeof window !== "undefined") {
+        const stored = sessionStorage.getItem("velotime_corner_video_minimized");
+        if (stored === null && (window.innerHeight < 860 || window.innerWidth < 1280)) {
+          setIsMinimized(true);
+        }
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isOpen]);
 
   const handleMinimize = (minimized) => {

@@ -6,7 +6,7 @@ import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
 import { motion } from "framer-motion";
-import { Pencil, RotateCcw } from "lucide-react";
+import { Pencil, RotateCcw, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -106,6 +106,13 @@ export default function TimesheetMatrix({
   const theadRef = useRef(null);
   const [heights, setHeights] = useState({ container: 0, thead: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [isCompact, setIsCompact] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerHeight < 860;
+    }
+    return false;
+  });
+  const [expandInsightsInCompact, setExpandInsightsInCompact] = useState(false);
 
   useEffect(() => {
     const updateHeights = () => {
@@ -114,6 +121,7 @@ export default function TimesheetMatrix({
         thead: theadRef.current ? theadRef.current.offsetHeight : 0,
       });
       setIsMobile(window.innerWidth < 768);
+      setIsCompact(window.innerHeight < 860);
     };
 
     updateHeights();
@@ -129,15 +137,18 @@ export default function TimesheetMatrix({
     };
   }, []);
 
+  const tier1HeightClass = isCompact ? "h-11" : "h-16";
+  const tier2TopClass = isCompact ? "top-11" : "top-16";
+  const tier2TaskPadClass = isCompact ? "py-1.5 px-1.5 text-xs" : "py-4 px-2 text-xs";
+  const rowHeightClass = isCompact ? "h-9" : "h-12";
+  const cellPadClass = isCompact ? "py-1 px-1.5 text-xs" : "p-2 text-xs";
+
   const calculatedNoteRowHeight = useMemo(() => {
     if (!["day", "week"].includes(timeframe) || heights.container === 0) {
-      return 56; // Default fallback
+      return isCompact ? 48 : 56;
     }
-    // With accordion, only one note row is expanded at a time!
-    // So we can make the active note row take a comfortable height, or scale it to fit.
-    // Let's make it a nice comfortable height, e.g. 72px, so it's spacious but doesn't push the table off screen.
-    return 72;
-  }, [timeframe, heights]);
+    return isCompact ? 56 : 72;
+  }, [timeframe, heights, isCompact]);
 
   const capacityGoal = useMemo(() => {
     return timeframe === "day" ? 8.0 : 40.0;
@@ -859,8 +870,8 @@ export default function TimesheetMatrix({
       )}
 
       {/* Sort Control Panel */}
-      <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-zinc-950 border-b border-slate-300 dark:border-zinc-700 shrink-0">
-        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-2">Sort Projects:</span>
+      <div className={`flex items-center gap-2 ${isCompact ? "py-1 px-3" : "p-3"} bg-slate-50 dark:bg-zinc-950 border-b border-slate-300 dark:border-zinc-700 shrink-0 select-none`}>
+        <span className={`${isCompact ? "text-[11px]" : "text-xs"} font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1`}>Sort Projects:</span>
         {[
           { id: 'manual', label: 'Manual (Drag)', icon: 'M8 9h8M8 15h8' },
           { id: 'client', label: 'Client', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
@@ -870,7 +881,7 @@ export default function TimesheetMatrix({
           <button
             key={mode.id}
             onClick={() => setSortMode(mode.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${sortMode === mode.id ? "bg-primary-600 text-white shadow-sm" : "bg-white dark:bg-zinc-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-700"}`}
+            className={`flex items-center gap-1.5 ${isCompact ? "px-2.5 py-0.5 text-[11px]" : "px-3 py-1.5 text-xs"} rounded-full font-bold transition-all ${sortMode === mode.id ? "bg-primary-600 text-white shadow-sm" : "bg-white dark:bg-zinc-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-700"}`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mode.icon} />
@@ -911,10 +922,10 @@ export default function TimesheetMatrix({
           <thead ref={theadRef}>
             <tr className="bg-slate-100 dark:bg-zinc-800 ">
               <th
-                className="sticky top-0 left-0 z-50 bg-white dark:bg-zinc-900 h-16 border-b border-r border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] "
+                className={`sticky top-0 left-0 z-50 bg-white dark:bg-zinc-900 ${tier1HeightClass} border-b border-r border-slate-300 dark:border-zinc-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] `}
                 colSpan={3}
               >
-                <div className="flex flex-col items-center justify-center h-full w-full gap-1.5 py-1">
+                <div className={`flex flex-col items-center justify-center h-full w-full ${isCompact ? "gap-1 py-0.5" : "gap-1.5 py-1"}`}>
                   <div className="flex items-center justify-center gap-3">
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 select-none transition-colors">
                       <input
@@ -965,7 +976,7 @@ export default function TimesheetMatrix({
                   )}
                 </div>
               </th>
-              <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none"></th>
+              <th className={`sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] ${tier1HeightClass} border-none`}></th>
 
               {filteredProjects.map((p, pIndex) => (
                 <React.Fragment key={`tier1_${p.id}`}>
@@ -1080,9 +1091,9 @@ export default function TimesheetMatrix({
                     </div>
                   </th>
                   {!p.isCollapsed && p.tasks.length > 0 && (
-                    <th className="sticky top-0 bg-white dark:bg-zinc-900 w-20 h-16 z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden"></th>
+                    <th className={`sticky top-0 bg-white dark:bg-zinc-900 w-20 ${tier1HeightClass} z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden`}></th>
                   )}
-                  <th className="sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] h-16 border-none z-30"></th>
+                  <th className={`sticky top-0 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] ${tier1HeightClass} border-none z-30`}></th>
                 </React.Fragment>
               ))}
 
@@ -1123,26 +1134,26 @@ export default function TimesheetMatrix({
 
             <tr className="bg-slate-100 dark:bg-zinc-800 ">
               <th
-                className={`${stickyLeft1} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
+                className={`${stickyLeft1} sticky ${tier2TopClass} z-50 ${cellPadClass} w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Day
               </th>
               <th
-                className={`${stickyLeft2} sticky top-16 z-50 p-2 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
+                className={`${stickyLeft2} sticky ${tier2TopClass} z-50 ${cellPadClass} w-24 min-w-[6rem] max-w-[6rem] text-center align-middle text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-zinc-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Date
               </th>
               <th
-                className={`${stickyLeft3} bg-primary-50 sticky top-16 z-50 p-2 w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-primary-800 border-b border-slate-300 dark:border-zinc-700`}
+                className={`${stickyLeft3} bg-primary-50 sticky ${tier2TopClass} z-50 ${cellPadClass} w-20 min-w-[5rem] max-w-[5rem] text-center align-middle text-primary-800 border-b border-slate-300 dark:border-zinc-700`}
               >
                 Total
               </th>
-              <th className="sticky top-16 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30"></th>
+              <th className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30`}></th>
 
               {filteredProjects.map((p) => (
                 <React.Fragment key={`tier2_${p.id}`}>
                   {p.isCollapsed ? (
-                    <th className="sticky top-16 border-b border-x border-slate-300 dark:border-zinc-700 px-1 py-4 bg-slate-50 dark:bg-zinc-950 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider z-30 w-24 min-w-[6rem] max-w-[6rem] animate-collapse overflow-hidden">
+                    <th className={`sticky ${tier2TopClass} border-b border-x border-slate-300 dark:border-zinc-700 ${isCompact ? "px-1 py-1.5" : "px-1 py-4"} bg-slate-50 dark:bg-zinc-950 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider z-30 w-24 min-w-[6rem] max-w-[6rem] animate-collapse overflow-hidden`}>
                       Total
                     </th>
                   ) : (
@@ -1150,7 +1161,7 @@ export default function TimesheetMatrix({
                       {p.tasks.map((t, index) => (
                         <th
                           key={t.id}
-                          className={`group sticky top-16 border-b border-r border-slate-300 dark:border-zinc-700 px-2 py-4 font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative ${index === 0 ? "border-l" : ""}`}
+                          className={`group sticky ${tier2TopClass} border-b border-r border-slate-300 dark:border-zinc-700 ${tier2TaskPadClass} font-normal text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-950 w-24 min-w-[6rem] max-w-[6rem] text-center align-middle leading-tight z-30 animate-column overflow-hidden relative ${index === 0 ? "border-l" : ""}`}
                         >
                           {editingTaskId === t.id ? (
                             <form
@@ -1273,7 +1284,7 @@ export default function TimesheetMatrix({
                       />
                     </>
                   )}
-                  <th className="sticky top-16 bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors"></th>
+                  <th className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors`}></th>
                 </React.Fragment>
               ))}
             </tr>
@@ -1458,25 +1469,25 @@ export default function TimesheetMatrix({
               return (
                 <tr
                   key={gridRow.id}
-                  className={`group h-12 transition-colors ${rowBg}`}
+                  className={`group ${rowHeightClass} transition-colors ${rowBg}`}
                 >
                   <td
-                    className={`${stickyLeft1} ${labelGlow} p-2 text-center h-12 align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}
+                    className={`${stickyLeft1} ${labelGlow} ${cellPadClass} text-center ${rowHeightClass} align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}
                   >
                     {dateObj.label}
                   </td>
                   <td
-                    className={`${stickyLeft2} ${dateGlow} p-2 text-center h-12 align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}
+                    className={`${stickyLeft2} ${dateGlow} ${cellPadClass} text-center ${rowHeightClass} align-middle w-24 min-w-[6rem] max-w-[6rem] truncate`}
                   >
                     {dateObj.dateStr}
                   </td>
                   <td
-                    className={`${stickyLeft3} p-2 text-center font-bold h-12 align-middle w-20 min-w-[5rem] max-w-[5rem] ${totalColor}`}
+                    className={`${stickyLeft3} ${cellPadClass} text-center font-bold ${rowHeightClass} align-middle w-20 min-w-[5rem] max-w-[5rem] ${totalColor}`}
                   >
                     {rowTotal.toFixed(2)}
                   </td>
 
-                  <td className="w-4 bg-transparent border-none h-12"></td>
+                  <td className={`w-4 bg-transparent border-none ${rowHeightClass}`}></td>
 
                   {filteredProjects.map((p, pIndex) => (
                     <React.Fragment key={`row_hours_${p.id}_${dateObj.id}`}>
@@ -1497,9 +1508,9 @@ export default function TimesheetMatrix({
                                 setSelectedCell({ r: rIndex, c: cIndex });
                                 setIsEditing(false);
                               }}
-                              className={`border-b border-x border-slate-300 dark:border-zinc-700 p-0 h-12 align-middle text-center font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden group-hover:bg-primary-50/40 ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 relative z-10" : dateObj.isToday ? "bg-primary-50/20" : dateObj.isCurrentWeek ? "bg-primary-50/10" : "bg-slate-50 dark:bg-zinc-950/30"}`}
+                              className={`border-b border-x border-slate-300 dark:border-zinc-700 p-0 ${rowHeightClass} align-middle text-center font-bold text-slate-600 dark:text-slate-400 dark:text-slate-600 w-24 min-w-[6rem] max-w-[6rem] outline-none transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] animate-collapse overflow-hidden group-hover:bg-primary-50/40 ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 relative z-10" : dateObj.isToday ? "bg-primary-50/20" : dateObj.isCurrentWeek ? "bg-primary-50/10" : "bg-slate-50 dark:bg-zinc-950/30"}`}
                             >
-                              <div className="w-full h-full flex items-center justify-center p-2">
+                              <div className="w-full h-full flex items-center justify-center p-1 text-xs">
                                 {getProjectTotal(dateObj.id, p).toFixed(2)}
                               </div>
                             </td>
@@ -1532,6 +1543,7 @@ export default function TimesheetMatrix({
                                 rowId={gridRow.id}
                                 dateId={dateObj.id}
                                 taskId={t.id}
+                                isCompact={isCompact}
                                 className={
                                   pIndex === 0 && i === 0 && rIndex === 0
                                     ? "tour-time-cell"
@@ -1590,19 +1602,19 @@ export default function TimesheetMatrix({
                                   setActiveTaskPopover(p.id);
                                   setIsAddingProject(false);
                                 }}
-                                className={`border-b border-r border-slate-300 dark:border-zinc-700 hover:bg-primary-50/30 group-hover:bg-primary-50/20 h-12 animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? "border-l" : ""} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-100/50 z-10" : dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-slate-50 dark:bg-zinc-950 "} ${pIndex === 0 && rIndex === 0 ? "tour-add-task" : ""}`}
+                                className={`border-b border-r border-slate-300 dark:border-zinc-700 hover:bg-primary-50/30 group-hover:bg-primary-50/20 ${rowHeightClass} animate-task-btn overflow-hidden cursor-pointer transition-colors relative ${p.tasks.length === 0 ? "border-l" : ""} ${isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-100/50 z-10" : dateObj.isToday ? "bg-primary-50/15 " : dateObj.isCurrentWeek ? "bg-primary-50/5 " : "bg-slate-50 dark:bg-zinc-950 "} ${pIndex === 0 && rIndex === 0 ? "tour-add-task" : ""}`}
                               >
                                 <div
                                   className={`absolute inset-0 flex items-center justify-center font-bold transition-opacity ${isSelected ? "text-primary-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
                                 >
-                                  <span className="text-xl">+</span>
+                                  <span className={isCompact ? "text-base" : "text-xl"}>+</span>
                                 </div>
                               </td>
                             );
                           })()}
                         </>
                       )}
-                      <td className="w-4 bg-transparent border-none h-12"></td>
+                      <td className={`w-4 bg-transparent border-none ${rowHeightClass}`}></td>
                     </React.Fragment>
                   ))}
 
@@ -1627,7 +1639,7 @@ export default function TimesheetMatrix({
                         <div
                           className={`absolute inset-0 flex items-center justify-center font-light transition-opacity ${isSelected ? "text-primary-600 opacity-100" : "text-gray-300 opacity-0 hover:opacity-100"}`}
                         >
-                          <span className="text-2xl">+</span>
+                          <span className={isCompact ? "text-lg" : "text-2xl"}>+</span>
                         </div>
                       </td>
                     );
@@ -1641,190 +1653,261 @@ export default function TimesheetMatrix({
 
       {/* Insights & Time Allocation Dashboard */}
       {["day", "week"].includes(timeframe) && (
-        <div className="bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 p-5 flex gap-5 shrink-0 h-44 select-none overflow-hidden text-xs transition-colors">
-          {/* Card 1: Capacity Goal Progress */}
-          <div className={`w-72 border border-slate-300 dark:border-zinc-700 p-4 flex items-center gap-4 transition-colors ${totalHours > capacityGoal ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700/50" : "bg-white dark:bg-zinc-900"}`}>
-            <div className="relative flex items-center justify-center shrink-0">
-              <svg width="60" height="60" className="transform -rotate-90">
-                <circle
-                  cx="30"
-                  cy="30"
-                  r="26"
-                  stroke={totalHours > capacityGoal ? "rgba(245, 158, 11, 0.2)" : "#F3F4F6"}
-                  strokeWidth="5"
-                  fill="transparent"
-                />
-                <circle
-                  cx="30"
-                  cy="30"
-                  r="26"
-                  stroke={totalHours > capacityGoal ? "#D97706" : "#3B82F6"}
-                  strokeWidth="5"
-                  fill="transparent"
-                  strokeDasharray="163.36"
-                  strokeDashoffset={
-                    163.36 -
-                    Math.min(
-                      1,
-                      capacityGoal > 0 ? totalHours / capacityGoal : 0,
-                    ) *
-                      163.36
-                  }
-                  strokeLinecap="round"
-                  className="transition-all duration-500 ease-out"
-                />
-              </svg>
-              <span className={`absolute text-[11px] font-black ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-700 dark:text-slate-300"}`}>
-                {Math.round(
-                  (capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100,
-                )}
-                %
-              </span>
-            </div>
+        isCompact && !expandInsightsInCompact ? (
+          <div className="bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 px-4 py-2 flex items-center justify-between shrink-0 h-10 select-none overflow-hidden text-xs transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Capacity:
+                </span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)}h
+                </span>
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${totalHours > capacityGoal ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" : "bg-primary-50 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300"}`}>
+                  {Math.round((capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100)}%
+                </span>
+              </div>
 
-            <div className="space-y-0.5">
-              <span className={`text-[9px] font-bold uppercase tracking-wider block ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"}`}>
-                {totalHours > capacityGoal ? "OVERTIME ALERT" : "Capacity Goal"}
-              </span>
-              <span className={`text-sm font-black block ${totalHours > capacityGoal ? "text-amber-900 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
-                {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
-              </span>
-              {totalHours > capacityGoal ? (
-                <span className="text-[10px] font-bold text-amber-600 block flex items-center gap-1 animate-pulse">
-                  <span>Capacity Exceeded</span>
-                </span>
-              ) : totalHours === capacityGoal ? (
-                <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
-                  <span>Goal achieved</span>
-                </span>
-              ) : (
-                <span className="text-[10px] font-semibold text-primary-600 block">
-                  {(capacityGoal - totalHours).toFixed(1)} hrs remaining
-                </span>
+              {/* Mini progress bar */}
+              <div className="w-20 sm:w-28 bg-slate-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden shrink-0">
+                <div
+                  className={`h-full ${totalHours > capacityGoal ? "bg-amber-500" : "bg-primary-600"} transition-all duration-300`}
+                  style={{ width: `${Math.min(100, (capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100)}%` }}
+                />
+              </div>
+
+              {/* Top Project breakdown pill if exists */}
+              {projectBreakdown.length > 0 && (
+                <div className="hidden md:flex items-center gap-1.5 pl-3 border-l border-slate-300 dark:border-zinc-700 text-[11px] text-slate-600 dark:text-slate-400">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Top:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[130px]">{projectBreakdown[0].name}</span>
+                  <span className="font-bold text-primary-600">({projectBreakdown[0].hours.toFixed(1)}h)</span>
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Card 2: Time Allocation by Project */}
-          <div className="flex-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col gap-2 overflow-hidden justify-center">
-            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
-              Time Allocation
-            </span>
-
-            {projectBreakdown.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 font-medium italic">
-                No hours logged in this timeframe.
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col justify-center gap-2.5 overflow-y-auto no-scrollbar">
-                {projectBreakdown.slice(0, 2).map((proj, idx) => {
-                  const barColors = [
-                    "bg-blue-500",
-                    "bg-indigo-400",
-                    "bg-violet-400",
-                  ];
-                  const textColors = [
-                    "text-primary-600",
-                    "text-indigo-650",
-                    "text-violet-650",
-                  ];
-                  return (
-                    <div key={proj.name} className="space-y-1">
-                      <div className="flex justify-between items-center text-[11px]">
-                        <span className="font-bold text-gray-750 truncate max-w-[180px]">
-                          {proj.name}
-                        </span>
-                        <span className="text-slate-400 dark:text-slate-600 font-medium">
-                          <span className={`font-black ${textColors[idx % 3]}`}>
-                            {proj.hours.toFixed(1)}h
-                          </span>
-                          <span className="mx-1">&middot;</span>
-                          <span className="font-bold">
-                            {Math.round(proj.percentage)}%
-                          </span>
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-100 dark:bg-zinc-800 h-1.5 overflow-hidden">
-                        <div
-                          className={`h-full ${barColors[idx % 3]} transition-all duration-500`}
-                          style={{ width: `${proj.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                {projectBreakdown.length > 2 && (
-                  <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-right">
-                    + {projectBreakdown.length - 2} more project(s)
-                  </div>
+              {/* Audit notes pill */}
+              <div className="hidden sm:flex items-center gap-1 pl-3 border-l border-slate-300 dark:border-zinc-700 text-[11px]">
+                {missingNotesCount > 0 ? (
+                  <span className="text-red-600 dark:text-red-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                    {missingNotesCount} missing notes
+                  </span>
+                ) : (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                    Audited
+                  </span>
                 )}
               </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setExpandInsightsInCompact(true)}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 py-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded shadow-sm hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+              title="Expand full analytics dashboard"
+            >
+              <span>Analytics</span>
+              <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+            </button>
+          </div>
+        ) : (
+          <div className="relative bg-slate-50 dark:bg-zinc-950 border-t border-slate-300 dark:border-zinc-700 p-5 flex gap-5 shrink-0 h-44 select-none overflow-hidden text-xs transition-colors">
+            {isCompact && (
+              <button
+                type="button"
+                onClick={() => setExpandInsightsInCompact(false)}
+                className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded shadow-sm hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer z-10"
+                title="Collapse analytics bar"
+              >
+                <span>Collapse</span>
+                <ChevronDown className="w-3 h-3 text-slate-500" />
+              </button>
             )}
-          </div>
+            {/* Card 1: Capacity Goal Progress */}
+            <div className={`w-72 border border-slate-300 dark:border-zinc-700 p-4 flex items-center gap-4 transition-colors ${totalHours > capacityGoal ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700/50" : "bg-white dark:bg-zinc-900"}`}>
+              <div className="relative flex items-center justify-center shrink-0">
+                <svg width="60" height="60" className="transform -rotate-90">
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r="26"
+                    stroke={totalHours > capacityGoal ? "rgba(245, 158, 11, 0.2)" : "#F3F4F6"}
+                    strokeWidth="5"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r="26"
+                    stroke={totalHours > capacityGoal ? "#D97706" : "#3B82F6"}
+                    strokeWidth="5"
+                    fill="transparent"
+                    strokeDasharray="163.36"
+                    strokeDashoffset={
+                      163.36 -
+                      Math.min(
+                        1,
+                        capacityGoal > 0 ? totalHours / capacityGoal : 0,
+                      ) *
+                        163.36
+                    }
+                    strokeLinecap="round"
+                    className="transition-all duration-500 ease-out"
+                  />
+                </svg>
+                <span className={`absolute text-[11px] font-black ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-700 dark:text-slate-300"}`}>
+                  {Math.round(
+                    (capacityGoal > 0 ? totalHours / capacityGoal : 0) * 100,
+                  )}
+                  %
+                </span>
+              </div>
 
-          {/* Card 3: Timesheet Audit Status */}
-          <div className="w-72 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col justify-between">
-            <div className="space-y-2">
+              <div className="space-y-0.5">
+                <span className={`text-[9px] font-bold uppercase tracking-wider block ${totalHours > capacityGoal ? "text-amber-700 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"}`}>
+                  {totalHours > capacityGoal ? "OVERTIME ALERT" : "Capacity Goal"}
+                </span>
+                <span className={`text-sm font-black block ${totalHours > capacityGoal ? "text-amber-900 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
+                  {totalHours.toFixed(1)} / {capacityGoal.toFixed(1)} hrs
+                </span>
+                {totalHours > capacityGoal ? (
+                  <span className="text-[10px] font-bold text-amber-600 block flex items-center gap-1 animate-pulse">
+                    <span>Capacity Exceeded</span>
+                  </span>
+                ) : totalHours === capacityGoal ? (
+                  <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
+                    <span>Goal achieved</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-primary-600 block">
+                    {(capacityGoal - totalHours).toFixed(1)} hrs remaining
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Card 2: Time Allocation by Project */}
+            <div className="flex-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col gap-2 overflow-hidden justify-center">
               <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
-                Audit Status
+                Time Allocation
               </span>
 
-              {missingNotesCount > 0 ? (
-                <div className="bg-red-50 text-red-750 border border-red-200 text-[10px] font-bold px-2.5 py-1.5 flex items-start gap-2 leading-tight">
-                  <svg
-                    className="w-4 h-4 text-red-500 shrink-0 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  <div>
-                    <span className="block font-black text-red-800">
-                      {missingNotesCount} cell(s) need notes
-                    </span>
-                    <span className="text-[9px] font-normal text-red-600 block mt-0.5">
-                      Required for all hours entries.
-                    </span>
-                  </div>
+              {projectBreakdown.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 font-medium italic">
+                  No hours logged in this timeframe.
                 </div>
               ) : (
-                <div className="bg-emerald-50 text-emerald-750 border border-emerald-200 text-[10px] font-bold px-2.5 py-1.5 flex items-start gap-2 leading-tight">
-                  <svg
-                    className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div>
-                    <span className="block font-black text-emerald-850">
-                      Timesheet Fully Audited
-                    </span>
-                    <span className="text-[9px] font-normal text-emerald-650 block mt-0.5">
-                      All logged hours have descriptions.
-                    </span>
-                  </div>
+                <div className="flex-1 flex flex-col justify-center gap-2.5 overflow-y-auto no-scrollbar">
+                  {projectBreakdown.slice(0, 2).map((proj, idx) => {
+                    const barColors = [
+                      "bg-blue-500",
+                      "bg-indigo-400",
+                      "bg-violet-400",
+                    ];
+                    const textColors = [
+                      "text-primary-600",
+                      "text-indigo-650",
+                      "text-violet-650",
+                    ];
+                    return (
+                      <div key={proj.name} className="space-y-1">
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="font-bold text-gray-750 truncate max-w-[180px]">
+                            {proj.name}
+                          </span>
+                          <span className="text-slate-400 dark:text-slate-600 font-medium">
+                            <span className={`font-black ${textColors[idx % 3]}`}>
+                              {proj.hours.toFixed(1)}h
+                            </span>
+                            <span className="mx-1">&middot;</span>
+                            <span className="font-bold">
+                              {Math.round(proj.percentage)}%
+                            </span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-zinc-800 h-1.5 overflow-hidden">
+                          <div
+                            className={`h-full ${barColors[idx % 3]} transition-all duration-500`}
+                            style={{ width: `${proj.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {projectBreakdown.length > 2 && (
+                    <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-right">
+                      + {projectBreakdown.length - 2} more project(s)
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-center select-none border-t border-slate-300 dark:border-zinc-700 pt-1.5">
-              Space focuses note editor &middot; Enter saves
+            {/* Card 3: Timesheet Audit Status */}
+            <div className="w-72 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-4 flex flex-col justify-between">
+              <div className="space-y-2">
+                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider block">
+                  Audit Status
+                </span>
+
+                {missingNotesCount > 0 ? (
+                  <div className="bg-red-50 text-red-750 border border-red-200 text-[10px] font-bold px-2.5 py-1.5 flex items-start gap-2 leading-tight">
+                    <svg
+                      className="w-4 h-4 text-red-500 shrink-0 mt-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <div>
+                      <span className="block font-black text-red-800">
+                        {missingNotesCount} cell(s) need notes
+                      </span>
+                      <span className="text-[9px] font-normal text-red-600 block mt-0.5">
+                        Required for all hours entries.
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 text-emerald-750 border border-emerald-200 text-[10px] font-bold px-2.5 py-1.5 flex items-start gap-2 leading-tight">
+                    <svg
+                      className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div>
+                      <span className="block font-black text-emerald-850">
+                        Timesheet Fully Audited
+                      </span>
+                      <span className="text-[9px] font-normal text-emerald-650 block mt-0.5">
+                        All logged hours have descriptions.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider text-center select-none border-t border-slate-300 dark:border-zinc-700 pt-1.5">
+                Space focuses note editor &middot; Enter saves
+              </div>
             </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
