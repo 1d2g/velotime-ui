@@ -34,8 +34,9 @@ export default function GuestFloatingActionBar({
     return () => clearInterval(interval);
   }, [isDismissed]);
 
+  const isFriday = new Date().getDay() === 5;
   const shouldShow =
-    !isDismissed && (isTrial ? (dwellSeconds >= 5 || userCellEditCount >= 1) : (dwellSeconds >= 45 || userCellEditCount >= 2));
+    !isDismissed && (isTrial ? (dwellSeconds >= 3 || userCellEditCount >= 1) : (dwellSeconds >= 12 || userCellEditCount >= 1));
 
   if (!shouldShow) return null;
 
@@ -55,7 +56,7 @@ export default function GuestFloatingActionBar({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wider">
-                {isTrial ? "14-Day Free Trial" : "Active Sandbox"}
+                {isFriday ? "Friday Timesheet Ready" : (isTrial ? "14-Day Free Trial" : "Active Sandbox")}
               </span>
               <span className="text-xs text-slate-400 font-mono hidden md:inline">
                 <ShieldCheck className="w-3 h-3 text-emerald-400 inline mr-1" />
@@ -64,7 +65,7 @@ export default function GuestFloatingActionBar({
             </div>
             <div className="text-xs font-semibold text-slate-200 truncate mt-0.5">
               <span className="text-white font-bold">{totalHours.toFixed(1)}h logged</span> across{" "}
-              <span className="text-white font-bold">{projectsCount} projects</span>. {isTrial ? "Your trial workspace is live — keep test data & invite your team." : "Keep test data & invite your team."}
+              <span className="text-white font-bold">{projectsCount} projects</span>. {isFriday ? "Don't re-type your Friday hours — save your week in 1 click." : (isTrial ? "Your trial workspace is live — keep test data & invite your team." : "Keep test data & invite your team.")}
             </div>
           </div>
         </div>
@@ -98,7 +99,7 @@ export default function GuestFloatingActionBar({
             className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Save & Claim Workspace</span>
+            <span>{isFriday ? "Save Week with Google (1-Click)" : "Save & Claim Workspace"}</span>
             <ArrowRight className="w-3.5 h-3.5 text-white" />
           </button>
 
