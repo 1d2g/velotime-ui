@@ -13,6 +13,7 @@ export default function GuestFloatingActionBar({
   projectsCount = 3,
   clientsCount = 3,
   userCellEditCount = 0,
+  isTrial = false,
   onClaimWorkspace,
   onExportCsv,
 }) {
@@ -34,7 +35,7 @@ export default function GuestFloatingActionBar({
   }, [isDismissed]);
 
   const shouldShow =
-    !isDismissed && (dwellSeconds >= 45 || userCellEditCount >= 2);
+    !isDismissed && (isTrial ? (dwellSeconds >= 5 || userCellEditCount >= 1) : (dwellSeconds >= 45 || userCellEditCount >= 2));
 
   if (!shouldShow) return null;
 
@@ -54,16 +55,16 @@ export default function GuestFloatingActionBar({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wider">
-                Active Sandbox
+                {isTrial ? "14-Day Free Trial" : "Active Sandbox"}
               </span>
               <span className="text-xs text-slate-400 font-mono hidden md:inline">
                 <ShieldCheck className="w-3 h-3 text-emerald-400 inline mr-1" />
-                14-Day Free Cloud Trial
+                Zero Credit Card Required
               </span>
             </div>
             <div className="text-xs font-semibold text-slate-200 truncate mt-0.5">
               <span className="text-white font-bold">{totalHours.toFixed(1)}h logged</span> across{" "}
-              <span className="text-white font-bold">{projectsCount} projects</span>. Keep test data & invite your team.
+              <span className="text-white font-bold">{projectsCount} projects</span>. {isTrial ? "Your trial workspace is live — keep test data & invite your team." : "Keep test data & invite your team."}
             </div>
           </div>
         </div>

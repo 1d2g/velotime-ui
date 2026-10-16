@@ -181,7 +181,16 @@ export default function App() {
   const companyParam = searchParams?.get("company")?.trim() || "";
   const isAuditMode = searchParams?.get("audit_mode") === "true";
   const authParam = searchParams?.get("mode");
-  const isExplicitSignIn = authParam === "signin" || authParam === "signup" || authParam === "login";
+  const isTrialParam = searchParams?.get("trial") === "true";
+  const seatsParam = parseInt(searchParams?.get("seats"), 10);
+  const validSeats = !isNaN(seatsParam) && seatsParam > 0 ? seatsParam : null;
+
+  // Explicit signin/login request always opens auth screen.
+  // Explicit signup opens auth screen UNLESS trial=true or mode=guest, which routes to live sandbox.
+  const isExplicitSignIn =
+    authParam === "signin" ||
+    authParam === "login" ||
+    (authParam === "signup" && !isTrialParam);
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [authScreenMode, setAuthScreenMode] = useState(authParam === "signin" || authParam === "login" ? "signin" : "signup");
@@ -198,6 +207,20 @@ export default function App() {
   });
 
   const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
+
+  // Welcoming notification for 14-day trial sandbox visitors
+  useEffect(() => {
+    if (isGuestMode && isTrialParam) {
+      const shownKey = "velotime_trial_welcome_toast_shown";
+      if (!safeGetItem("sessionStorage", shownKey)) {
+        safeSetItem("sessionStorage", shownKey, "true");
+        addToast(
+          "Welcome to your 14-day trial workspace! Instant sandbox — zero credit card required.",
+          "info"
+        );
+      }
+    }
+  }, [isGuestMode, isTrialParam]);
 
   const handleStartWalkthrough = () => {
     if (activeTab !== "Timesheets") {
@@ -1476,7 +1499,14 @@ export default function App() {
             />
           )}
           {isGuestMode && (
-            <FounderTrustBanner founderName="Dustin Gray" founderEmail="dgray@dg.tools" companyName={companyParam} />
+            <FounderTrustBanner
+              founderName="Dustin Gray"
+              founderEmail="dgray@dg.tools"
+              companyName={companyParam}
+              isTrial={isTrialParam}
+              trialSeats={validSeats}
+              onClaimWorkspace={() => setIsClaimModalOpen(true)}
+            />
           )}
           <WorkspaceOnboardingModal
             isOpen={shouldShowOnboarding}
@@ -1901,7 +1931,7 @@ export default function App() {
                       {/* Middle: Expanded Pricing Benchmark Chart filling the negative space */}
                       {isGuestMode && (
                         <div className="flex-1 min-w-[340px] max-w-3xl px-1">
-                          <PricingBenchmarkChart />
+                          <PricingBenchmarkChart initialSeats={validSeats || 12} />
                         </div>
                       )}
 
@@ -2207,6 +2237,7 @@ export default function App() {
             projectsCount={projects.length}
             clientsCount={clients.length}
             userCellEditCount={userCellEditCount}
+            isTrial={isTrialParam}
             onClaimWorkspace={() => setIsClaimModalOpen(true)}
             onExportCsv={handleExportCsv}
           />

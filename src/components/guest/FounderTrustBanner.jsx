@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Copy, Check, X, ArrowLeft } from "lucide-react";
+import { Mail, Copy, Check, X, ArrowLeft, Sparkles } from "lucide-react";
 
 /**
  * FounderTrustBanner
@@ -11,6 +11,9 @@ export default function FounderTrustBanner({
   founderName = "Dustin Gray",
   founderEmail = "dgray@dg.tools",
   companyName = "",
+  isTrial = false,
+  trialSeats = null,
+  onClaimWorkspace,
   onDismiss,
 }) {
   const [copied, setCopied] = useState(false);
@@ -59,16 +62,32 @@ export default function FounderTrustBanner({
 
           <div className="text-[11px] leading-tight text-slate-200">
             <span className="font-bold text-white mr-1.5">{founderName} (Founder):</span>
-            <span className="text-slate-300">
-              {companyName ? `Welcome to the ${companyName} evaluation workspace! ` : "Building VeloTime for independent studios and agencies. "}Evaluating for your team or have questions on custom rates and migration? Direct line:{" "}
-              <a
-                href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime')}%20workspace`}
-                className="text-white underline font-semibold hover:text-slate-200"
-              >
-                {founderEmail}
-              </a>
-              {" "}— I read and answer every email personally.
-            </span>
+            {isTrial ? (
+              <span className="text-slate-300">
+                Welcome to your 14-day free trial sandbox!{" "}
+                {companyName ? `(${companyName}) ` : ""}
+                {trialSeats ? `Configured for ${trialSeats} seats ($${trialSeats * 5}/mo). ` : ""}
+                Instant access with full team spreadsheet matrix, zero credit card required. Test logging below, and claim whenever you're ready.{" "}
+                Direct line:{" "}
+                <a
+                  href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime%2014-day%20trial')}%20workspace`}
+                  className="text-white underline font-semibold hover:text-slate-200"
+                >
+                  {founderEmail}
+                </a>
+              </span>
+            ) : (
+              <span className="text-slate-300">
+                {companyName ? `Welcome to the ${companyName} evaluation workspace! ` : "Building VeloTime for independent studios and agencies. "}Evaluating for your team or have questions on custom rates and migration? Direct line:{" "}
+                <a
+                  href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime')}%20workspace`}
+                  className="text-white underline font-semibold hover:text-slate-200"
+                >
+                  {founderEmail}
+                </a>
+                {" "}— I read and answer every email personally.
+              </span>
+            )}
           </div>
         </div>
 
@@ -82,6 +101,17 @@ export default function FounderTrustBanner({
             <ArrowLeft className="w-3 h-3 text-slate-400" />
             <span>Main Site</span>
           </a>
+
+          {onClaimWorkspace && (
+            <button
+              type="button"
+              onClick={onClaimWorkspace}
+              className="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[11px] tracking-wider transition-colors inline-flex items-center gap-1 shadow-sm cursor-pointer"
+            >
+              <Sparkles className="w-3 h-3 text-white" />
+              <span>Save & Claim Workspace</span>
+            </button>
+          )}
 
           <a
             href={`mailto:${founderEmail}?subject=Question%20about%20VeloTime%20workspace`}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sliders } from "lucide-react";
 
 /**
@@ -11,6 +11,12 @@ import { Sliders } from "lucide-react";
  */
 export default function PricingBenchmarkChart({ initialSeats = 12 }) {
   const [teamSize, setTeamSize] = useState(initialSeats);
+
+  useEffect(() => {
+    if (initialSeats && initialSeats !== teamSize) {
+      setTeamSize(initialSeats);
+    }
+  }, [initialSeats]);
 
   const velotimeRate = 5;
   const harvestRate = 14;
