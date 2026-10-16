@@ -184,6 +184,12 @@ export default function App() {
   const isTrialParam = searchParams?.get("trial") === "true";
   const seatsParam = parseInt(searchParams?.get("seats"), 10);
   const validSeats = !isNaN(seatsParam) && seatsParam > 0 ? seatsParam : null;
+  const gadCampaignId = searchParams?.get("gad_campaignid") || "";
+  const competitorParam = (
+    searchParams?.get("competitor") ||
+    searchParams?.get("c1") ||
+    (gadCampaignId === "24295180019" ? "harvest" : "")
+  )?.toLowerCase();
 
   // Explicit signin/login request always opens auth screen.
   // Explicit signup opens auth screen UNLESS trial=true or mode=guest, which routes to live sandbox.
@@ -1499,14 +1505,28 @@ export default function App() {
             />
           )}
           {isGuestMode && (
-            <FounderTrustBanner
-              founderName="Dustin Gray"
-              founderEmail="dgray@dg.tools"
-              companyName={companyParam}
-              isTrial={isTrialParam}
-              trialSeats={validSeats}
-              onClaimWorkspace={() => setIsClaimModalOpen(true)}
-            />
+            <>
+              <FounderTrustBanner
+                founderName="Dustin Gray"
+                founderEmail="dgray@dg.tools"
+                companyName={companyParam}
+                isTrial={isTrialParam}
+                trialSeats={validSeats}
+                competitor={competitorParam}
+                onClaimWorkspace={() => setIsClaimModalOpen(true)}
+              />
+              {typeof window !== "undefined" && window.innerWidth < 768 && (
+                <div className="bg-slate-900 border-b border-slate-700 px-4 py-2 text-white flex items-center justify-between text-xs sm:hidden z-40">
+                  <span className="text-slate-300 font-medium">Using a phone or tablet?</span>
+                  <a
+                    href="https://velotime.dg.tools/demo?view=mobile"
+                    className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] transition-colors"
+                  >
+                    Open Mobile View
+                  </a>
+                </div>
+              )}
+            </>
           )}
           <WorkspaceOnboardingModal
             isOpen={shouldShowOnboarding}

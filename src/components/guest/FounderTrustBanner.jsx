@@ -13,6 +13,7 @@ export default function FounderTrustBanner({
   companyName = "",
   isTrial = false,
   trialSeats = null,
+  competitor = "",
   onClaimWorkspace,
   onDismiss,
 }) {
@@ -62,7 +63,29 @@ export default function FounderTrustBanner({
 
           <div className="text-[11px] leading-tight text-slate-200">
             <span className="font-bold text-white mr-1.5">{founderName} (Founder):</span>
-            {isTrial ? (
+            {competitor?.toLowerCase() === "harvest" ? (
+              <span className="text-slate-300">
+                Evaluating VeloTime as an alternative to Harvest? VeloTime delivers the speed of a 10-second keyboard spreadsheet matrix with full client reporting and invoicing at a flat $5/seat (a third of Harvest's $14+/seat cost). Instant live sandbox — zero credit card required. Direct line:{" "}
+                <a
+                  href={`mailto:${founderEmail}?subject=Evaluating%20VeloTime%20vs%20Harvest`}
+                  className="text-white underline font-semibold hover:text-slate-200"
+                >
+                  {founderEmail}
+                </a>
+                {" "}— I read and answer every email personally.
+              </span>
+            ) : competitor ? (
+              <span className="text-slate-300">
+                Evaluating VeloTime as an alternative to {competitor}? VeloTime delivers the speed of a 10-second keyboard spreadsheet matrix with full client reporting and invoicing at a flat $5/seat. Instant sandbox — zero credit card required. Direct line:{" "}
+                <a
+                  href={`mailto:${founderEmail}?subject=Evaluating%20VeloTime%20vs%20${encodeURIComponent(competitor)}`}
+                  className="text-white underline font-semibold hover:text-slate-200"
+                >
+                  {founderEmail}
+                </a>
+                {" "}— I read and answer every email personally.
+              </span>
+            ) : isTrial ? (
               <span className="text-slate-300">
                 Welcome to your 14-day free trial sandbox!{" "}
                 {companyName ? `(${companyName}) ` : ""}
