@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
 // Helper: RFC-4180 compliant CSV parser that handles quotes, escaped quotes, commas inside quotes, and newlines
@@ -98,8 +98,25 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
 
   // Parsing & Reconciled Data State
   const [isParsing, setIsParsing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [sourceFileName, setSourceFileName] = useState('');
   const [rawRecordsCount, setRawRecordsCount] = useState(0);
+
+  // Prevent browser window from opening or downloading dropped files anywhere on the page
+  useEffect(() => {
+    const preventDragDefaults = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+      window.addEventListener(eventName, preventDragDefaults, false);
+    });
+    return () => {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+        window.removeEventListener(eventName, preventDragDefaults, false);
+      });
+    };
+  }, []);
 
   // Consolidated Entities State (Editable by user in Step 2)
   const [consolidatedClients, setConsolidatedClients] = useState([]); // { canonical, originalList: [], isArtifact: bool }
@@ -275,13 +292,15 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
     setStep(2);
   };
 
-  // Handle local CSV File Upload
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  // Process dropped or selected file
+  const processFile = (file) => {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv') && file.type && !file.type.includes('csv') && !file.type.includes('text')) {
+      addToast('Please upload a .csv spreadsheet file', 'error');
+      return;
+    }
 
     setIsParsing(true);
-    const file = files[0];
     const reader = new FileReader();
 
     reader.onload = (event) => {
@@ -300,7 +319,52 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
       }
     };
 
+    reader.onerror = () => {
+      setIsParsing(false);
+      addToast('Failed to read file from disk', 'error');
+    };
+
     reader.readAsText(file);
+  };
+
+  const handleInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      processFile(files[0]);
+    }
+    e.target.value = '';
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer?.files || []);
+    if (files.length > 0) {
+      processFile(files[0]);
+    }
   };
 
   // Load Built-in Demo Datasets
@@ -545,25 +609,52 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
 
             {/* Drag & Drop Upload Area */}
             <div className="pt-2">
-              <div className="border-2 border-dashed border-slate-300 dark:border-zinc-700 p-8 text-center bg-slate-50/50 dark:bg-zinc-900/50 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors">
+              <div
+                onClick={() => document.getElementById('csvUploadInput')?.click()}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-150 ${
+                  isDragging
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 ring-4 ring-emerald-500/20'
+                    : 'border-slate-300 dark:border-zinc-700 bg-slate-50/50 dark:bg-zinc-900/50 hover:bg-slate-100/60 dark:hover:bg-zinc-800/40 hover:border-slate-400 dark:hover:border-zinc-600'
+                }`}
+              >
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".csv,text/csv,application/vnd.ms-excel"
                   id="csvUploadInput"
-                  onChange={handleFileUpload}
+                  onChange={handleInputChange}
                   className="hidden"
                 />
-                <label htmlFor="csvUploadInput" className="cursor-pointer flex flex-col items-center">
-                  <svg className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                <div className="flex flex-col items-center pointer-events-none select-none">
+                  <svg
+                    className={`w-10 h-10 mb-3 transition-colors ${
+                      isDragging ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-slate-400 dark:text-slate-600'
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.5"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
                   </svg>
-                  <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                    {isParsing ? 'Analyzing and parsing records...' : 'Drop your exported CSV here or click to browse'}
+                  <span className={`font-bold text-sm ${isDragging ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                    {isDragging
+                      ? 'Drop CSV file to analyze and consolidate'
+                      : isParsing
+                      ? 'Analyzing and parsing records...'
+                      : 'Drop your exported CSV here or click to browse'}
                   </span>
                   <span className="text-xs text-slate-500 mt-1">
                     Accepts standard .csv exports from {platform.toUpperCase()} with clients, projects, tasks, and hours
                   </span>
-                </label>
+                </div>
               </div>
             </div>
           </div>
