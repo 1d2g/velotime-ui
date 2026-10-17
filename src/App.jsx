@@ -35,6 +35,7 @@ import PricingBenchmarkChart from "./components/guest/PricingBenchmarkChart";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import GoogleAuthButton from "./components/auth/GoogleAuthButton";
+import GuestMigrationBar from "./components/guest/GuestMigrationBar";
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -176,6 +177,14 @@ export default function App() {
   const [notes, setNotes] = useState({});
   const [orgUsers, setOrgUsers] = useState([]);
   const [taskRates, setTaskRates] = useState([]);
+  const [importedDemoInfo, setImportedDemoInfo] = useState(() => {
+    try {
+      const stored = safeGetItem("localStorage", "velotime_guest_imported_info");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const companyParam = searchParams?.get("company")?.trim() || "";
@@ -723,6 +732,54 @@ export default function App() {
     };
     safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify(stash));
     setIsClaimModalOpen(true);
+  };
+
+  const handleApplyDemoImport = (result) => {
+    if (!result) return;
+    setClients(result.clients || []);
+    setProjects(result.projects || []);
+    setEntries(result.entries || {});
+    setNotes(result.notes || {});
+    if (result.rawEntries) {
+      setRawEntries(result.rawEntries);
+    }
+    const info = {
+      fileName: result.sourceFileName || "Custom Export.csv",
+      projectCount: result.projectCount || (result.projects ? result.projects.length : 0),
+      taskCount: result.taskCount || 0,
+      platform: result.platform || "csv",
+    };
+    setImportedDemoInfo(info);
+    safeSetItem("localStorage", "velotime_guest_imported_info", JSON.stringify(info));
+
+    if (posthog) {
+      try {
+        posthog.capture("demo_timesheet_migrated_preview", {
+          platform: info.platform,
+          projectCount: info.projectCount,
+          taskCount: info.taskCount,
+        });
+      } catch (e) {}
+    }
+  };
+
+  const handleResetDemoData = () => {
+    safeSetItem("localStorage", "velotime_guest_imported_info", null);
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("velotime_guest_imported_info");
+      window.localStorage.removeItem("velotime_guest_workspace");
+    }
+    setImportedDemoInfo(null);
+    setClients(INITIAL_GUEST_CLIENTS);
+    setProjects(INITIAL_GUEST_PROJECTS);
+    setEntries(buildInitialGuestEntries(dates));
+    setNotes(buildInitialGuestNotes(dates));
+    setOrgUsers(INITIAL_GUEST_ORG_USERS);
+    setExpenses(INITIAL_GUEST_EXPENSES);
+    setSubmissions(INITIAL_GUEST_SUBMISSIONS);
+    setTaskRates(INITIAL_GUEST_TASK_RATES);
+    setRawEntries(buildInitialGuestRawEntries(dates));
+    addToast("Restored default demo timesheet workspace", "info");
   };
 
   const handleExportCsv = () => {
@@ -2030,6 +2087,16 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
+                    {isGuestMode && (
+                      <GuestMigrationBar
+                        dates={dates}
+                        onApplyDemoImport={handleApplyDemoImport}
+                        onResetDemoData={handleResetDemoData}
+                        importedInfo={importedDemoInfo}
+                        onClaimWorkspace={handleOpenClaimModal}
+                        onOpenFullWizard={() => setActiveTab("Migration")}
+                      />
+                    )}
                     {projects.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center">
                         <div className="bg-primary-50 text-primary-600 w-16 h-16 flex items-center justify-center mb-4">
