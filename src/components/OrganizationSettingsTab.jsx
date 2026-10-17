@@ -68,7 +68,35 @@ export default function OrganizationSettingsTab({
   const [isSavingName, setIsSavingName] = useState(false);
   const [isConnectingStripe, setIsConnectingStripe] = useState(false);
   const [isDisconnectingStripe, setIsDisconnectingStripe] = useState(false);
+  const [isDisconnectingQbo, setIsDisconnectingQbo] = useState(false);
   const isAdmin = dbUser?.role === "admin" || dbUser?.role === "owner";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      if (hash.includes("quickbooks=connected")) {
+        addToast("QuickBooks Online connected successfully!", "success");
+        if (forceSync) forceSync();
+      } else if (hash.includes("quickbooks_error=")) {
+        const errParam = new URLSearchParams(hash.split("?")[1] || "").get("quickbooks_error");
+        addToast(`QuickBooks connection failed: ${errParam || "Authorization error"}`, "error");
+      }
+    }
+  }, []);
+
+  const handleDisconnectQuickBooks = async () => {
+    if (!window.confirm("Are you sure you want to disconnect QuickBooks Online?")) return;
+    setIsDisconnectingQbo(true);
+    try {
+      await apiCall("/api/quickbooks/disconnect", "POST");
+      addToast("QuickBooks Online disconnected successfully", "info");
+      if (forceSync) await forceSync();
+    } catch (err) {
+      addToast(err.message || "Failed to disconnect QuickBooks", "error");
+    } finally {
+      setIsDisconnectingQbo(false);
+    }
+  };
 
   const handleConnectStripe = async () => {
     setIsConnectingStripe(true);
@@ -631,12 +659,18 @@ export default function OrganizationSettingsTab({
               </a>
             )}
             {isAdmin && dbUser?.organization?.quickbooksRealmId && (
-              <button
-                className="bg-slate-100 text-slate-700 border border-slate-300 font-bold py-2 px-4 text-sm whitespace-nowrap cursor-not-allowed opacity-75 rounded-none"
-                disabled
-              >
-                Connected
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-mono text-xs border border-emerald-300">
+                  Realm ID: {dbUser.organization.quickbooksRealmId}
+                </span>
+                <button
+                  onClick={handleDisconnectQuickBooks}
+                  disabled={isDisconnectingQbo}
+                  className="bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-300 font-bold py-2 px-4 text-xs transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                >
+                  {isDisconnectingQbo ? "Disconnecting..." : "Disconnect"}
+                </button>
+              </div>
             )}
           </div>
         </div>

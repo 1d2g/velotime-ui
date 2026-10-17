@@ -166,6 +166,7 @@ export default function ProjectsTab({
   onAddClient,
   onUpdateClient,
   onUpdateProject,
+  onOpenMigration,
 }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
@@ -1009,6 +1010,19 @@ export default function ProjectsTab({
             <option value="hours-desc">Total Hours (High-Low)</option>
             <option value="date-newest">Date Created (Newest)</option>
           </select>
+
+          {writeAllowed && onOpenMigration && (
+            <button
+              onClick={onOpenMigration}
+              className="px-3.5 py-2 border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer ml-auto"
+              title="Import projects, clients, and tasks from Harvest, Toggl, or Clockify"
+            >
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>Import from Legacy Tool</span>
+            </button>
+          )}
         </div>
       </div>
 

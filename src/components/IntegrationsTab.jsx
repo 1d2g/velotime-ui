@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { IntegrationManager } from "../services/integrations/IntegrationManager";
 import { useToast } from "../contexts/ToastContext";
 
-export default function IntegrationsTab({ dbUser, projects = [] }) {
+export default function IntegrationsTab({ dbUser, projects = [], rawEntries = [] }) {
   const { addToast } = useToast();
   const [activeSubTab, setActiveSubTab] = useState("connectors"); // 'connectors' | 'mapping' | 'import_export'
   const [config, setConfig] = useState(IntegrationManager.getConfig());
@@ -165,36 +165,94 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
   };
 
   // CSV Export Presets
+  // CSV Export Presets
   const handleExportPreset = (presetName) => {
     let rows = [];
     const dateStr = new Date().toISOString().split("T")[0];
+    const validEntries = (Array.isArray(rawEntries) ? rawEntries : []).filter((e) => parseFloat(e.hours) > 0);
 
     if (presetName === "quickbooks") {
       rows.push(["!TIMEACT", "DATE", "JOB", "EMP", "ITEM", "DURATION", "NOTE", "BILLABLE"]);
-      projects.forEach((p) => {
-        (p.tasks || []).forEach((t) => {
-          rows.push(["TIMEACT", dateStr, p.name, dbUser?.email || "Employee", t.name, "8.00", "Logged via VeloTime", "Y"]);
+      if (validEntries.length > 0) {
+        validEntries.forEach((e) => {
+          rows.push([
+            "TIMEACT",
+            e.dateId || dateStr,
+            e.projectName || "General",
+            e.userName || dbUser?.email || "Employee",
+            e.taskName || "General",
+            parseFloat(e.hours).toFixed(2),
+            e.note || "Logged via VeloTime",
+            e.isBillable !== false ? "Y" : "N",
+          ]);
         });
-      });
+      } else {
+        projects.forEach((p) => {
+          (p.tasks || []).forEach((t) => {
+            rows.push(["TIMEACT", dateStr, p.name, dbUser?.email || "Employee", t.name, "8.00", "Logged via VeloTime", "Y"]);
+          });
+        });
+      }
     } else if (presetName === "adp") {
       rows.push(["Company Code", "Employee ID", "Pay Code", "Date", "Hours", "Department", "Job Name"]);
-      projects.forEach((p) => {
-        rows.push(["ADP01", dbUser?.id || "EMP01", "REG", dateStr, "8.00", "Design/Dev", p.name]);
-      });
+      if (validEntries.length > 0) {
+        validEntries.forEach((e) => {
+          rows.push([
+            "ADP01",
+            e.userId || dbUser?.id || "EMP01",
+            e.isBillable !== false ? "REG" : "NONBILL",
+            e.dateId || dateStr,
+            parseFloat(e.hours).toFixed(2),
+            "Design/Architecture",
+            e.projectName || "General",
+          ]);
+        });
+      } else {
+        projects.forEach((p) => {
+          rows.push(["ADP01", dbUser?.id || "EMP01", "REG", dateStr, "8.00", "Design/Architecture", p.name]);
+        });
+      }
     } else if (presetName === "bamboohr") {
       rows.push(["Employee Email", "Date", "Project", "Task", "Hours", "Note"]);
-      projects.forEach((p) => {
-        (p.tasks || []).forEach((t) => {
-          rows.push([dbUser?.email || "user@company.com", dateStr, p.name, t.name, "8.00", "Standard Week"]);
+      if (validEntries.length > 0) {
+        validEntries.forEach((e) => {
+          rows.push([
+            e.userEmail || dbUser?.email || "user@company.com",
+            e.dateId || dateStr,
+            e.projectName || "General",
+            e.taskName || "General",
+            parseFloat(e.hours).toFixed(2),
+            e.note || "Standard Week",
+          ]);
         });
-      });
+      } else {
+        projects.forEach((p) => {
+          (p.tasks || []).forEach((t) => {
+            rows.push([dbUser?.email || "user@company.com", dateStr, p.name, t.name, "8.00", "Standard Week"]);
+          });
+        });
+      }
     } else {
       rows.push(["Date", "Client", "Project", "Task", "Hours", "Notes", "Billable"]);
-      projects.forEach((p) => {
-        (p.tasks || []).forEach((t) => {
-          rows.push([dateStr, p.clientName || "General", p.name, t.name, "8.00", "Logged via VeloTime", "Yes"]);
+      if (validEntries.length > 0) {
+        validEntries.forEach((e) => {
+          rows.push([
+            e.dateId || dateStr,
+            e.clientName || "General",
+            e.projectName || "General",
+            e.taskName || "General",
+            parseFloat(e.hours).toFixed(2),
+            e.note || "Logged via VeloTime",
+            e.isBillable !== false ? "Yes" : "No",
+          ]);
         });
-      });
+      } else {
+        projects.forEach((p) => {
+          (p.tasks || []).forEach((t) => {
+            rows.push([dateStr, p.clientName || "General", p.name, t.name, "8.00", "Logged via VeloTime", "Yes"]);
+          });
+        });
+      }
     }
 
     const csvContent = "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
@@ -205,7 +263,8 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    addToast(`Exported ${presetName.toUpperCase()} format successfully!`, "success");
+    const countMsg = validEntries.length > 0 ? ` (${validEntries.length} logged entries)` : "";
+    addToast(`Exported ${presetName.toUpperCase()} format successfully!${countMsg}`, "success");
   };
 
   const providers = [
@@ -250,12 +309,18 @@ export default function IntegrationsTab({ dbUser, projects = [] }) {
     },
     {
       id: "qbo",
-      name: "QuickBooks Time",
-      description: "Export approved timesheet batches and payroll hours directly into QuickBooks Accounts Receivable.",
-      connected: false,
-      comingSoon: true,
+      name: "QuickBooks Online",
+      description: "Sync finalized invoices and export approved timesheet payroll batches directly to QuickBooks Online.",
+      connected: Boolean(dbUser?.organization?.quickbooksRealmId),
+      account: dbUser?.organization?.quickbooksRealmId ? `Realm ID: ${dbUser.organization.quickbooksRealmId}` : null,
       color: "bg-emerald-600",
-      onConnect: () => addToast("QuickBooks connector is in active beta. Coming in next update!", "info"),
+      onConnect: () => {
+        if (dbUser?.organization?.quickbooksRealmId) {
+          addToast("QuickBooks Online is connected and active!", "success");
+        } else {
+          window.location.href = `${import.meta.env.VITE_API_URL || ""}/api/quickbooks/auth?orgId=${dbUser?.organizationId}`;
+        }
+      },
     }
   ];
 

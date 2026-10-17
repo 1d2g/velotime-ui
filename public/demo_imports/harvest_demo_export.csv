@@ -1,0 +1,8 @@
+Date,Client,Project,Project Code,Task,Notes,Hours,Billable?,Invoiced?,First Name,Last Name,Roles
+2026-10-12,Acme Studios,Brand Identity & Guidelines,ACME-01,Concept Architecture,Initial moodboard and spatial sketches,4.50,Yes,No,David,Gray,Principal
+2026-10-13,Acme Studios ,Brand Identity & Guidelines ,ACME-01,concept architecture,Drafting primary layout wireframes,6.00,Yes,No,David,Gray,Principal
+2026-10-13,Acme Studios,Brand Identity & Guidelines,ACME-01,Client Presentation,Presented concept package to board,2.00,Yes,No,Sarah,Lin,Project Lead
+2026-10-14,Helix BioLabs,Laboratory Interior Fitout,HLX-102,Construction Documents,Drafting HVAC and partition details,7.50,Yes,No,Marcus,Vance,Architect
+2026-10-15,Helix BioLabs,Laboratory Interior Fit-out,HLX-102,Construction Documents,Door schedule and finish specifications,5.00,Yes,No,Marcus,Vance,Architect
+2026-10-16,Vanguard Partners,Commercial Headquarters,VAN-200,Schematic Design,Site zoning and setback analysis,4.00,Yes,No,Sarah,Lin,Project Lead
+2026-10-16,Vanguard Partners,Commercial Headquarters,VAN-200,schematic design,Code compliance review,3.50,Yes,No,David,Gray,Principal

@@ -1,0 +1,7 @@
+User,Email,Client,Project,Task,Description,Billable,Start date,Start time,End date,End time,Duration,Tags,Amount (USD)
+David Gray,dgray@dg.tools,Kappe Studio,Pacific Palisades Residence,Schematic Design,Floor plan revisions and site elevation,Yes,2026-10-12,09:00:00,2026-10-12,14:30:00,05:30:00,design,825.00
+David Gray,dgray@dg.tools,Kappe Studio,Pacific Palisades Residence,Schematic Design ,Structural beam coordination with engineer,Yes,2026-10-13,10:00:00,2026-10-13,13:30:00,03:30:00,engineering,525.00
+Elena Rostova,elena@kappe.test,Kappe Studio,Pacific Palisades Residence,Interior Detailing,Kitchen cabinetry millwork details,Yes,2026-10-14,08:30:00,2026-10-14,16:00:00,07:30:00,millwork,1050.00
+Elena Rostova,elena@kappe.test,Kappe Studio ,Pacific Palisades Residence,interior detailing,Bathroom tile selection and plumbing schedules,Yes,2026-10-15,09:00:00,2026-10-15,13:00:00,04:00:00,finishes,560.00
+Marcus Vance,marcus@kappe.test,Studio Nexus,Urban Loft Conversion,Permit Coordination,City planning department submission documents,Yes,2026-10-15,11:00:00,2026-10-15,16:00:00,05:00:00,permits,700.00
+Marcus Vance,marcus@kappe.test,Studio Nexus,Urban Loft Conversion,Permit Coordination,Acoustical test report review,Yes,2026-10-16,13:00:00,2026-10-16,15:30:00,02:30:00,permits,350.00

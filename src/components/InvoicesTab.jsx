@@ -61,6 +61,7 @@ export default function InvoicesTab({
   const [pbContractValue, setPbContractValue] = useState("");
   const [pbCurrentPercent, setPbCurrentPercent] = useState("");
   const [pbPreviousPercent, setPbPreviousPercent] = useState("0");
+  const [isExportingQbo, setIsExportingQbo] = useState(false);
 
   const autoSaveTimerRef = useRef(null);
 
@@ -628,6 +629,24 @@ export default function InvoicesTab({
     window.print();
   };
 
+  const handleExportToQbo = async () => {
+    if (!activeInvoice) return;
+    if (!dbUser?.organization?.quickbooksRealmId) {
+      addToast("QuickBooks is not connected. Connect QuickBooks in Organization Settings.", "info");
+      return;
+    }
+    setIsExportingQbo(true);
+    try {
+      const res = await apiCall(`/api/invoices/${activeInvoice.id}/export-qbo`, "POST");
+      if (res?.error) throw new Error(res.error);
+      addToast(`Invoice ${activeInvoice.invoiceNumber} successfully exported to QuickBooks Online! (QBO ID: ${res.qboInvoiceId})`, "success");
+    } catch (err) {
+      addToast(`QuickBooks Export Error: ${err.message}`, "error");
+    } finally {
+      setIsExportingQbo(false);
+    }
+  };
+
   const formatMoney = (amount) => {
     return "$" + (parseFloat(amount) || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
@@ -842,6 +861,18 @@ export default function InvoicesTab({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   <span>Print / Save as PDF</span>
+                </button>
+
+                <button
+                  onClick={handleExportToQbo}
+                  disabled={isExportingQbo}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                  title={dbUser?.organization?.quickbooksRealmId ? "Push invoice directly to QuickBooks Online" : "Connect QuickBooks in Settings to sync invoices"}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span>{isExportingQbo ? "Exporting to QBO..." : "Push to QuickBooks"}</span>
                 </button>
 
                 {sheetForm.status === "sent" ? (

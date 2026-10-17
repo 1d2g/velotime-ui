@@ -1,0 +1,6 @@
+Project,Client,Description,Task,User,Group,Email,Tags,Billable,Start Date,Start Time,End Date,End Time,Duration (h),Duration (decimal),Billable Rate (USD),Billable Amount (USD)
+Boutique Hotel Lobby,Marriott Luxe,Concept presentation deck and materials palette,Schematic Design,David Gray,Design,dgray@dg.tools,interior,Yes,2026-10-12,09:00:00,2026-10-12,15:00:00,06:00:00,6.00,165.00,990.00
+Boutique Hotel Lobby,Marriott Luxe,Lighting scheme and fixture cut sheets,Schematic Design,David Gray,Design,dgray@dg.tools,lighting,Yes,2026-10-13,10:00:00,2026-10-13,14:30:00,04:30:00,4.50,165.00,742.50
+Boutique Hotel Lobby,Marriott Luxe,Acoustic baffle ceiling drawings,Construction Documents,Chloe Bennett,Architecture,chloe@marriott.test,ceiling,Yes,2026-10-14,09:00:00,2026-10-14,17:00:00,08:00:00,8.00,140.00,1120.00
+Boutique Hotel Lobby,Marriott Luxe, Inc.,MEP coordination meeting with MEP consultant,construction documents,Chloe Bennett,Architecture,chloe@marriott.test,mep,Yes,2026-10-15,13:00:00,2026-10-15,16:30:00,03:30:00,3.50,140.00,490.00
+Lakefront Retreat,Nordic Living,Structural foundation cross sections,Construction Documents,Marcus Vance,Architecture,marcus@nordic.test,foundation,Yes,2026-10-16,09:00:00,2026-10-16,14:00:00,05:00:00,5.00,150.00,750.00

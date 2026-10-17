@@ -2140,6 +2140,7 @@ export default function App() {
                     onAddTask={handleAddTask}
                     onRemoveTask={handleRemoveTask}
                     onEditTask={handleEditTask}
+                    onOpenMigration={() => setActiveTab("Migration")}
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Team" ? (
@@ -2198,7 +2199,7 @@ export default function App() {
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Integrations" ? (
-                <IntegrationsTab dbUser={dbUser} projects={projects} />
+                <IntegrationsTab dbUser={dbUser} projects={projects} rawEntries={rawEntries} />
               ) : activeTab === "Expenses" ? (
                 <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
                   <ExpensesTab
@@ -2209,14 +2210,14 @@ export default function App() {
                     forceSync={forceSync}
                   />
                 </TrialLockoutOverlay>
-              ) : activeTab === "Migration (Dev)" && isDevActive ? (
+              ) : activeTab === "Migration" || (activeTab === "Migration (Dev)" && isDevActive) ? (
                 <ImportWizardTab
                   dbUser={dbUser}
                   clients={clients}
                   projects={projects}
                   apiCall={apiCall}
                   forceSync={forceSync}
-                  onBack={() => setActiveTab("Timesheets")}
+                  onBack={() => setActiveTab("Projects")}
                 />
               ) : activeTab === "Settings" ? (
                 <OrganizationSettingsTab
