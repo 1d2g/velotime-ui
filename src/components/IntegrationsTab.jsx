@@ -1,9 +1,19 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { IntegrationManager } from "../services/integrations/IntegrationManager";
 import { useToast } from "../contexts/ToastContext";
 
-export default function IntegrationsTab({ dbUser, projects = [], rawEntries = [] }) {
+export default function IntegrationsTab({
+  dbUser,
+  projects = [],
+  rawEntries = [],
+  entries = {},
+  notes = {},
+  dates = [],
+  clients = [],
+  orgUsers = [],
+  taskRates = [],
+}) {
   const { addToast } = useToast();
   const [activeSubTab, setActiveSubTab] = useState("connectors"); // 'connectors' | 'mapping' | 'import_export'
   const [config, setConfig] = useState(IntegrationManager.getConfig());
@@ -164,107 +174,262 @@ export default function IntegrationsTab({ dbUser, projects = [], rawEntries = []
     addToast("Project destination mapped!", "success");
   };
 
-  // CSV Export Presets
-  // CSV Export Presets
-  const handleExportPreset = (presetName) => {
-    let rows = [];
-    const dateStr = new Date().toISOString().split("T")[0];
-    const validEntries = (Array.isArray(rawEntries) ? rawEntries : []).filter((e) => parseFloat(e.hours) > 0);
+  // Export scope filter: 'week' | 'month' | 'all'
+  const [exportScope, setExportScope] = useState("week");
 
-    if (presetName === "quickbooks") {
-      rows.push(["!TIMEACT", "DATE", "JOB", "EMP", "ITEM", "DURATION", "NOTE", "BILLABLE"]);
-      if (validEntries.length > 0) {
-        validEntries.forEach((e) => {
-          rows.push([
-            "TIMEACT",
-            e.dateId || dateStr,
-            e.projectName || "General",
-            e.userName || dbUser?.email || "Employee",
-            e.taskName || "General",
-            parseFloat(e.hours).toFixed(2),
-            e.note || "Logged via VeloTime",
-            e.isBillable !== false ? "Y" : "N",
-          ]);
+  // Build unified, real entries list across rawEntries & live matrix cells
+  const allResolvedEntries = useMemo(() => {
+    const projectMap = new Map();
+    const taskMap = new Map();
+    (projects || []).forEach((p) => {
+      projectMap.set(p.id, p);
+      (p.tasks || []).forEach((t) => {
+        taskMap.set(t.id, { task: t, project: p });
+      });
+    });
+
+    const clientMap = new Map();
+    (clients || []).forEach((c) => {
+      clientMap.set(c.id, c);
+    });
+
+    const userMap = new Map();
+    (orgUsers || []).forEach((u) => {
+      userMap.set(u.id, u);
+    });
+
+    const results = [];
+    const seenKeys = new Set();
+
+    const addEntry = ({ date, taskId, userId, hours, note, isBillable }) => {
+      const numHours = parseFloat(hours) || 0;
+      if (numHours <= 0) return;
+
+      const dateStr = String(date || "").trim();
+      const taskInfo = taskMap.get(taskId);
+      const proj = taskInfo?.project || projectMap.get(taskId);
+      const task = taskInfo?.task;
+      const client = proj?.clientId ? clientMap.get(proj.clientId) : (proj?.client || null);
+      const user = userMap.get(userId) || (userId === dbUser?.id ? dbUser : null);
+
+      const clientName = client?.name || proj?.clientName || "General Client";
+      const projectName = proj?.name || "General Project";
+      const taskName = task?.name || "General Work";
+      const userName = user
+        ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+        : dbUser?.email || "Employee";
+      const userEmail = user?.email || dbUser?.email || "employee@company.com";
+      const empId = user?.id || dbUser?.id || "EMP01";
+
+      const key = `${userId}_${dateStr}_${taskId}_${numHours}`;
+      if (seenKeys.has(key)) return;
+      seenKeys.add(key);
+
+      results.push({
+        date: dateStr,
+        userId: empId,
+        userName,
+        userEmail,
+        clientName,
+        projectName,
+        taskName,
+        hours: Math.round(numHours * 100) / 100,
+        note: (note || "").trim(),
+        isBillable: isBillable !== false,
+      });
+    };
+
+    if (Array.isArray(rawEntries)) {
+      rawEntries.forEach((re) => {
+        addEntry({
+          date: re.dateId || re.date,
+          taskId: re.taskId,
+          userId: re.userId || dbUser?.id,
+          hours: re.hours,
+          note: re.note || re.notes,
+          isBillable: re.isBillable,
         });
-      } else {
-        projects.forEach((p) => {
-          (p.tasks || []).forEach((t) => {
-            rows.push(["TIMEACT", dateStr, p.name, dbUser?.email || "Employee", t.name, "8.00", "Logged via VeloTime", "Y"]);
-          });
-        });
-      }
-    } else if (presetName === "adp") {
-      rows.push(["Company Code", "Employee ID", "Pay Code", "Date", "Hours", "Department", "Job Name"]);
-      if (validEntries.length > 0) {
-        validEntries.forEach((e) => {
-          rows.push([
-            "ADP01",
-            e.userId || dbUser?.id || "EMP01",
-            e.isBillable !== false ? "REG" : "NONBILL",
-            e.dateId || dateStr,
-            parseFloat(e.hours).toFixed(2),
-            "Design/Architecture",
-            e.projectName || "General",
-          ]);
-        });
-      } else {
-        projects.forEach((p) => {
-          rows.push(["ADP01", dbUser?.id || "EMP01", "REG", dateStr, "8.00", "Design/Architecture", p.name]);
-        });
-      }
-    } else if (presetName === "bamboohr") {
-      rows.push(["Employee Email", "Date", "Project", "Task", "Hours", "Note"]);
-      if (validEntries.length > 0) {
-        validEntries.forEach((e) => {
-          rows.push([
-            e.userEmail || dbUser?.email || "user@company.com",
-            e.dateId || dateStr,
-            e.projectName || "General",
-            e.taskName || "General",
-            parseFloat(e.hours).toFixed(2),
-            e.note || "Standard Week",
-          ]);
-        });
-      } else {
-        projects.forEach((p) => {
-          (p.tasks || []).forEach((t) => {
-            rows.push([dbUser?.email || "user@company.com", dateStr, p.name, t.name, "8.00", "Standard Week"]);
-          });
-        });
-      }
-    } else {
-      rows.push(["Date", "Client", "Project", "Task", "Hours", "Notes", "Billable"]);
-      if (validEntries.length > 0) {
-        validEntries.forEach((e) => {
-          rows.push([
-            e.dateId || dateStr,
-            e.clientName || "General",
-            e.projectName || "General",
-            e.taskName || "General",
-            parseFloat(e.hours).toFixed(2),
-            e.note || "Logged via VeloTime",
-            e.isBillable !== false ? "Yes" : "No",
-          ]);
-        });
-      } else {
-        projects.forEach((p) => {
-          (p.tasks || []).forEach((t) => {
-            rows.push([dateStr, p.clientName || "General", p.name, t.name, "8.00", "Logged via VeloTime", "Yes"]);
-          });
-        });
-      }
+      });
     }
 
-    const csvContent = "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
+    if (entries && typeof entries === "object") {
+      Object.entries(entries).forEach(([cellKey, hrs]) => {
+        const numHours = parseFloat(hrs) || 0;
+        if (numHours <= 0) return;
+
+        const parts = cellKey.split("_");
+        if (parts.length >= 3) {
+          const dateIndex = parts.findIndex((p) => /^\d{4}-\d{2}-\d{2}$/.test(p));
+          let uId, dId, tId;
+          if (dateIndex !== -1) {
+            uId = parts.slice(0, dateIndex).join("_");
+            dId = parts[dateIndex];
+            tId = parts.slice(dateIndex + 1).join("_");
+          } else {
+            uId = parts[0];
+            dId = parts[1];
+            tId = parts.slice(2).join("_");
+          }
+          const cellNote = notes[cellKey] || "";
+          addEntry({
+            date: dId,
+            taskId: tId,
+            userId: uId,
+            hours: numHours,
+            note: cellNote,
+            isBillable: true,
+          });
+        }
+      });
+    }
+
+    results.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    return results;
+  }, [projects, rawEntries, entries, notes, clients, orgUsers, dbUser]);
+
+  // Filter entries based on selected scope
+  const scopedEntries = useMemo(() => {
+    if (exportScope === "all") return allResolvedEntries;
+
+    const today = new Date();
+    const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+
+    if (exportScope === "month") {
+      return allResolvedEntries.filter((e) => (e.date || "").startsWith(currentYearMonth));
+    }
+
+    // Default: 'week'
+    if (Array.isArray(dates) && dates.length > 0) {
+      const activeIds = new Set(dates.map((d) => d.id));
+      const weekMatches = allResolvedEntries.filter((e) => activeIds.has(e.date));
+      if (weekMatches.length > 0) return weekMatches;
+    }
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    return allResolvedEntries.filter((e) => (e.date || "") >= sevenDaysAgo);
+  }, [allResolvedEntries, exportScope, dates]);
+
+  const totalScopedHours = useMemo(() => {
+    return scopedEntries.reduce((sum, e) => sum + e.hours, 0);
+  }, [scopedEntries]);
+
+  // RFC-4180 CSV row formatter with quote escaping
+  const formatCSVRow = (cells) => {
+    return cells
+      .map((val) => {
+        const str = val === null || val === undefined ? "" : String(val);
+        if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      })
+      .join(",");
+  };
+
+  // CSV Export Presets
+  const handleExportPreset = (presetName) => {
+    const dateStr = new Date().toISOString().split("T")[0];
+    const exportData = scopedEntries.length > 0 ? scopedEntries : allResolvedEntries;
+
+    if (exportData.length === 0) {
+      addToast("No logged hours found in timesheets yet. Enter hours on the timesheet grid to generate payroll exports.", "error");
+      return;
+    }
+
+    let rows = [];
+    let fileExt = "csv";
+    let mimeType = "text/csv;charset=utf-8;";
+
+    if (presetName === "quickbooks") {
+      // Standard QuickBooks Online CSV import columns
+      rows.push(["Date", "Employee", "Customer", "Project", "Item", "Duration", "Note", "Billable"]);
+      exportData.forEach((e) => {
+        rows.push([
+          e.date,
+          e.userName,
+          e.clientName,
+          e.projectName,
+          e.taskName,
+          e.hours.toFixed(2),
+          e.note || "Logged via VeloTime",
+          e.isBillable ? "Y" : "N",
+        ]);
+      });
+    } else if (presetName === "quickbooks_iif") {
+      // Standard QuickBooks Desktop IIF Time Activity format
+      fileExt = "iif";
+      mimeType = "text/plain;charset=utf-8;";
+      rows.push(["!TIMEACT", "DATE", "JOB", "EMP", "ITEM", "DURATION", "NOTE", "BILLABLE"]);
+      exportData.forEach((e) => {
+        rows.push([
+          "TIMEACT",
+          e.date,
+          `${e.clientName}:${e.projectName}`,
+          e.userName,
+          e.taskName,
+          e.hours.toFixed(2),
+          e.note || "Logged via VeloTime",
+          e.isBillable ? "Y" : "N",
+        ]);
+      });
+    } else if (presetName === "adp") {
+      // Standard ADP Workforce Now / Run hourly batch format
+      rows.push(["Company Code", "Employee ID", "Pay Code", "Date", "Hours", "Department", "Job Name"]);
+      exportData.forEach((e) => {
+        rows.push([
+          "ADP01",
+          e.userId,
+          e.isBillable ? "REG" : "NONBILL",
+          e.date,
+          e.hours.toFixed(2),
+          "Architecture & Design",
+          `${e.clientName} - ${e.projectName}`,
+        ]);
+      });
+    } else if (presetName === "bamboohr") {
+      // BambooHR & Gusto timesheet format
+      rows.push(["Employee Email", "Date", "Project", "Task", "Hours", "Note"]);
+      exportData.forEach((e) => {
+        rows.push([
+          e.userEmail,
+          e.date,
+          `${e.clientName} - ${e.projectName}`,
+          e.taskName,
+          e.hours.toFixed(2),
+          e.note || "Standard Billable Hours",
+        ]);
+      });
+    } else {
+      // Universal standard CSV
+      rows.push(["Date", "Client", "Project", "Task", "Hours", "Employee", "Email", "Notes", "Billable"]);
+      exportData.forEach((e) => {
+        rows.push([
+          e.date,
+          e.clientName,
+          e.projectName,
+          e.taskName,
+          e.hours.toFixed(2),
+          e.userName,
+          e.userEmail,
+          e.note,
+          e.isBillable ? "Yes" : "No",
+        ]);
+      });
+    }
+
+    const csvContent = rows.map((r) => formatCSVRow(r)).join("\r\n");
+    const blob = new Blob([csvContent], { type: mimeType });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `velotime_export_${presetName}_${dateStr}.csv`);
+    link.href = url;
+    link.download = `velotime_export_${presetName}_${dateStr}.${fileExt}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    const countMsg = validEntries.length > 0 ? ` (${validEntries.length} logged entries)` : "";
-    addToast(`Exported ${presetName.toUpperCase()} format successfully!${countMsg}`, "success");
+    URL.revokeObjectURL(url);
+
+    const scopeLabel = exportScope === "week" ? "this week" : exportScope === "month" ? "this month" : "all time";
+    addToast(`Exported ${exportData.length} entries (${totalScopedHours.toFixed(1)} hrs) in ${presetName.toUpperCase()} format!`, "success");
   };
 
   const providers = [
@@ -629,66 +794,131 @@ export default function IntegrationsTab({ dbUser, projects = [], rawEntries = []
 
         {/* TAB 3: IMPORT / EXPORT PRESETS */}
         {activeSubTab === "import_export" && (
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                Universal Payroll & Accounting Export Presets
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                Export clean timesheet batches formatted precisely for your company's payroll or accounting system in 1 click.
-              </p>
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-zinc-800">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                  Universal Payroll & Accounting Export Presets
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+                  Export timesheet batches formatted precisely for your company's payroll or accounting system.
+                </p>
+              </div>
+
+              {/* Date Scope Filter */}
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">Period:</span>
+                <div className="inline-flex border border-slate-300 dark:border-zinc-700 p-0.5 bg-slate-50 dark:bg-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setExportScope("week")}
+                    className={`px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                      exportScope === "week"
+                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    This Week
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExportScope("month")}
+                    className={`px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                      exportScope === "month"
+                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExportScope("all")}
+                    className={`px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                      exportScope === "all"
+                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    All Logged
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Scope Summary Badge */}
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/80 px-4 py-2.5 text-xs">
+              <span className="text-slate-600 dark:text-slate-300">
+                Active dataset: <strong className="text-slate-900 dark:text-white">{scopedEntries.length} entries</strong> totaling <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{totalScopedHours.toFixed(2)} hours</strong>
+              </span>
+              <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">
+                {exportScope === "week" ? "Active Week Scope" : exportScope === "month" ? "Current Month Scope" : "All Historical Scope"}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-600 transition-all">
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">QuickBooks Desktop / Online</h3>
-                  <p className="text-xs text-slate-500 mb-4">Standard QuickBooks IIF / CSV format for Accounts Receivable & Job Costing.</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">QuickBooks Online</h3>
+                  <p className="text-xs text-slate-500 mb-4">Standard QuickBooks Online CSV format with Date, Employee, Customer, Project, Item, Hours, Billable.</p>
                 </div>
-                <button
-                  onClick={() => handleExportPreset("quickbooks")}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
-                >
-                  Export QuickBooks CSV
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleExportPreset("quickbooks")}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 text-xs transition-all cursor-pointer"
+                  >
+                    Export QBO CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExportPreset("quickbooks_iif")}
+                    className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 font-semibold py-1.5 text-[11px] border border-slate-300 dark:border-zinc-700 transition-all cursor-pointer"
+                  >
+                    Export QBD (.IIF)
+                  </button>
+                </div>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-600 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">ADP Run & Workforce</h3>
-                  <p className="text-xs text-slate-500 mb-4">Pre-formatted ADP company/employee hourly batch upload file.</p>
+                  <p className="text-xs text-slate-500 mb-4">Pre-formatted ADP company/employee hourly batch upload file with pay codes and department tags.</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleExportPreset("adp")}
-                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
+                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 text-xs transition-all cursor-pointer mt-4"
                 >
                   Export ADP Batch CSV
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-600 transition-all">
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">BambooHR Timesheets</h3>
-                  <p className="text-xs text-slate-500 mb-4">BambooHR project timesheet import with email & project columns.</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">BambooHR & Gusto</h3>
+                  <p className="text-xs text-slate-500 mb-4">Project timesheet import with employee email, project names, and task hour breakdowns.</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleExportPreset("bamboohr")}
-                  className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-none-none text-xs transition-all cursor-pointer"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 text-xs transition-all cursor-pointer mt-4"
                 >
-                  Export BambooHR CSV
+                  Export BambooHR / Gusto CSV
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-zinc-800 p-5 rounded-none-none flex flex-col justify-between hover:border-primary-500 transition-all">
+              <div className="border border-slate-200 dark:border-zinc-800 p-5 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-600 transition-all">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">Universal Excel / CSV</h3>
-                  <p className="text-xs text-slate-500 mb-4">Generic standard columns (Date, Client, Project, Task, Hours, Notes).</p>
+                  <p className="text-xs text-slate-500 mb-4">Clean, unformatted standard columns (Date, Client, Project, Task, Hours, Employee, Notes, Billable).</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleExportPreset("standard")}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 py-2 rounded-none-none text-xs font-bold transition-all cursor-pointer"
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 py-2 text-xs font-bold transition-all cursor-pointer mt-4"
                 >
-                  Export Standard CSV
+                  Export Universal CSV
                 </button>
               </div>
             </div>

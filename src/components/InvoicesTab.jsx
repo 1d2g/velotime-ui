@@ -452,6 +452,51 @@ export default function InvoicesTab({
     }
   };
 
+  const handleExportToQbo = async () => {
+    if (!activeInvoice?.id) return;
+
+    // Sandbox / Guest demo mode
+    if (!dbUser || dbUser.id === "guest_user" || dbUser.organization?.id === "org_guest_sandbox" || !apiCall) {
+      setIsExportingQbo(true);
+      setTimeout(() => {
+        setIsExportingQbo(false);
+        addToast(
+          `Simulated Export: Invoice #${activeInvoice.invoiceNumber || "INV-1001"} formatted for QuickBooks Online! Sign up to connect your live Intuit company.`,
+          "info"
+        );
+      }, 700);
+      return;
+    }
+
+    const isQboConnected = Boolean(dbUser?.organization?.quickbooksRealmId);
+    if (!isQboConnected) {
+      addToast("QuickBooks is not connected. Connect your QuickBooks account in Settings -> Integrations first.", "error");
+      return;
+    }
+
+    setIsExportingQbo(true);
+    try {
+      const res = await apiCall(`/api/invoices/${activeInvoice.id}/export-qbo`, "POST");
+      if (res && res.success) {
+        addToast(
+          `Successfully pushed Invoice #${activeInvoice.invoiceNumber || ""} to QuickBooks Online (QBO ID: ${res.qboInvoiceId})!`,
+          "success"
+        );
+        const updatedInvoice = { ...activeInvoice, paymentMethod: "quickbooks" };
+        setActiveInvoice(updatedInvoice);
+        setInvoices((prev) => (Array.isArray(prev) ? prev : []).map((i) => (i.id === updatedInvoice.id ? updatedInvoice : i)));
+        if (forceSync) forceSync();
+      } else {
+        throw new Error(res?.error || "Failed to export invoice to QuickBooks");
+      }
+    } catch (err) {
+      console.error("QBO export error:", err);
+      addToast(err.message || "Failed to export invoice to QuickBooks", "error");
+    } finally {
+      setIsExportingQbo(false);
+    }
+  };
+
   const calculateHourlyData = () => {
     if (!liTaskId || !liUserId) return { hours: 0, rate: 0, amount: 0 };
     const unbilled =
@@ -627,24 +672,6 @@ export default function InvoicesTab({
 
   const handlePrintPDF = () => {
     window.print();
-  };
-
-  const handleExportToQbo = async () => {
-    if (!activeInvoice) return;
-    if (!dbUser?.organization?.quickbooksRealmId) {
-      addToast("QuickBooks is not connected. Connect QuickBooks in Organization Settings.", "info");
-      return;
-    }
-    setIsExportingQbo(true);
-    try {
-      const res = await apiCall(`/api/invoices/${activeInvoice.id}/export-qbo`, "POST");
-      if (res?.error) throw new Error(res.error);
-      addToast(`Invoice ${activeInvoice.invoiceNumber} successfully exported to QuickBooks Online! (QBO ID: ${res.qboInvoiceId})`, "success");
-    } catch (err) {
-      addToast(`QuickBooks Export Error: ${err.message}`, "error");
-    } finally {
-      setIsExportingQbo(false);
-    }
   };
 
   const formatMoney = (amount) => {
@@ -864,15 +891,22 @@ export default function InvoicesTab({
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleExportToQbo}
                   disabled={isExportingQbo}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
-                  title={dbUser?.organization?.quickbooksRealmId ? "Push invoice directly to QuickBooks Online" : "Connect QuickBooks in Settings to sync invoices"}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                  title={
+                    dbUser?.organization?.quickbooksRealmId
+                      ? "Push invoice directly to QuickBooks Online"
+                      : "Sync invoice with QuickBooks Online"
+                  }
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  <span>{isExportingQbo ? "Exporting to QBO..." : "Push to QuickBooks"}</span>
+                  <span>{isExportingQbo ? "Pushing to QBO..." : "Push to QuickBooks"}</span>
                 </button>
 
                 {sheetForm.status === "sent" ? (
