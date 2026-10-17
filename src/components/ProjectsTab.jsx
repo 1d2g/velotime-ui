@@ -160,6 +160,7 @@ export default function ProjectsTab({
   onRenameProject,
   onDeleteProject,
   onAddProject,
+  onAddTask,
   onRemoveTask,
   onEditTask,
   clients,
@@ -211,6 +212,7 @@ export default function ProjectsTab({
   // New Task State
   const [newTaskName, setNewTaskName] = useState("");
   const [newTaskBillable, setNewTaskBillable] = useState(true);
+  const [newTaskBudget, setNewTaskBudget] = useState("");
 
   // Delete project confirmation state
   const [confirmDeleteProjectId, setConfirmDeleteProjectId] = useState(null);
@@ -239,6 +241,14 @@ export default function ProjectsTab({
     } catch (e) {
       addToast("Failed to bulk update rates", "error");
     }
+  };
+
+  const getTaskBudgetSum = (proj) => {
+    if (!proj?.tasks || !Array.isArray(proj.tasks)) return 0;
+    return proj.tasks.reduce(
+      (sum, t) => sum + (parseFloat(t.budgetHours) || 0),
+      0,
+    );
   };
 
   const getProjectTotalHours = (project) => {
@@ -455,9 +465,14 @@ export default function ProjectsTab({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (newTaskName.trim()) {
-                      onAddTask(project.id, { name: newTaskName.trim(), isBillable: newTaskBillable });
+                    if (newTaskName.trim() && onAddTask) {
+                      onAddTask(project.id, {
+                        name: newTaskName.trim(),
+                        isBillable: newTaskBillable,
+                        budgetHours: newTaskBudget ? parseFloat(newTaskBudget) : null,
+                      });
                       setNewTaskName("");
+                      setNewTaskBudget("");
                       setNewTaskBillable(true);
                     }
                   }}
@@ -470,6 +485,17 @@ export default function ProjectsTab({
                     onChange={(e) => setNewTaskName(e.target.value)}
                     className="px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 "
                   />
+                  {project.budgetType === 'TASK_HOURS' && (
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      placeholder="Budget (hrs)"
+                      value={newTaskBudget}
+                      onChange={(e) => setNewTaskBudget(e.target.value)}
+                      className="w-28 px-3 py-1.5 border border-slate-300 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => setNewTaskBillable(!newTaskBillable)}
@@ -520,20 +546,21 @@ export default function ProjectsTab({
           {isEditingBudget && isAdmin && (
             <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800">
               <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wider">Project Budget Settings</h3>
-              <div className="flex items-end gap-4">
+              <div className="flex flex-wrap items-end gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Budget Type</label>
                   <select 
                     value={budgetType} 
                     onChange={e => setBudgetType(e.target.value)}
-                    className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-48"
+                    className="px-3 py-2 border border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm w-56"
                   >
                     <option value="NONE">No Budget</option>
-                    <option value="HOURS">Total Hours</option>
+                    <option value="HOURS">Total Hours (Project Level)</option>
                     <option value="CURRENCY">Total Currency (USD)</option>
+                    <option value="TASK_HOURS">Task-Level Budgets (Sum of Tasks)</option>
                   </select>
                 </div>
-                {budgetType !== 'NONE' && (
+                {budgetType !== 'NONE' && budgetType !== 'TASK_HOURS' && (
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 mb-1">Budget Limit</label>
                     <input 
@@ -546,10 +573,19 @@ export default function ProjectsTab({
                     />
                   </div>
                 )}
+                {budgetType === 'TASK_HOURS' && (
+                  <div className="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-zinc-900 px-3 py-2 border border-slate-300 dark:border-zinc-700 max-w-sm">
+                    Overall project budget is dynamically calculated as the sum of all task budgets. You can assign hours to each task in the table below.
+                  </div>
+                )}
                 <button
                   onClick={async () => {
                     try {
-                      await apiCall(`/api/projects/${project.id}`, 'PUT', { budgetType, budgetLimit });
+                      const limit = budgetType === 'TASK_HOURS' ? 0 : budgetLimit;
+                      await apiCall(`/api/projects/${project.id}`, 'PUT', { budgetType, budgetLimit: limit });
+                      if (onUpdateProject) {
+                        onUpdateProject(project.id, { budgetType, budgetLimit: limit });
+                      }
                       forceSync();
                       setIsEditingBudget(false);
                       addToast("Budget settings saved successfully", "success");
@@ -565,15 +601,39 @@ export default function ProjectsTab({
             </div>
           )}
 
-          {project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE' && (
+          {((project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE') || project.budgetType === 'TASK_HOURS') && (
             <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Project Budget Status
-                  </span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Project Budget Status
+                    </span>
+                    {project.budgetType === 'TASK_HOURS' && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+                        Sum of Tasks
+                      </span>
+                    )}
+                  </div>
                   <div className="text-lg font-black text-slate-900 dark:text-slate-100">
-                    {(project.budgetType === 'HOURS' || project.budgetType === 'hours') ? (
+                    {project.budgetType === 'TASK_HOURS' ? (
+                      (() => {
+                        const sum = getTaskBudgetSum(project);
+                        const spent = getProjectTotalHours(project);
+                        const rem = sum - spent;
+                        return (
+                          <>
+                            {spent.toFixed(2)} / {sum.toFixed(2)} hrs
+                            <span className="text-sm font-medium text-slate-500 ml-2">
+                              ({rem > 0 ? rem.toFixed(2) : '0.00'} hrs remaining)
+                            </span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal mt-0.5">
+                              Aggregated across {project.tasks.length} task budget{project.tasks.length === 1 ? '' : 's'}
+                            </span>
+                          </>
+                        );
+                      })()
+                    ) : (project.budgetType === 'HOURS' || project.budgetType === 'hours') ? (
                       <>
                         {getProjectTotalHours(project).toFixed(2)} / {project.budgetLimit} hrs
                         <span className="text-sm font-medium text-slate-500 ml-2">
@@ -592,9 +652,12 @@ export default function ProjectsTab({
                 </div>
                 <div className="text-right">
                   {(() => {
-                    const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                      ? getProjectTotalHours(project) / project.budgetLimit
-                      : getProjectSpend(project) / project.budgetLimit;
+                    const taskSum = getTaskBudgetSum(project);
+                    const ratio = project.budgetType === 'TASK_HOURS'
+                      ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
+                      : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                      ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
+                      : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
                     const percent = Math.round(ratio * 100);
                     const colorClass = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
                     return (
@@ -606,9 +669,12 @@ export default function ProjectsTab({
                 </div>
               </div>
               {(() => {
-                const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                  ? getProjectTotalHours(project) / project.budgetLimit
-                  : getProjectSpend(project) / project.budgetLimit;
+                const taskSum = getTaskBudgetSum(project);
+                const ratio = project.budgetType === 'TASK_HOURS'
+                  ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
+                  : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                  ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
+                  : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
                 const percent = Math.min(100, Math.round(ratio * 100));
                 const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
                 return (
@@ -636,6 +702,11 @@ export default function ProjectsTab({
                     <th className="text-left py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                       Task Name
                     </th>
+                    {project.budgetType === 'TASK_HOURS' && (
+                      <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider w-48">
+                        Task Budget
+                      </th>
+                    )}
                     {writeAllowed && (
                       <th className="text-right py-4 px-6 text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider w-48">
                         Override All (Bill)
@@ -711,6 +782,66 @@ export default function ProjectsTab({
                               </div>
                             )}
                           </td>
+
+                          {project.budgetType === 'TASK_HOURS' && (
+                            <td className="py-4 px-6 text-right w-48" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex flex-col items-end gap-1">
+                                {writeAllowed ? (
+                                  <div className="flex items-center gap-1.5 justify-end">
+                                    <input
+                                      key={`${task.id}_${task.budgetHours}`}
+                                      type="number"
+                                      step="0.5"
+                                      min="0"
+                                      placeholder="0.0"
+                                      defaultValue={task.budgetHours !== null && task.budgetHours !== undefined ? task.budgetHours : ""}
+                                      onBlur={(e) => {
+                                        const val = e.target.value.trim();
+                                        const num = val === "" ? null : parseFloat(val);
+                                        if (num !== (task.budgetHours ?? null) && onEditTask) {
+                                          onEditTask(project.id, task.id, { budgetHours: num });
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.target.blur();
+                                        }
+                                      }}
+                                      className="w-20 px-2 py-1 text-sm text-right border border-slate-300 dark:border-zinc-700 rounded-none focus:outline-none focus:border-slate-900 bg-white dark:bg-zinc-900 font-semibold text-slate-900 dark:text-slate-100"
+                                    />
+                                    <span className="text-xs text-slate-500 font-medium">hrs</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                    {task.budgetHours ? `${task.budgetHours} hrs` : "No limit"}
+                                  </span>
+                                )}
+
+                                {parseFloat(task.budgetHours) > 0 && (
+                                  <div className="w-full max-w-[120px] mt-0.5">
+                                    <div className="flex justify-between text-[10px] text-slate-400 font-medium mb-0.5">
+                                      <span>{taskHours.toFixed(1)}h logged</span>
+                                      <span className={taskHours >= task.budgetHours ? "text-red-500 font-bold" : taskHours >= task.budgetHours * 0.8 ? "text-amber-500 font-bold" : "text-emerald-500 font-medium"}>
+                                        {Math.round((taskHours / task.budgetHours) * 100)}%
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 dark:bg-zinc-800 h-1 overflow-hidden">
+                                      <div
+                                        className={`h-full transition-all duration-300 ${
+                                          taskHours >= task.budgetHours
+                                            ? "bg-red-500"
+                                            : taskHours >= task.budgetHours * 0.8
+                                            ? "bg-amber-500"
+                                            : "bg-emerald-500"
+                                        }`}
+                                        style={{ width: `${Math.min(100, Math.round((taskHours / task.budgetHours) * 100))}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          )}
 
                           {writeAllowed && (
                             <td className="py-4 px-6 text-right w-48">
@@ -792,7 +923,7 @@ export default function ProjectsTab({
                         {expandedTaskId === task.id && writeAllowed && (
                           <tr>
                             <td
-                              colSpan={writeAllowed ? "4" : "3"}
+                              colSpan={(writeAllowed ? 4 : 3) + (project.budgetType === 'TASK_HOURS' ? 1 : 0)}
                               className="p-0"
                             >
                               <TaskRatesPanel
@@ -1343,18 +1474,26 @@ export default function ProjectsTab({
                         {totalHours.toFixed(2)} hrs
                       </span>
                     </div>
-                    {project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE' && (
+                    {((project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE') || project.budgetType === 'TASK_HOURS') && (
                       <div className="mt-2.5">
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-slate-500 font-medium">
-                            {(project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                            {project.budgetType === 'TASK_HOURS'
+                              ? `${totalHours.toFixed(1)} / ${getTaskBudgetSum(project).toFixed(1)} hrs (Tasks Sum)`
+                              : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
                               ? `${totalHours.toFixed(1)} / ${project.budgetLimit} hrs`
                               : `$${Math.round(getProjectSpend(project)).toLocaleString()} / $${Math.round(project.budgetLimit).toLocaleString()}`}
                           </span>
                           {(() => {
-                            const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                              ? totalHours / project.budgetLimit
-                              : getProjectSpend(project) / project.budgetLimit;
+                            const budgetLimit = project.budgetType === 'TASK_HOURS'
+                              ? getTaskBudgetSum(project)
+                              : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                              ? project.budgetLimit
+                              : project.budgetLimit;
+                            const currentVal = (project.budgetType === 'CURRENCY' || project.budgetType === 'currency')
+                              ? getProjectSpend(project)
+                              : totalHours;
+                            const ratio = budgetLimit > 0 ? currentVal / budgetLimit : 0;
                             const percent = Math.round(ratio * 100);
                             const textColor = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
                             return (
@@ -1365,9 +1504,15 @@ export default function ProjectsTab({
                           })()}
                         </div>
                         {(() => {
-                          const ratio = (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                            ? totalHours / project.budgetLimit
-                            : getProjectSpend(project) / project.budgetLimit;
+                          const budgetLimit = project.budgetType === 'TASK_HOURS'
+                            ? getTaskBudgetSum(project)
+                            : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                            ? project.budgetLimit
+                            : project.budgetLimit;
+                          const currentVal = (project.budgetType === 'CURRENCY' || project.budgetType === 'currency')
+                            ? getProjectSpend(project)
+                            : totalHours;
+                          const ratio = budgetLimit > 0 ? currentVal / budgetLimit : 0;
                           const percent = Math.min(100, Math.round(ratio * 100));
                           const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
                           return (

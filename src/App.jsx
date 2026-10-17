@@ -1268,7 +1268,12 @@ export default function App() {
       return;
     }
     const tempId = `guest_t_${Date.now()}`;
-    const tempTask = { id: tempId, name: taskToAdd.name, isBillable: taskToAdd.isBillable ?? true };
+    const tempTask = {
+      id: tempId,
+      name: taskToAdd.name,
+      isBillable: taskToAdd.isBillable ?? true,
+      budgetHours: taskToAdd.budgetHours !== undefined ? taskToAdd.budgetHours : null,
+    };
     setProjects((prev) =>
       prev.map((p) => {
         if (p.id === projectId) return { ...p, tasks: [...p.tasks, tempTask] };
@@ -1283,7 +1288,12 @@ export default function App() {
       const savedTask = await apiCall(
         "/api/tasks",
         "POST",
-        { name: taskToAdd.name, projectId, isBillable: taskToAdd.isBillable ?? true },
+        {
+          name: taskToAdd.name,
+          projectId,
+          isBillable: taskToAdd.isBillable ?? true,
+          budgetHours: taskToAdd.budgetHours !== undefined ? taskToAdd.budgetHours : null,
+        },
         "Task created",
       );
       setProjects((prev) =>
