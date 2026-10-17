@@ -763,20 +763,6 @@ export default function App() {
     }
   };
 
-  const handleClearGrid = () => {
-    setEntries({});
-    setNotes({});
-    if (isGuestMode) {
-      safeSetItem("localStorage", "velotime_guest_workspace", JSON.stringify({
-        clients,
-        projects,
-        entries: {},
-        notes: {},
-      }));
-    }
-    addToast("Timesheet grid cleared", "info");
-  };
-
   useEffect(() => {
     async function syncDatabase() {
       if (!isSignedIn || !user || !isOrgLoaded) return;
@@ -2108,7 +2094,6 @@ export default function App() {
                             onToggleCollapse={handleToggleCollapse}
                             searchQuery={searchQuery}
                             onReorderProject={handleReorderProject}
-                            onClearGrid={handleClearGrid}
                             walkthroughActive={walkthroughActive}
                             walkthroughStep={walkthroughStep}
                             onAdvanceWalkthrough={handleAdvanceWalkthrough}

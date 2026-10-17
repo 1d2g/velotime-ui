@@ -6,7 +6,7 @@ import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
 import { motion } from "framer-motion";
-import { Pencil, RotateCcw, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -31,7 +31,6 @@ export default function TimesheetMatrix({
   searchQuery = "",
   onReorderProject,
   onToggleTimer,
-  onClearGrid,
   onRenameProject,
   onUpdateClient,
   onEditTask,
@@ -1043,17 +1042,6 @@ export default function TimesheetMatrix({
                         Audit Notes
                       </span>
                     </label>
-                    {onClearGrid && (
-                      <button
-                        type="button"
-                        onClick={onClearGrid}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 select-none transition-colors border border-slate-300 dark:border-zinc-700 hover:border-rose-400 px-2 py-0.5 bg-slate-50 dark:bg-zinc-800 shadow-sm cursor-pointer"
-                        title="Clear all hours from the timesheet matrix"
-                      >
-                        <RotateCcw className="w-3 h-3 text-slate-500 hover:text-rose-600" />
-                        <span>Clear Grid</span>
-                      </button>
-                    )}
                   </div>
                   {timeframe === "week" && (
                     <div>
