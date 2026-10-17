@@ -1082,50 +1082,56 @@ export default function TimesheetMatrix({
                         onReorderProject(draggedId, p.id);
                       }
                     }}
-                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-l border-slate-300 dark:border-zinc-700 px-3 py-2 z-30 transition-colors ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''} ${pIndex === 0 ? 'tour-project-header' : ''}`}
+                    className={`group sticky top-0 bg-white dark:bg-zinc-900 border-b border-r border-l border-slate-300 dark:border-zinc-700 z-30 transition-colors ${
+                      p.isCollapsed
+                        ? `w-24 min-w-[6rem] max-w-[6rem] p-1.5 overflow-hidden ${tier1HeightClass}`
+                        : `px-3 py-2 ${tier1HeightClass}`
+                    } ${sortMode === 'manual' ? 'cursor-grab active:cursor-grabbing' : ''} ${pIndex === 0 ? 'tour-project-header' : ''}`}
                     colSpan={p.isCollapsed ? 1 : (p.tasks.length === 0 ? 1 : p.tasks.length)}
                   >
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => onToggleCollapse(p.id)}
-                        className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none p-1 rounded-sm transition-colors mr-1 shrink-0"
-                        title={p.isCollapsed ? "Expand Project" : "Collapse Project"}
-                      >
-                        <svg
-                          className={`w-3.5 h-3.5 transform transition-transform duration-200 ${p.isCollapsed ? "-rotate-90" : "rotate-0"}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </button>
-                      {editingProjectId === p.id ? (
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            if (editNameInput.trim()) {
-                              if (p.client && onUpdateClient) {
-                                onUpdateClient(p.clientId, { name: editNameInput.trim() });
-                              } else if (onRenameProject) {
-                                onRenameProject(p.id, editNameInput.trim());
-                              }
-                            }
-                            setEditingProjectId(null);
-                          }}
-                          className="flex items-center gap-1 flex-1 min-w-0"
-                        >
-                          <input
-                            type="text"
-                            autoFocus
-                            value={editNameInput}
-                            onChange={(e) => setEditNameInput(e.target.value)}
-                            onBlur={() => {
+                    {p.isCollapsed ? (
+                      <div className="flex flex-col justify-between h-full w-full min-w-0 overflow-hidden">
+                        {/* Top micro-row: collapse chevron & edit pencil */}
+                        <div className="flex items-center justify-between w-full shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => onToggleCollapse(p.id)}
+                            className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 focus:outline-none p-0.5 rounded transition-colors"
+                            title="Expand Project"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5 transform transition-transform duration-200 -rotate-90"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2.5"
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProjectId(p.id);
+                              setEditNameInput(p.client ? p.client.name : p.name);
+                            }}
+                            className="p-0.5 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Edit Client / Project Name"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Wrapped Client & Project Title */}
+                        {editingProjectId === p.id ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
                               if (editNameInput.trim()) {
                                 if (p.client && onUpdateClient) {
                                   onUpdateClient(p.clientId, { name: editNameInput.trim() });
@@ -1135,45 +1141,140 @@ export default function TimesheetMatrix({
                               }
                               setEditingProjectId(null);
                             }}
-                            className="bg-white dark:bg-zinc-800 text-xs px-2 py-0.5 border-2 border-primary-500 text-slate-900 dark:text-white outline-none w-full font-bold shadow-sm"
-                          />
-                        </form>
-                      ) : (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <span
-                            className="truncate text-left text-sm select-none"
-                            title={p.client ? `${p.client.name} | ${p.name}` : p.name}
+                            className="w-full mt-0.5"
+                          >
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editNameInput}
+                              onChange={(e) => setEditNameInput(e.target.value)}
+                              onBlur={() => {
+                                if (editNameInput.trim()) {
+                                  if (p.client && onUpdateClient) {
+                                    onUpdateClient(p.clientId, { name: editNameInput.trim() });
+                                  } else if (onRenameProject) {
+                                    onRenameProject(p.id, editNameInput.trim());
+                                  }
+                                }
+                                setEditingProjectId(null);
+                              }}
+                              className="bg-white dark:bg-zinc-800 text-[11px] px-1 py-0.5 border-2 border-primary-500 text-slate-900 dark:text-white outline-none w-full font-bold shadow-sm text-center"
+                            />
+                          </form>
+                        ) : (
+                          <div
+                            className="flex flex-col items-center justify-center text-center flex-1 min-w-0 w-full overflow-hidden select-none cursor-pointer py-0.5"
+                            onClick={() => onToggleCollapse(p.id)}
+                            title={p.client ? `${p.client.name} | ${p.name} (Click to expand)` : `${p.name} (Click to expand)`}
                           >
                             {p.client ? (
                               <>
-                                <span className="text-slate-500 dark:text-slate-400 font-bold mr-1">{p.client.name}</span>
-                                <span className="text-slate-300 dark:text-zinc-600 mr-1">|</span>
-                                <span className="font-semibold">{p.name}</span>
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tight truncate w-full leading-none mb-0.5 block">
+                                  {p.client.name}
+                                </span>
+                                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2 w-full block">
+                                  {p.name}
+                                </span>
                               </>
                             ) : (
-                              p.name
+                              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2 w-full block">
+                                {p.name}
+                              </span>
                             )}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingProjectId(p.id);
-                              setEditNameInput(p.client ? p.client.name : p.name);
-                            }}
-                            className="p-1 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
-                            title="Edit Client / Project Name"
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => onToggleCollapse(p.id)}
+                          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none p-1 rounded-sm transition-colors mr-1 shrink-0"
+                          title="Collapse Project"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5 transform transition-transform duration-200 rotate-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                      {sortMode === 'manual' && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-slate-300 mx-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                        </div>
-                      )}
-                    </div>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2.5"
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
+                        {editingProjectId === p.id ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              if (editNameInput.trim()) {
+                                if (p.client && onUpdateClient) {
+                                  onUpdateClient(p.clientId, { name: editNameInput.trim() });
+                                } else if (onRenameProject) {
+                                  onRenameProject(p.id, editNameInput.trim());
+                                }
+                              }
+                              setEditingProjectId(null);
+                            }}
+                            className="flex items-center gap-1 flex-1 min-w-0"
+                          >
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editNameInput}
+                              onChange={(e) => setEditNameInput(e.target.value)}
+                              onBlur={() => {
+                                if (editNameInput.trim()) {
+                                  if (p.client && onUpdateClient) {
+                                    onUpdateClient(p.clientId, { name: editNameInput.trim() });
+                                  } else if (onRenameProject) {
+                                    onRenameProject(p.id, editNameInput.trim());
+                                  }
+                                }
+                                setEditingProjectId(null);
+                              }}
+                              className="bg-white dark:bg-zinc-800 text-xs px-2 py-0.5 border-2 border-primary-500 text-slate-900 dark:text-white outline-none w-full font-bold shadow-sm"
+                            />
+                          </form>
+                        ) : (
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <span
+                              className="truncate text-left text-sm select-none"
+                              title={p.client ? `${p.client.name} | ${p.name}` : p.name}
+                            >
+                              {p.client ? (
+                                <>
+                                  <span className="text-slate-500 dark:text-slate-400 font-bold mr-1">{p.client.name}</span>
+                                  <span className="text-slate-300 dark:text-zinc-600 mr-1">|</span>
+                                  <span className="font-semibold">{p.name}</span>
+                                </>
+                              ) : (
+                                p.name
+                              )}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingProjectId(p.id);
+                                setEditNameInput(p.client ? p.client.name : p.name);
+                              }}
+                              className="p-1 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
+                              title="Edit Client / Project Name"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                        {sortMode === 'manual' && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-slate-300 mx-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </th>
                   {!p.isCollapsed && p.tasks.length > 0 && (
                     <th className={`sticky top-0 bg-white dark:bg-zinc-900 w-20 ${tier1HeightClass} z-30 border-0 border-b border-slate-300 dark:border-zinc-700 animate-task-btn overflow-hidden`}></th>
@@ -2103,7 +2204,7 @@ function TimesheetNoteCell({
           }, 30);
         }
       }}
-      className={`p-0 relative transition-all duration-200 cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
+      className={`p-0 relative w-24 min-w-[6rem] max-w-[6rem] transition-all duration-200 cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle
  ${isActive ? "border-b border-r border-slate-300 dark:border-zinc-700" : "border-b border-r border-transparent"}
  ${isFirstInProject ? (isActive ? "border-l border-slate-300 dark:border-zinc-700" : "border-l border-transparent") : ""}
  ${isWalkthroughNoteTarget ? "ring-2 ring-rose-500 bg-rose-50/20 z-20" : isSelected ? "ring-2 ring-inset ring-slate-900 bg-primary-50/30 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-slate-50 dark:bg-zinc-950/10"}
