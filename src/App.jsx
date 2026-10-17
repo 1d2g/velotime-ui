@@ -245,16 +245,6 @@ export default function App() {
     setWalkthroughStep(0);
   };
 
-  const handleViewTimesheet = (targetUserId, weekStartDate) => {
-    if (targetUserId) {
-      setViewUserId(targetUserId);
-    }
-    setActiveTab("Timesheets");
-    const targetUser = orgUsers.find((u) => u.id === targetUserId);
-    const userName = targetUser ? `${targetUser.firstName} ${targetUser.lastName}` : "User";
-    addToast(`Viewing ${userName}'s timesheet${weekStartDate ? ` (${weekStartDate})` : ""}`, "info");
-  };
-
   const handleBackToGuest = () => {
     if (typeof window !== "undefined") {
       try {
@@ -455,6 +445,39 @@ export default function App() {
 
   const forceSync = () => {
     setTriggerSync((prev) => prev + 1);
+  };
+
+  const handleViewTimesheet = (targetUserId, weekStartDate) => {
+    if (targetUserId) {
+      setViewUserId(targetUserId);
+    }
+
+    if (weekStartDate) {
+      let targetDate = null;
+      if (typeof weekStartDate === "string") {
+        const match = weekStartDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (match) {
+          const [, y, m, d] = match.map(Number);
+          targetDate = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
+      if (!targetDate) {
+        const parsed = new Date(weekStartDate);
+        if (!isNaN(parsed.getTime())) {
+          targetDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0);
+        }
+      }
+
+      if (targetDate && !isNaN(targetDate.getTime())) {
+        setCurrentDate(targetDate);
+        setTimeframe("week");
+      }
+    }
+
+    setActiveTab("Timesheets");
+    const targetUser = orgUsers.find((u) => u.id === targetUserId);
+    const userName = targetUser ? `${targetUser.firstName} ${targetUser.lastName}` : "User";
+    addToast(`Viewing ${userName}'s timesheet${weekStartDate ? ` (${weekStartDate})` : ""}`, "info");
   };
 
   const handlePrev = () => {
