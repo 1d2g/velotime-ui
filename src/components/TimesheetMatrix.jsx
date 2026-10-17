@@ -104,6 +104,7 @@ export default function TimesheetMatrix({
   // Dynamic Height Measuring
   const containerRef = useRef(null);
   const theadRef = useRef(null);
+  const gridScrollRef = useRef(null);
   const [heights, setHeights] = useState({ container: 0, thead: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const [isCompact, setIsCompact] = useState(() => {
@@ -292,13 +293,107 @@ export default function TimesheetMatrix({
         setTimeout(() => {
           const input = document.getElementById(`cell_input_${walkthroughDateId}_hours_guest_t1_a`);
           if (input) {
-            input.focus();
+            input.focus({ preventScroll: true });
             input.select();
           }
         }, 80);
       }
     }
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
+
+  // Synchronize horizontal and vertical scroll to ensure focused cell and project header
+  // are never hidden behind sticky columns (Day/Date/Total) or sticky headers
+  useEffect(() => {
+    if (!selectedCell || !gridScrollRef.current) return;
+    const { r, c } = selectedCell;
+    const rowId = rowKeys[r];
+    const colKey = visibleColKeys[c];
+    if (!rowId || !colKey) return;
+
+    const container = gridScrollRef.current;
+    const cell = document.getElementById(`cell_${rowId}_${colKey}`);
+    if (!cell) return;
+
+    // First column of the entire grid: instantly reset scrollLeft to 0
+    if (c === 0) {
+      container.scrollLeft = 0;
+    } else {
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+
+      // Measure actual sticky left boundary: right edge of the sticky Total column (3rd th in row 2) + spacer
+      const stickyTotalTh = container.querySelector('thead tr:nth-child(2) th:nth-child(3)');
+      const stickyLeftEdge = stickyTotalTh
+        ? stickyTotalTh.getBoundingClientRect().right + 16
+        : containerRect.left + 288;
+
+      // Sticky right boundary: left edge of the Add Project column (last th in row 1)
+      const addProjectTh = container.querySelector('thead tr:first-child th:last-child');
+      const stickyRightEdge = addProjectTh
+        ? addProjectTh.getBoundingClientRect().left
+        : containerRect.right - 56;
+
+      const visibleLeft = stickyLeftEdge;
+      const visibleRight = stickyRightEdge;
+
+      // Identify the project this column belongs to
+      const targetProject = filteredProjects.find(
+        (p) =>
+          p.tasks.some((t) => t.id === colKey) ||
+          colKey === `add_task_${p.id}` ||
+          colKey === `proj_${p.id}`
+      );
+
+      // If this column belongs to the first project and its header or left columns would be hidden,
+      // scroll all the way back to 0 so the first project is completely revealed.
+      if (targetProject && filteredProjects[0]?.id === targetProject.id) {
+        const firstProjHeader = document.getElementById(`project_header_${targetProject.id}`);
+        if (firstProjHeader) {
+          const headerRect = firstProjHeader.getBoundingClientRect();
+          if (headerRect.left < visibleLeft && cellRect.right <= visibleRight) {
+            container.scrollLeft = 0;
+          }
+        }
+      }
+
+      // Check if project header for the current project is clipped on the left
+      if (targetProject) {
+        const projHeader = document.getElementById(`project_header_${targetProject.id}`);
+        if (projHeader) {
+          const headerRect = projHeader.getBoundingClientRect();
+          if (headerRect.left < visibleLeft && cellRect.right <= visibleRight) {
+            const headerDelta = visibleLeft - headerRect.left + 16;
+            container.scrollLeft = Math.max(0, container.scrollLeft - headerDelta);
+          }
+        }
+      }
+
+      // Horizontal cell visibility checks
+      const updatedCellRect = cell.getBoundingClientRect();
+      if (updatedCellRect.left < visibleLeft) {
+        const delta = visibleLeft - updatedCellRect.left + 16;
+        container.scrollLeft = Math.max(0, container.scrollLeft - delta);
+      } else if (updatedCellRect.right > visibleRight) {
+        const delta = updatedCellRect.right - visibleRight + 16;
+        container.scrollLeft += delta;
+      }
+    }
+
+    // Vertical cell visibility checks against sticky headers
+    const theadHeight = theadRef.current ? theadRef.current.offsetHeight : 100;
+    const containerRect = container.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    const visibleTop = containerRect.top + theadHeight;
+    const visibleBottom = containerRect.bottom - 12;
+
+    if (cellRect.top < visibleTop) {
+      const delta = visibleTop - cellRect.top + 8;
+      container.scrollTop = Math.max(0, container.scrollTop - delta);
+    } else if (cellRect.bottom > visibleBottom) {
+      const delta = cellRect.bottom - visibleBottom + 8;
+      container.scrollTop += delta;
+    }
+  }, [selectedCell, rowKeys, visibleColKeys, filteredProjects]);
 
   // Flicking mouse out of the grid collapses the expanded notes
   const handleGridMouseLeave = () => {
@@ -407,7 +502,7 @@ export default function TimesheetMatrix({
             setSelectedCell({ r: tRowIndex, c: tColIndex });
             setTimeout(() => {
               const el = document.getElementById(`cell_textarea_${walkthroughDateId}_notes_guest_t1_a`);
-              el?.focus();
+              el?.focus({ preventScroll: true });
             }, 60);
           }
           return;
@@ -437,13 +532,13 @@ export default function TimesheetMatrix({
               .getElementById(
                 `cell_${rowKeys[nextR]}_${visibleColKeys[selectedCell.c]}`,
               )
-              ?.focus();
+              ?.focus({ preventScroll: true });
           } else {
             document
               .getElementById(
                 `cell_${rowKeys[selectedCell.r]}_${visibleColKeys[selectedCell.c]}`,
               )
-              ?.focus();
+              ?.focus({ preventScroll: true });
           }
         } else if (e.key === "Escape") {
           e.preventDefault();
@@ -466,7 +561,7 @@ export default function TimesheetMatrix({
             setSelectedCell({ r: nextR, c: nextC });
             document
               .getElementById(`cell_${rowKeys[nextR]}_${visibleColKeys[nextC]}`)
-              ?.focus();
+              ?.focus({ preventScroll: true });
           }
         }
         return;
@@ -479,7 +574,7 @@ export default function TimesheetMatrix({
             setSelectedCell({ r: 0, c: 0 });
             document
               .getElementById(`cell_${rowKeys[0]}_${visibleColKeys[0]}`)
-              ?.focus();
+              ?.focus({ preventScroll: true });
           }
         }
         return;
@@ -509,7 +604,7 @@ export default function TimesheetMatrix({
           setSelectedCell({ r: nextR, c: nextC });
           document
             .getElementById(`cell_${rowKeys[nextR]}_${visibleColKeys[nextC]}`)
-            ?.focus();
+            ?.focus({ preventScroll: true });
         }
       } else if (e.key === "Enter" || e.key === "F2") {
         e.preventDefault();
@@ -527,7 +622,7 @@ export default function TimesheetMatrix({
           if (rowId.endsWith("_notes")) {
             document
               .getElementById(`cell_textarea_${rowId}_${currentColKey}`)
-              ?.focus();
+              ?.focus({ preventScroll: true });
           } else {
             setIsEditing(true);
           }
@@ -548,7 +643,7 @@ export default function TimesheetMatrix({
           setSelectedCell({ r: nextR, c: nextC });
           document
             .getElementById(`cell_${rowKeys[nextR]}_${visibleColKeys[nextC]}`)
-            ?.focus();
+            ?.focus({ preventScroll: true });
         }
       } else if (
         e.key === " " &&
@@ -566,7 +661,7 @@ export default function TimesheetMatrix({
           if (rowId.endsWith("_notes")) {
             document
               .getElementById(`cell_textarea_${rowId}_${currentColKey}`)
-              ?.focus();
+              ?.focus({ preventScroll: true });
           } else {
             const nextR = selectedCell.r + 1;
             if (nextR < rowKeys.length && rowKeys[nextR].endsWith("_notes")) {
@@ -576,7 +671,7 @@ export default function TimesheetMatrix({
                   .getElementById(
                     `cell_textarea_${rowKeys[nextR]}_${currentColKey}`,
                   )
-                  ?.focus();
+                  ?.focus({ preventScroll: true });
               }, 10);
             }
           }
@@ -603,14 +698,14 @@ export default function TimesheetMatrix({
             e.preventDefault();
             document
               .getElementById(`cell_textarea_${rowId}_${currentColKey}`)
-              ?.focus();
+              ?.focus({ preventScroll: true });
           } else {
             setIsEditing(true);
             const inputEl = document.getElementById(
               `cell_input_${rowId}_${currentColKey}`,
             );
             if (inputEl) {
-              inputEl.focus();
+              inputEl.focus({ preventScroll: true });
               if (/^[0-9.]$/.test(e.key)) {
                 e.preventDefault();
                 const dateId = gridRows[selectedCell.r].date.id;
@@ -915,6 +1010,7 @@ export default function TimesheetMatrix({
       )}
 
       <div 
+        ref={gridScrollRef}
         className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors"
         onMouseLeave={handleGridMouseLeave}
       >
@@ -981,6 +1077,7 @@ export default function TimesheetMatrix({
               {filteredProjects.map((p, pIndex) => (
                 <React.Fragment key={`tier1_${p.id}`}>
                   <th
+                    id={`project_header_${p.id}`}
                     draggable={sortMode === 'manual'}
                     onDragStart={(e) => { 
                       e.dataTransfer.setData('projectId', p.id); 
@@ -1982,7 +2079,7 @@ function TimesheetNoteCell({
             `cell_input_${walkthroughDateId}_hours_guest_t1_b`
           );
           if (nextInput) {
-            nextInput.focus();
+            nextInput.focus({ preventScroll: true });
             nextInput.select();
           }
         }, 60);
@@ -1993,7 +2090,7 @@ function TimesheetNoteCell({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       textareaRef.current.blur();
-      document.getElementById(`cell_${rowId}_${taskId}`)?.focus();
+      document.getElementById(`cell_${rowId}_${taskId}`)?.focus({ preventScroll: true });
     }
     if (e.key === "Escape") {
       e.preventDefault();
@@ -2001,7 +2098,7 @@ function TimesheetNoteCell({
       if (onCollapse) {
         onCollapse();
       } else {
-        document.getElementById(`cell_${rowId}_${taskId}`)?.focus();
+        document.getElementById(`cell_${rowId}_${taskId}`)?.focus({ preventScroll: true });
       }
     }
   };
@@ -2014,7 +2111,7 @@ function TimesheetNoteCell({
         onSelect();
         if (isActive) {
           setTimeout(() => {
-            textareaRef.current?.focus();
+            textareaRef.current?.focus({ preventScroll: true });
           }, 30);
         }
       }}

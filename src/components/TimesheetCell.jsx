@@ -35,7 +35,7 @@ export default function TimesheetCell({
 
   useEffect(() => {
     if (isSelected && inputRef.current && !isNoteOpen) {
-      inputRef.current.focus();
+      inputRef.current.focus({ preventScroll: true });
     }
   }, [isSelected, isNoteOpen]);
 
@@ -120,7 +120,7 @@ export default function TimesheetCell({
   const handleSaveNote = () => {
     if (onNoteChange) onNoteChange(dateId, taskId, localNote);
     setIsNoteOpen(false);
-    if (inputRef.current) inputRef.current.focus();
+    if (inputRef.current) inputRef.current.focus({ preventScroll: true });
   };
 
   return (
@@ -193,7 +193,7 @@ export default function TimesheetCell({
                 `cell_textarea_${dateId}_notes_${taskId}`,
               );
               if (el) {
-                el.focus();
+                el.focus({ preventScroll: true });
                 // If it's a textarea, set selection to the end of the text
                 if (el.tagName === "TEXTAREA") {
                   const val = el.value;
@@ -223,7 +223,7 @@ export default function TimesheetCell({
                 `cell_textarea_${dateId}_notes_${taskId}`,
               );
               if (el) {
-                el.focus();
+                el.focus({ preventScroll: true });
               } else {
                 setIsNoteOpen(true);
               }
@@ -252,7 +252,7 @@ export default function TimesheetCell({
               onClick={(e) => {
                 e.stopPropagation();
                 setIsNoteOpen(false);
-                inputRef.current?.focus();
+                inputRef.current?.focus({ preventScroll: true });
               }}
               className="text-slate-400 dark:text-slate-600 hover:text-red-500 text-base leading-none"
             >
@@ -273,7 +273,7 @@ export default function TimesheetCell({
               if (e.key === "Escape") {
                 e.preventDefault();
                 setIsNoteOpen(false);
-                inputRef.current?.focus();
+                inputRef.current?.focus({ preventScroll: true });
               }
             }}
             placeholder="What did you work on?"
