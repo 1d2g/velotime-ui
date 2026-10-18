@@ -69,10 +69,11 @@ export default function TimesheetMatrix({
     });
   }, [propDates, timeframe, showWeekends]);
 
-  // Manager or Admin role determination
+  // Manager or Admin role determination (including assigned Project Managers)
   const isManagerOrAdmin = useMemo(() => {
-    return dbUser?.role === "admin" || dbUser?.role === "manager";
-  }, [dbUser?.role]);
+    const isPM = (projects || []).some((p) => p.managerId === dbUser?.id);
+    return dbUser?.role === "admin" || dbUser?.role === "manager" || isPM;
+  }, [dbUser?.role, dbUser?.id, projects]);
 
   // Compute current submission for this week & user
   const currentSubmission = useMemo(() => {

@@ -491,12 +491,18 @@ export default function App() {
 
   const isDevActive = isAuthorizedDev && isDevModeActive;
 
+  const isProjectManager = useMemo(() => {
+    return (projects || []).some((p) => p.managerId === dbUser?.id);
+  }, [projects, dbUser?.id]);
+
   const navTabs = [
     "Timesheets",
     "Projects",
     "Expenses",
     ...(dbUser?.role === "admin" || dbUser?.role === "manager"
       ? ["Team", "Reports", "Invoices", "Approvals"]
+      : isProjectManager
+      ? ["Reports", "Approvals"]
       : []),
     "Settings",
   ];

@@ -446,7 +446,7 @@ export default function ProjectsTab({
                   )
                 )}
 
-                {isAdmin ? (
+                {(isAdmin || dbUser?.role === "manager") ? (
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <span className="text-[11px] font-semibold text-slate-500">Project Manager:</span>
                     <select
@@ -489,7 +489,7 @@ export default function ProjectsTab({
             )}
 
             <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-              {isAdmin && (
+              {(isAdmin || canPerformWriteActions(dbUser, project)) && (
                 <button
                   onClick={() => {
                     setIsEditingBudget(!isEditingBudget);
@@ -501,7 +501,7 @@ export default function ProjectsTab({
                   Budget Settings
                 </button>
               )}
-              {isAdmin && (
+              {(isAdmin || canPerformWriteActions(dbUser, project)) && (
                 <button
                   onClick={() => setAssignTeamProject(project)}
                   className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold py-1.5 px-4 text-sm transition-all active:scale-[0.98] flex items-center gap-2"
@@ -604,7 +604,7 @@ export default function ProjectsTab({
             </div>
           </div>
 
-          {isEditingBudget && isAdmin && (
+          {isEditingBudget && (isAdmin || canPerformWriteActions(dbUser, project)) && (
             <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800">
               <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wider">Project Budget Settings</h3>
               <div className="flex flex-wrap items-end gap-4">

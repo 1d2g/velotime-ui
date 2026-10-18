@@ -130,7 +130,11 @@ export default function ApprovalsTab({
     return breakdown;
   };
 
-  if (!dbUser || (dbUser.role !== 'admin' && dbUser.role !== 'manager')) {
+  const isProjectManager = useMemo(() => {
+    return (projects || []).some((p) => p.managerId === dbUser?.id);
+  }, [projects, dbUser?.id]);
+
+  if (!dbUser || (dbUser.role !== 'admin' && dbUser.role !== 'manager' && !isProjectManager)) {
     return <div className="p-8 text-center text-slate-500">Access Denied</div>;
   }
 
@@ -144,9 +148,16 @@ export default function ApprovalsTab({
         
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Timesheet Approvals
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                Timesheet Approvals
+              </h1>
+              {isProjectManager && dbUser.role !== 'admin' && dbUser.role !== 'manager' && (
+                <span className="px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                  Project Manager Authority
+                </span>
+              )}
+            </div>
             <p className="text-slate-500 dark:text-zinc-400 mt-2 text-sm">
               Review, inspect, and approve submitted timesheets to lock them for invoicing.
             </p>
