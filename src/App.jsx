@@ -374,6 +374,102 @@ export default function App() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [dbUser?.activeTimerStart]);
 
+  const timerChannelRef = useRef(null);
+
+  // Multi-Device & Cross-Tab Active Stopwatch Synchronization
+  useEffect(() => {
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        const channel = new BroadcastChannel("velotime_timer_sync");
+        timerChannelRef.current = channel;
+
+        channel.onmessage = (e) => {
+          if (e.data && e.data.type === "TIMER_SYNC") {
+            const { action, user: remoteUser } = e.data;
+            if (remoteUser) {
+              setDbUser((prev) => ({
+                ...prev,
+                activeTimerTaskId: remoteUser.activeTimerTaskId,
+                activeTimerDateId: remoteUser.activeTimerDateId,
+                activeTimerStart: remoteUser.activeTimerStart,
+              }));
+              if (action === "stop") {
+                forceSync();
+              }
+            }
+          }
+        };
+      } catch (err) {
+        console.warn("BroadcastChannel initialization error:", err);
+      }
+    }
+
+    const handleStorage = (e) => {
+      if (e.key === "velotime_active_timer_sync" && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data && data.user) {
+            setDbUser((prev) => ({
+              ...prev,
+              activeTimerTaskId: data.user.activeTimerTaskId,
+              activeTimerDateId: data.user.activeTimerDateId,
+              activeTimerStart: data.user.activeTimerStart,
+            }));
+            if (data.action === "stop") {
+              forceSync();
+            }
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    const checkRemoteTimer = async () => {
+      if (isGuestMode || !isSignedIn) return;
+      try {
+        const res = await apiCall("/api/timer/active", "GET");
+        if (res && typeof res === "object") {
+          setDbUser((prev) => {
+            const hasChanged =
+              prev?.activeTimerTaskId !== res.activeTimerTaskId ||
+              prev?.activeTimerDateId !== res.activeTimerDateId ||
+              prev?.activeTimerStart !== res.activeTimerStart;
+
+            if (hasChanged) {
+              const wasRunning = Boolean(prev?.activeTimerStart);
+              const isNowStopped = !res.activeTimerStart && wasRunning;
+              if (isNowStopped) {
+                forceSync();
+              }
+              return {
+                ...prev,
+                activeTimerTaskId: res.activeTimerTaskId,
+                activeTimerDateId: res.activeTimerDateId,
+                activeTimerStart: res.activeTimerStart,
+              };
+            }
+            return prev;
+          });
+        }
+      } catch {}
+    };
+
+    const pollInterval = setInterval(checkRemoteTimer, 6000);
+    const handleFocus = () => checkRemoteTimer();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      if (timerChannelRef.current) {
+        timerChannelRef.current.close();
+      }
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(pollInterval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [isGuestMode, isSignedIn]);
+
   // Developer Mode Authorization: strictly via Clerk publicMetadata or local development
   const isAuthorizedDev = useMemo(() => {
     if (import.meta.env.DEV) return true;
@@ -1103,7 +1199,47 @@ export default function App() {
       return { success: true };
     }
 
-    // 7. Stripe / Billing Simulation
+    // 7. Active Stopwatch & Timer Simulation in Guest Sandbox
+    if (endpoint === "/api/timer/toggle") {
+      const { action, taskId, dateId } = body || {};
+      let updatedUser = { ...dbUser };
+      if (action === "start") {
+        updatedUser.activeTimerTaskId = taskId;
+        updatedUser.activeTimerDateId = dateId;
+        updatedUser.activeTimerStart = new Date().toISOString();
+      } else {
+        if (updatedUser.activeTimerStart && updatedUser.activeTimerTaskId && updatedUser.activeTimerDateId) {
+          const elapsedHours = (Date.now() - new Date(updatedUser.activeTimerStart).getTime()) / (1000 * 60 * 60);
+          const roundedHours = Math.max(0.1, Math.round(elapsedHours * 10) / 10);
+          const key = `${GUEST_USER_ID}_${updatedUser.activeTimerDateId}_${updatedUser.activeTimerTaskId}`;
+          setEntries((prev) => ({
+            ...prev,
+            [key]: (parseFloat(prev[key]) || 0) + roundedHours,
+          }));
+        }
+        updatedUser.activeTimerTaskId = null;
+        updatedUser.activeTimerDateId = null;
+        updatedUser.activeTimerStart = null;
+      }
+      setDbUser(updatedUser);
+      return { success: true, user: updatedUser };
+    }
+
+    if (endpoint === "/api/timer/active") {
+      return {
+        activeTimerTaskId: dbUser?.activeTimerTaskId || null,
+        activeTimerDateId: dbUser?.activeTimerDateId || null,
+        activeTimerStart: dbUser?.activeTimerStart || null,
+      };
+    }
+
+    if (endpoint.startsWith("/api/projects/") && upperMethod === "PUT") {
+      const projId = endpoint.split("/")[3];
+      setProjects((prev) => prev.map((p) => (p.id === projId ? { ...p, ...body } : p)));
+      return { success: true, project: { id: projId, ...body } };
+    }
+
+    // 8. Stripe / Billing Simulation
     if (endpoint.includes("/stripe")) {
       return { url: "#" };
     }
@@ -1449,6 +1585,25 @@ export default function App() {
       const res = await apiCall("/api/timer/toggle", "POST", { taskId, dateId, action });
       if (res && res.user) {
         setDbUser(res.user);
+
+        // Multi-Device & Cross-Tab Live Synchronization
+        try {
+          const syncPayload = {
+            type: "TIMER_SYNC",
+            action,
+            taskId,
+            dateId,
+            user: res.user,
+            timestamp: Date.now(),
+          };
+          if (timerChannelRef.current) {
+            timerChannelRef.current.postMessage(syncPayload);
+          }
+          safeSetItem("localStorage", "velotime_active_timer_sync", JSON.stringify(syncPayload));
+        } catch (syncErr) {
+          console.warn("Timer sync broadcast error:", syncErr);
+        }
+
         if (action === "stop") {
           forceSync(); // refresh to get the updated entry hours
         }
@@ -2226,6 +2381,8 @@ export default function App() {
                     onRemoveTask={handleRemoveTask}
                     onEditTask={handleEditTask}
                     onOpenMigration={() => setActiveTab("Migration")}
+                    isDevActive={isDevActive}
+                    setViewUserId={setViewUserId}
                   />
                 </TrialLockoutOverlay>
               ) : activeTab === "Team" ? (

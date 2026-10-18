@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "../contexts/ToastContext";
-import { FileText, TrendingUp, X, Send, Check, Calendar, Pencil } from "lucide-react";
+import { FileText, TrendingUp, X, Send, Check, Calendar, Pencil, ShieldCheck, FileSpreadsheet, Download } from "lucide-react";
 import InvoiceTrackingView from "./InvoiceTrackingView";
+import ClientAuditProofModal from "./ClientAuditProofModal";
+import { exportQBOTimeActivities, exportXeroTimesheets } from "../utils/accountingBridge";
 
 export default function InvoicesTab({
   dbUser,
@@ -62,6 +64,55 @@ export default function InvoicesTab({
   const [pbCurrentPercent, setPbCurrentPercent] = useState("");
   const [pbPreviousPercent, setPbPreviousPercent] = useState("0");
   const [isExportingQbo, setIsExportingQbo] = useState(false);
+  const [isAuditProofModalOpen, setIsAuditProofModalOpen] = useState(false);
+
+  // Entries matching active invoice or its linked project
+  const invoiceEntries = useMemo(() => {
+    if (!activeInvoice) return [];
+    const pid = activeInvoice.projectId;
+    return (rawEntries || [])
+      .filter((e) => {
+        if (e.invoiceId === activeInvoice.id) return true;
+        if (pid && e.projectId === pid) return true;
+        return false;
+      })
+      .map((e) => {
+        const u = orgUsers.find((u) => u.id === e.userId);
+        const p = projects.find((p) => p.id === e.projectId);
+        const t = p?.tasks?.find((tk) => tk.id === e.taskId);
+        return {
+          ...e,
+          userName: u ? `${u.firstName || ""} ${u.lastName || ""}`.trim() : "Team Member",
+          userRole: u?.role || "Specialist",
+          clientName: p?.client?.name || activeInvoice.clientName || "Client",
+          projectName: p?.name || "Project",
+          taskName: t?.name || "Service",
+          rate: Number(e.rate || u?.defaultBillingRate || 100),
+        };
+      });
+  }, [activeInvoice, rawEntries, orgUsers, projects]);
+
+  const handleExportInvoiceQBO = () => {
+    try {
+      const entriesToExport = invoiceEntries.length > 0 ? invoiceEntries : (rawEntries || []);
+      const filename = `VeloTime_QBO_Invoice_${activeInvoice?.invoiceNumber || "Export"}.csv`;
+      const res = exportQBOTimeActivities(entriesToExport, filename);
+      addToast(`Exported ${res.count} time activities for QuickBooks Online (${res.filename})`, "success");
+    } catch (err) {
+      addToast(err.message || "Failed to export QBO time activities", "error");
+    }
+  };
+
+  const handleExportInvoiceXero = () => {
+    try {
+      const entriesToExport = invoiceEntries.length > 0 ? invoiceEntries : (rawEntries || []);
+      const filename = `VeloTime_Xero_Invoice_${activeInvoice?.invoiceNumber || "Export"}.csv`;
+      const res = exportXeroTimesheets(entriesToExport, filename);
+      addToast(`Exported ${res.count} time entries for Xero Timesheets (${res.filename})`, "success");
+    } catch (err) {
+      addToast(err.message || "Failed to export Xero timesheets", "error");
+    }
+  };
 
   const autoSaveTimerRef = useRef(null);
 
@@ -892,6 +943,36 @@ export default function InvoicesTab({
 
                 <button
                   type="button"
+                  onClick={() => setIsAuditProofModalOpen(true)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Generate 1-Page Client Timesheet Audit Proof report for invoice attachment"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Audit Proof (PDF)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportInvoiceQBO}
+                  className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 px-3 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Export invoice time activities ready for QuickBooks Online CSV ingestion"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>QBO CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportInvoiceXero}
+                  className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-zinc-700 px-3 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Export invoice timesheet ready for Xero Payroll CSV ingestion"
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Xero CSV</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleExportToQbo}
                   disabled={isExportingQbo}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
@@ -1600,6 +1681,27 @@ export default function InvoicesTab({
       </div>
     </div>
   )}
+
+  {/* Client Audit Proof 1-Page PDF Modal */}
+  <ClientAuditProofModal
+    isOpen={isAuditProofModalOpen}
+    onClose={() => setIsAuditProofModalOpen(false)}
+    companyName={companyName || dbUser?.organization?.name || "VeloTime Agency Services"}
+    clientName={sheetForm.clientName || "Client"}
+    projectName={
+      projects.find((p) => p.id === sheetForm.projectId)?.name || "Full Project Scope"
+    }
+    dateRangeText={`Issued: ${sheetForm.dateIssued || "Current"} • Due: ${sheetForm.dueDate || "Net 30"}`}
+    invoiceNumber={activeInvoice?.invoiceNumber || sheetForm.status || "INV-PROOF"}
+    approvedBy={
+      dbUser?.firstName
+        ? `${dbUser.firstName} ${dbUser.lastName || ""} (Managing Partner)`
+        : "Management Sign-Off"
+    }
+    approvalDate={sheetForm.dateIssued || new Date().toISOString().split("T")[0]}
+    entries={invoiceEntries}
+    orgUsers={orgUsers}
+  />
 
 </div>
   );

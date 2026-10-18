@@ -1,6 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useToast } from "../contexts/ToastContext";
 import * as XLSX from "xlsx";
+import ClientAuditProofModal from "./ClientAuditProofModal";
+import { exportQBOTimeActivities, exportXeroTimesheets } from "../utils/accountingBridge";
+import { calculateBudgetPacing } from "../utils/budgetPacing";
+import { Download, FileSpreadsheet, ShieldCheck, AlertOctagon, AlertTriangle, FileText } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // 12 PREBUILT REPORT DEFINITIONS
@@ -678,6 +682,48 @@ export default function ReportsTab({
     addToast("Exported report to CSV", "success");
   };
 
+  const [isAuditProofModalOpen, setIsAuditProofModalOpen] = useState(false);
+
+  const handleExportQBO = () => {
+    try {
+      const res = exportQBOTimeActivities(filteredEntries);
+      addToast(`Exported ${res.count} time activities for QuickBooks Online (${res.filename})`, "success");
+    } catch (err) {
+      addToast(err.message || "Failed to export QBO time activities", "error");
+    }
+  };
+
+  const handleExportXero = () => {
+    try {
+      const res = exportXeroTimesheets(filteredEntries);
+      addToast(`Exported ${res.count} time entries for Xero Timesheets (${res.filename})`, "success");
+    } catch (err) {
+      addToast(err.message || "Failed to export Xero timesheets", "error");
+    }
+  };
+
+  const projectPacingAlerts = useMemo(() => {
+    return projects.map((p) => {
+      let spentHours = 0;
+      let spentAmount = 0;
+      filteredEntries.forEach((e) => {
+        if (e.projectName === p.name || e.projectId === p.id) {
+          spentHours += Number(e.hours || 0);
+          spentAmount += Number(e.revenue || 0);
+        }
+      });
+      const taskBudgetsSum = (p.tasks || []).reduce((sum, t) => sum + (Number(t.budgetHours) || 0), 0);
+      const pacing = calculateBudgetPacing({
+        budgetLimit: p.budgetLimit,
+        budgetType: p.budgetType,
+        spentHours,
+        spentAmount,
+        taskBudgetsSum,
+      });
+      return { project: p, pacing };
+    }).filter(item => item.pacing.hasBudget && (item.pacing.riskLevel === 'critical' || item.pacing.riskLevel === 'warning'));
+  }, [projects, filteredEntries]);
+
   // Prebuilt Report Selection
   const selectPrebuiltReport = (report) => {
     setReportType(report.id);
@@ -773,7 +819,7 @@ export default function ReportsTab({
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setReportPhase("builder")}
                 className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5"
@@ -785,8 +831,38 @@ export default function ReportsTab({
               </button>
 
               <button
+                type="button"
+                onClick={handleExportQBO}
+                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 font-semibold px-2.5 py-1.5 text-xs border border-slate-300 dark:border-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                title="1-Click QuickBooks Online Time Activity Import (CSV)"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>QBO Export</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportXero}
+                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-slate-200 font-semibold px-2.5 py-1.5 text-xs border border-slate-300 dark:border-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                title="1-Click Xero Timesheet / Payroll Import (CSV)"
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                <span>Xero Export</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAuditProofModalOpen(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                title="1-Page Executive Client Audit Proof PDF"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Client Audit Proof</span>
+              </button>
+
+              <button
                 onClick={handleExportCSV}
-                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-3 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5"
+                className="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-semibold px-2.5 py-1.5 text-xs rounded-none-none transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 CSV
               </button>
@@ -798,7 +874,7 @@ export default function ReportsTab({
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Export Excel (.xlsx)
+                Excel (.xlsx)
               </button>
             </div>
           )}
@@ -1226,6 +1302,48 @@ export default function ReportsTab({
               </div>
             </div>
 
+            {/* Proactive Retainer Burn & Budget Pacing Telemetry */}
+            {projectPacingAlerts.length > 0 && (
+              <div className="mb-6 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Proactive Retainer Burn Alerts
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    Predictive telemetry to prevent unbillable write-offs
+                  </span>
+                </div>
+                {projectPacingAlerts.map(({ project, pacing }) => (
+                  <div
+                    key={project.id}
+                    className={`p-3.5 border flex items-center justify-between gap-4 text-xs transition-colors shadow-xs ${
+                      pacing.riskLevel === 'critical'
+                        ? 'bg-rose-50/70 border-rose-300 text-rose-950 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-200'
+                        : 'bg-amber-50/70 border-amber-300 text-amber-950 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {pacing.riskLevel === 'critical' ? (
+                        <AlertOctagon className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      )}
+                      <div>
+                        <span className="font-bold">{project.name}:</span>{" "}
+                        <span>{pacing.alertMessage}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 font-mono font-bold text-right">
+                      <div>{pacing.burnPercent}% Burn</div>
+                      <div className="text-[10px] opacity-75">
+                        {pacing.burnRateDaily}h/day velocity
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Main Interactive Spreadsheet Grid */}
             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
@@ -1390,6 +1508,32 @@ export default function ReportsTab({
 
       </div>
 
+      {/* Client Audit Proof 1-Page PDF Modal */}
+      <ClientAuditProofModal
+        isOpen={isAuditProofModalOpen}
+        onClose={() => setIsAuditProofModalOpen(false)}
+        companyName={dbUser?.organization?.name || "VeloTime Agency Services"}
+        clientName={
+          selectedProject !== "all"
+            ? (projects.find((p) => p.id === selectedProject)?.client?.name || "Acme Client Corp")
+            : "All Verified Clients"
+        }
+        projectName={
+          selectedProject !== "all"
+            ? (projects.find((p) => p.id === selectedProject)?.name || "Full Agency Scope")
+            : "Agency Project Portfolio"
+        }
+        dateRangeText={selectedPeriod}
+        invoiceNumber={`AUDIT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`}
+        approvedBy={
+          dbUser?.firstName
+            ? `${dbUser.firstName} ${dbUser.lastName || ""} (Operations & Finance)`
+            : "Sarah Chen, Operations Director"
+        }
+        approvalDate={new Date().toISOString().split("T")[0]}
+        entries={filteredEntries}
+        orgUsers={orgUsers}
+      />
     </div>
   );
 }

@@ -1,10 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import AssignTeamModal from "./AssignTeamModal";
 import { useToast } from "../contexts/ToastContext";
+import { AlertOctagon, AlertTriangle, ShieldCheck, UserCheck, Shield } from "lucide-react";
+import { calculateBudgetPacing } from "../utils/budgetPacing";
 
-// Permission check helper - structured to support easy permission/role restriction in the future.
-const canPerformWriteActions = (dbUser) => {
-  return dbUser?.role === "admin" || dbUser?.role === "manager";
+// Permission check helper - supports global admin/manager and project-level manager delegation
+const canPerformWriteActions = (dbUser, project = null) => {
+  if (dbUser?.role === "admin" || dbUser?.role === "manager") return true;
+  if (project?.managerId && project.managerId === dbUser?.id) return true;
+  return false;
 };
 
 const formatDate = (dateString) => {
@@ -168,6 +172,8 @@ export default function ProjectsTab({
   onUpdateClient,
   onUpdateProject,
   onOpenMigration,
+  isDevActive = false,
+  setViewUserId,
 }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
@@ -281,6 +287,21 @@ export default function ProjectsTab({
         }, 0);
     }
     return 0;
+  };
+
+  const getProjectPacing = (proj) => {
+    if (!proj) return null;
+    const spentHours = getProjectTotalHours(proj);
+    const spentAmount = getProjectSpend(proj);
+    const taskBudgetsSum = getTaskBudgetSum(proj);
+    return calculateBudgetPacing({
+      budgetLimit: proj.budgetLimit,
+      budgetType: proj.budgetType,
+      spentHours,
+      spentAmount,
+      taskBudgetsSum,
+      tasks: proj.tasks,
+    });
   };
 
   const handleStartEdit = (task) => {
@@ -421,6 +442,46 @@ export default function ProjectsTab({
                   project.client && (
                     <div className="text-xs text-slate-500 dark:text-slate-400 italic">
                       {project.client.name}
+                    </div>
+                  )
+                )}
+
+                {isAdmin ? (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-slate-500">Project Manager:</span>
+                    <select
+                      value={project.managerId || ""}
+                      onChange={async (e) => {
+                        const val = e.target.value || null;
+                        try {
+                          await apiCall(`/api/projects/${project.id}`, 'PUT', { managerId: val });
+                          if (onUpdateProject) {
+                            onUpdateProject(project.id, { managerId: val });
+                          }
+                          if (forceSync) forceSync();
+                          addToast(val ? "Project Manager assigned!" : "Project Manager unassigned.", "success");
+                        } catch (err) {
+                          addToast("Failed to assign Project Manager", "error");
+                        }
+                      }}
+                      className="px-2 py-0.5 text-xs border border-purple-300 dark:border-purple-800 focus:outline-none focus:ring-1 focus:ring-purple-600 bg-purple-50/50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 w-48 font-medium"
+                      title="Assign a specific Project Manager who has timesheet approval control over this project"
+                    >
+                      <option value="">No Project Manager (Admin Only)</option>
+                      {orgUsers?.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.firstName} {u.lastName} ({u.role || "Employee"})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  project.managerId && (
+                    <div className="text-xs font-semibold text-purple-700 dark:text-purple-300 mt-1 flex items-center gap-1">
+                      <UserCheck size={12} />
+                      <span>
+                        PM: {orgUsers?.find((u) => u.id === project.managerId)?.firstName || "Assigned Manager"}
+                      </span>
                     </div>
                   )
                 )}
@@ -601,93 +662,137 @@ export default function ProjectsTab({
             </div>
           )}
 
-          {((project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE') || project.budgetType === 'TASK_HOURS') && (
-            <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Project Budget Status
-                    </span>
-                    {project.budgetType === 'TASK_HOURS' && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
-                        Sum of Tasks
-                      </span>
-                    )}
+          {((project.budgetLimit > 0 && project.budgetType && project.budgetType !== 'NONE') || project.budgetType === 'TASK_HOURS') && (() => {
+            const pacing = getProjectPacing(project);
+            return (
+              <div className="p-6 border-b border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950">
+                {/* Proactive Retainer Burn Warning Banner */}
+                {pacing && pacing.alertMessage && (
+                  <div
+                    className={`p-3.5 mb-4 border flex items-center justify-between gap-3 text-xs shadow-xs ${
+                      pacing.riskLevel === 'critical'
+                        ? 'bg-rose-50/90 border-rose-300 text-rose-950 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-200'
+                        : 'bg-amber-50/90 border-amber-300 text-amber-950 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {pacing.riskLevel === 'critical' ? (
+                        <AlertOctagon className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      )}
+                      <div>
+                        <span className="font-bold">
+                          {pacing.riskLevel === 'critical' ? 'Critical Retainer Overrun Alert' : 'Proactive Pacing Warning'}:
+                        </span>{" "}
+                        <span>{pacing.alertMessage}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 font-mono font-bold text-right text-[11px]">
+                      <div>{pacing.projectedBurn} {pacing.isMonetary ? '$' : 'hrs'} Projected</div>
+                      <div className="text-[10px] opacity-75 font-normal">
+                        {pacing.burnRateDaily} {pacing.isMonetary ? '$/day' : 'hrs/day'} velocity
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-lg font-black text-slate-900 dark:text-slate-100">
-                    {project.budgetType === 'TASK_HOURS' ? (
-                      (() => {
-                        const sum = getTaskBudgetSum(project);
-                        const spent = getProjectTotalHours(project);
-                        const rem = sum - spent;
-                        return (
-                          <>
-                            {spent.toFixed(2)} / {sum.toFixed(2)} hrs
-                            <span className="text-sm font-medium text-slate-500 ml-2">
-                              ({rem > 0 ? rem.toFixed(2) : '0.00'} hrs remaining)
-                            </span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal mt-0.5">
-                              Aggregated across {project.tasks.length} task budget{project.tasks.length === 1 ? '' : 's'}
-                            </span>
-                          </>
-                        );
-                      })()
-                    ) : (project.budgetType === 'HOURS' || project.budgetType === 'hours') ? (
-                      <>
-                        {getProjectTotalHours(project).toFixed(2)} / {project.budgetLimit} hrs
-                        <span className="text-sm font-medium text-slate-500 ml-2">
-                          ({project.budgetLimit - getProjectTotalHours(project) > 0 ? (project.budgetLimit - getProjectTotalHours(project)).toFixed(2) : '0.00'} hrs remaining)
+                )}
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Project Budget Status
+                      </span>
+                      {project.budgetType === 'TASK_HOURS' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+                          Sum of Tasks
                         </span>
-                      </>
-                    ) : (
-                      <>
-                        ${getProjectSpend(project).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${project.budgetLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        <span className="text-sm font-medium text-slate-500 ml-2">
-                          (${Math.max(0, project.budgetLimit - getProjectSpend(project)).toLocaleString('en-US', { minimumFractionDigits: 2 })} remaining)
+                      )}
+                      {pacing && pacing.riskLevel === 'critical' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300">
+                          <AlertOctagon size={10} /> Overrun Danger
                         </span>
-                      </>
-                    )}
+                      )}
+                      {pacing && pacing.riskLevel === 'warning' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300">
+                          <AlertTriangle size={10} /> 80%+ Burn
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-lg font-black text-slate-900 dark:text-slate-100">
+                      {project.budgetType === 'TASK_HOURS' ? (
+                        (() => {
+                          const sum = getTaskBudgetSum(project);
+                          const spent = getProjectTotalHours(project);
+                          const rem = sum - spent;
+                          return (
+                            <>
+                              {spent.toFixed(2)} / {sum.toFixed(2)} hrs
+                              <span className="text-sm font-medium text-slate-500 ml-2">
+                                ({rem > 0 ? rem.toFixed(2) : '0.00'} hrs remaining)
+                              </span>
+                              <span className="text-xs text-slate-400 dark:text-slate-500 block font-normal mt-0.5">
+                                Aggregated across {project.tasks.length} task budget{project.tasks.length === 1 ? '' : 's'}
+                              </span>
+                            </>
+                          );
+                        })()
+                      ) : (project.budgetType === 'HOURS' || project.budgetType === 'hours') ? (
+                        <>
+                          {getProjectTotalHours(project).toFixed(2)} / {project.budgetLimit} hrs
+                          <span className="text-sm font-medium text-slate-500 ml-2">
+                            ({project.budgetLimit - getProjectTotalHours(project) > 0 ? (project.budgetLimit - getProjectTotalHours(project)).toFixed(2) : '0.00'} hrs remaining)
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          ${getProjectSpend(project).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${project.budgetLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          <span className="text-sm font-medium text-slate-500 ml-2">
+                            (${Math.max(0, project.budgetLimit - getProjectSpend(project)).toLocaleString('en-US', { minimumFractionDigits: 2 })} remaining)
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {(() => {
+                      const taskSum = getTaskBudgetSum(project);
+                      const ratio = project.budgetType === 'TASK_HOURS'
+                        ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
+                        : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                        ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
+                        : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
+                      const percent = Math.round(ratio * 100);
+                      const colorClass = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+                      return (
+                        <span className={`text-2xl font-black ${colorClass}`}>
+                          {percent}%
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
-                <div className="text-right">
-                  {(() => {
-                    const taskSum = getTaskBudgetSum(project);
-                    const ratio = project.budgetType === 'TASK_HOURS'
-                      ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
-                      : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                      ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
-                      : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
-                    const percent = Math.round(ratio * 100);
-                    const colorClass = percent >= 100 ? 'text-red-600 dark:text-red-400' : percent >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
-                    return (
-                      <span className={`text-2xl font-black ${colorClass}`}>
-                        {percent}%
-                      </span>
-                    );
-                  })()}
-                </div>
+                {(() => {
+                  const taskSum = getTaskBudgetSum(project);
+                  const ratio = project.budgetType === 'TASK_HOURS'
+                    ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
+                    : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
+                    ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
+                    : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
+                  const percent = Math.min(100, Math.round(ratio * 100));
+                  const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
+                  return (
+                    <div className="w-full bg-slate-200 dark:bg-zinc-800 h-2.5 rounded-none-none overflow-hidden">
+                      <div
+                        className={`h-full rounded-none-none transition-all duration-500 ${barColor}`}
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
-              {(() => {
-                const taskSum = getTaskBudgetSum(project);
-                const ratio = project.budgetType === 'TASK_HOURS'
-                  ? (taskSum > 0 ? getProjectTotalHours(project) / taskSum : 0)
-                  : (project.budgetType === 'HOURS' || project.budgetType === 'hours')
-                  ? (project.budgetLimit > 0 ? getProjectTotalHours(project) / project.budgetLimit : 0)
-                  : (project.budgetLimit > 0 ? getProjectSpend(project) / project.budgetLimit : 0);
-                const percent = Math.min(100, Math.round(ratio * 100));
-                const barColor = ratio >= 1 ? 'bg-red-500' : ratio >= 0.8 ? 'bg-amber-500' : 'bg-emerald-500';
-                return (
-                  <div className="w-full bg-slate-200 dark:bg-zinc-800 h-2.5 rounded-none-none overflow-hidden">
-                    <div
-                      className={`h-full rounded-none-none transition-all duration-500 ${barColor}`}
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+            );
+          })()}
 
           <div className="p-0">
             {project.tasks.length === 0 ? (
@@ -1157,6 +1262,87 @@ export default function ProjectsTab({
         </div>
       </div>
 
+      {isDevActive && (
+        <div className="mb-6 p-4 border border-purple-300 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 text-xs">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+              <span className="font-mono font-bold uppercase tracking-wider text-purple-900 dark:text-purple-200 text-[11px]">
+                Dev Mode: Project Manager Role Delegation Inspector
+              </span>
+              <span className="px-1.5 py-0.5 bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-[9px] font-mono rounded">
+                BETA
+              </span>
+            </div>
+            <span className="text-[10px] text-purple-600 dark:text-purple-400 font-mono">
+              Granular Timesheet & Approval Authority
+            </span>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 mb-3 text-[11px] leading-relaxed">
+            Designate specific Project Managers with timesheet approval and task management authority over their assigned projects. Project Managers can approve timesheets containing their project tasks and edit project rates.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {projects.map((proj) => {
+              const assignedPM = orgUsers?.find((u) => u.id === proj.managerId);
+              return (
+                <div
+                  key={proj.id}
+                  className="p-2.5 bg-white dark:bg-zinc-900 border border-purple-200 dark:border-purple-800/60 flex flex-col justify-between gap-2"
+                >
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 truncate mb-1">
+                      {proj.name}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[10px] font-semibold text-slate-500 shrink-0">
+                        Assigned PM:
+                      </label>
+                      <select
+                        value={proj.managerId || ""}
+                        onChange={async (e) => {
+                          const val = e.target.value || null;
+                          try {
+                            await apiCall(`/api/projects/${proj.id}`, "PUT", { managerId: val });
+                            if (onUpdateProject) {
+                              onUpdateProject(proj.id, { managerId: val });
+                            }
+                            if (forceSync) forceSync();
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="w-full text-[11px] px-1.5 py-0.5 border border-purple-300 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-950/20 text-purple-900 dark:text-purple-200 font-medium focus:outline-none"
+                      >
+                        <option value="">None (Admin Only)</option>
+                        {orgUsers?.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.firstName} {u.lastName} ({u.role || "Employee"})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {assignedPM && setViewUserId && (
+                    <div className="flex items-center justify-between pt-1 border-t border-purple-100 dark:border-purple-900/40 text-[10px]">
+                      <span className="text-purple-700 dark:text-purple-300 font-mono">
+                        Timesheet Authority: YES
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setViewUserId(assignedPM.id)}
+                        className="text-[10px] font-bold text-purple-700 hover:text-purple-900 dark:text-purple-300 hover:underline cursor-pointer"
+                      >
+                        Test as PM &rarr;
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
         {/* INLINE CREATE PROJECT CARD */}
         {writeAllowed && (
@@ -1295,6 +1481,7 @@ export default function ProjectsTab({
 
         {filteredProjects.map((project) => {
           const totalHours = getProjectTotalHours(project);
+          const pacing = getProjectPacing(project);
           const isEditing = editingProjectId === project.id;
           const isConfirmingDelete = confirmDeleteProjectId === project.id;
 
@@ -1461,9 +1648,30 @@ export default function ProjectsTab({
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 dark:text-slate-600 mb-4 font-medium">
-                    Created: {formatDate(project.createdAt)}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="text-xs text-slate-400 dark:text-slate-600 font-medium">
+                      Created: {formatDate(project.createdAt)}
+                    </span>
+                    {project.managerId && (() => {
+                      const pm = orgUsers?.find((u) => u.id === project.managerId);
+                      return (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                          <UserCheck size={11} />
+                          <span>PM: {pm ? `${pm.firstName} ${pm.lastName}` : "Assigned"}</span>
+                        </span>
+                      );
+                    })()}
+                    {pacing && pacing.riskLevel === 'critical' && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300">
+                        <AlertOctagon size={10} /> Overrun Warning
+                      </span>
+                    )}
+                    {pacing && pacing.riskLevel === 'warning' && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300">
+                        <AlertTriangle size={10} /> 80%+ Burn
+                      </span>
+                    )}
+                  </div>
 
                   <div className="mt-auto pt-3 border-t border-slate-300 dark:border-zinc-700">
                     <div className="flex items-center justify-between">

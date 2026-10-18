@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import LiveTimerDisplay from "./LiveTimerDisplay";
+import { Lock } from "lucide-react";
 
 export default function TimesheetCell({
   rowId,
@@ -26,6 +27,7 @@ export default function TimesheetCell({
   walkthroughBadgeText = null,
   isWalkthroughTarget = false,
   isCompact = false,
+  isLocked = false,
 }) {
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -49,6 +51,7 @@ export default function TimesheetCell({
 
   useEffect(() => {
     const handleSpaceKeyDown = (e) => {
+      if (isLocked) return;
       if (
         (isHovered || isSelected) &&
         (e.key === " " || e.key === "Spacebar") &&
@@ -81,7 +84,7 @@ export default function TimesheetCell({
     window.addEventListener("keydown", handleSpaceKeyDown, true);
     return () =>
       window.removeEventListener("keydown", handleSpaceKeyDown, true);
-  }, [isHovered, isSelected, isNoteOpen, onSelect, timeframe]);
+  }, [isHovered, isSelected, isNoteOpen, onSelect, timeframe, isLocked]);
 
   const [prevNote, setPrevNote] = useState(note || "");
   if (note !== prevNote) {
@@ -94,6 +97,10 @@ export default function TimesheetCell({
   const displayAuditRed = showMissingNotes && isMissingNote;
 
   const handleInputKeyDown = (e) => {
+    if (isLocked) {
+      e.preventDefault();
+      return;
+    }
     if (e.key === "Enter") {
       const currentVal = parseFloat(value) || 0;
       const initialVal = parseFloat(initialEditValue.current) || 0;
@@ -130,13 +137,23 @@ export default function TimesheetCell({
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative w-24 min-w-[6rem] max-w-[6rem] ${isCompact ? "h-9" : "h-12"} transition-colors cursor-cell scroll-mt-[8rem] scroll-ml-[19rem] align-middle group-hover:bg-primary-50/40 
+      className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative w-24 min-w-[6rem] max-w-[6rem] ${isCompact ? "h-9" : "h-12"} transition-colors ${isLocked ? "cursor-not-allowed bg-slate-50/60 dark:bg-zinc-950/40" : "cursor-cell group-hover:bg-primary-50/40"} scroll-mt-[8rem] scroll-ml-[19rem] align-middle 
  ${isFirstInProject ? "border-l " : ""}
- ${isWalkthroughTarget ? "ring-2 ring-rose-500 bg-rose-50/30 dark:bg-rose-950/20 z-20" : isSelected && !isNoteOpen ? "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10" : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
+ ${isWalkthroughTarget ? "ring-2 ring-rose-500 bg-rose-50/30 dark:bg-rose-950/20 z-20" : isSelected && !isNoteOpen ? (isLocked ? "ring-2 ring-inset ring-slate-400 bg-slate-100/60 z-10" : "ring-2 ring-inset ring-slate-900 bg-primary-50/50 z-10") : isToday ? "bg-primary-50/15" : isCurrentWeek ? "bg-primary-50/5" : "bg-transparent"}
  ${displayAuditRed && !isSelected && !isWalkthroughTarget ? "ring-2 ring-inset ring-red-400 bg-red-50/80 " : ""}
  ${className}
  `}
     >
+      {/* Subtle Lock State Indicator */}
+      {isLocked && (
+        <div 
+          className="absolute top-1 left-1.5 pointer-events-none z-10 opacity-70"
+          title="Week approved and locked by manager"
+        >
+          <Lock size={10} className="text-slate-400 dark:text-zinc-500" />
+        </div>
+      )}
+
       {/* Walkthrough Target Badge */}
       {walkthroughBadgeText && (
         <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-30 whitespace-nowrap bg-rose-500 text-white text-[10px] font-mono font-bold px-2 py-0.5 shadow-lg pointer-events-none animate-bounce">
@@ -151,14 +168,18 @@ export default function TimesheetCell({
         min="0"
         max="24"
         step="0.5"
+        disabled={isLocked}
+        readOnly={isLocked}
         value={value || ""}
-        onChange={(e) => onCellChange(dateId, taskId, e.target.value)}
+        onChange={(e) => {
+          if (!isLocked) onCellChange(dateId, taskId, e.target.value);
+        }}
         onKeyDown={handleInputKeyDown}
         onFocus={() => {
           initialEditValue.current = value;
         }}
         onBlur={onEditEnd}
-        className={`w-full h-full ${isCompact ? "min-h-[28px] text-xs py-0.5" : "min-h-[40px] text-sm"} block text-center outline-none transition-all cursor-cell bg-transparent
+        className={`w-full h-full ${isCompact ? "min-h-[28px] text-xs py-0.5" : "min-h-[40px] text-sm"} block text-center outline-none transition-all ${isLocked ? "cursor-not-allowed text-slate-500 dark:text-zinc-400 select-none" : "cursor-cell"} bg-transparent
  ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}

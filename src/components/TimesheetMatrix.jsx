@@ -6,7 +6,7 @@ import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
 import { motion } from "framer-motion";
-import { Pencil, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, ChevronUp, ChevronDown, Lock, Unlock, Clock, Check } from "lucide-react";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -69,14 +69,24 @@ export default function TimesheetMatrix({
     });
   }, [propDates, timeframe, showWeekends]);
 
-  // Compute if the current view is locked
-  const isLocked = useMemo(() => {
-    if (timeframe !== 'week' || !propDates?.length) return false;
-    // propDates[0] is always the Monday when timeframe is 'week'
+  // Manager or Admin role determination
+  const isManagerOrAdmin = useMemo(() => {
+    return dbUser?.role === "admin" || dbUser?.role === "manager";
+  }, [dbUser?.role]);
+
+  // Compute current submission for this week & user
+  const currentSubmission = useMemo(() => {
+    if (timeframe !== 'week' || !propDates?.length) return null;
     const weekStart = propDates[0]?.id; 
-    const sub = (Array.isArray(submissions) ? submissions : []).find(s => s.weekStartDate === weekStart && s.userId === viewUserId);
-    return sub && (sub.status === 'submitted' || sub.status === 'approved');
+    return (Array.isArray(submissions) ? submissions : []).find(s => s.weekStartDate === weekStart && s.userId === viewUserId);
   }, [timeframe, propDates, submissions, viewUserId]);
+
+  const isApprovedWeek = currentSubmission?.status === 'approved';
+  const isSubmittedWeek = currentSubmission?.status === 'submitted';
+
+  // Strict approval lockout: regular employees are blocked from editing when approved
+  const isLockedForEmployee = isApprovedWeek && !isManagerOrAdmin;
+  const isLocked = isApprovedWeek;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addToast } = useToast();
@@ -92,11 +102,26 @@ export default function TimesheetMatrix({
         { weekStartDate: weekStart },
         'Timesheet submitted successfully!'
       );
-      forceSync();
+      if (forceSync) forceSync();
     } catch (e) {
       console.error(e);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUnlockWeek = async () => {
+    if (!currentSubmission || !apiCall) return;
+    try {
+      await apiCall(`/api/timesheet-submissions/${currentSubmission.id}/status`, 'PUT', {
+        status: 'draft',
+        note: 'Unlocked by manager for employee revisions'
+      });
+      addToast('Timesheet unlocked. Reopened for employee revisions.', 'success');
+      if (forceSync) forceSync();
+    } catch (e) {
+      console.error(e);
+      addToast('Failed to unlock timesheet', 'error');
     }
   };
 
@@ -207,9 +232,7 @@ export default function TimesheetMatrix({
     return count;
   }, [dates, projects, entries, notes, viewUserId]);
 
-  const writeAllowed = dbUser
-    ? (dbUser.role === "admin" || dbUser.role === "manager") && !isLocked
-    : !isLocked;
+  const writeAllowed = isManagerOrAdmin ? true : !isLockedForEmployee;
 
 
 
@@ -1044,14 +1067,47 @@ export default function TimesheetMatrix({
                     </label>
                   </div>
                   {timeframe === "week" && (
-                    <div>
-                      {isLocked ? (
-                        <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">Week Locked</span>
+                    <div className="flex items-center gap-1.5">
+                      {isApprovedWeek ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5">
+                            <Lock size={10} className="text-emerald-600" /> Approved & Locked
+                          </span>
+                          {isManagerOrAdmin && (
+                            <button
+                              type="button"
+                              onClick={handleUnlockWeek}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800 px-2 py-0.5 transition-colors cursor-pointer shadow-xs"
+                              title="Unlock this timesheet to allow employee revisions"
+                            >
+                              <Unlock size={10} />
+                              <span>Unlock Timesheet</span>
+                            </button>
+                          )}
+                        </div>
+                      ) : isSubmittedWeek ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5">
+                            <Clock size={10} className="text-amber-600" /> Submitted (Reviewing)
+                          </span>
+                          {isManagerOrAdmin && (
+                            <button
+                              type="button"
+                              onClick={handleUnlockWeek}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:bg-zinc-800 dark:text-slate-300 px-2 py-0.5 transition-colors cursor-pointer"
+                              title="Reopen as draft"
+                            >
+                              <Unlock size={10} />
+                              <span>Reopen Draft</span>
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         <button
+                          type="button"
                           onClick={handleSubmitWeek}
                           disabled={isSubmitting || totalHours === 0}
-                          className="text-[10px] font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-3 py-1 rounded transition-colors shadow-sm"
+                          className="text-[10px] font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-2.5 py-1 transition-colors shadow-xs cursor-pointer"
                         >
                           {isSubmitting ? "Submitting..." : "Submit for Approval"}
                         </button>
@@ -1730,6 +1786,7 @@ export default function TimesheetMatrix({
                                 dateId={dateObj.id}
                                 taskId={t.id}
                                 isCompact={isCompact}
+                                isLocked={isLockedForEmployee}
                                 className={
                                   pIndex === 0 && i === 0 && rIndex === 0
                                     ? "tour-time-cell"
@@ -1783,6 +1840,10 @@ export default function TimesheetMatrix({
                                 id={`cell_${gridRow.id}_${addTaskKey}`}
                                 tabIndex={-1}
                                 onClick={() => {
+                                  if (isLockedForEmployee) {
+                                    addToast("This week's timesheet is approved and locked. Contact your manager to request revisions.", "info");
+                                    return;
+                                  }
                                   setSelectedCell({ r: rIndex, c: cIndex });
                                   setIsEditing(false);
                                   setActiveTaskPopover(p.id);
@@ -1815,6 +1876,10 @@ export default function TimesheetMatrix({
                         id={`cell_${gridRow.id}_add_project`}
                         tabIndex={-1}
                         onClick={() => {
+                          if (isLockedForEmployee) {
+                            addToast("This week's timesheet is approved and locked. Contact your manager to request revisions.", "info");
+                            return;
+                          }
                           setSelectedCell({ r: rIndex, c: cIndex });
                           setIsEditing(false);
                           setIsAddingProject(true);

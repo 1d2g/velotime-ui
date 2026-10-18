@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useToast } from '../contexts/ToastContext';
-import { Check, X, Clock, AlertTriangle, MessageSquare, Eye, ChevronDown, ChevronUp, ArrowRight, FileText } from 'lucide-react';
+import { Check, X, Clock, AlertTriangle, MessageSquare, Eye, ChevronDown, ChevronUp, ArrowRight, FileText, Unlock } from 'lucide-react';
 
 export default function ApprovalsTab({
   dbUser,
@@ -365,8 +365,20 @@ export default function ApprovalsTab({
                       </div>
                     )}
                   </div>
-                  <div>
+                  <div className="flex items-center gap-2">
                     {getStatusBadge(sub.status)}
+                    {sub.status === 'approved' && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateStatus(sub.id, 'draft')}
+                        disabled={isProcessing}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-300 dark:border-amber-800 transition-colors cursor-pointer"
+                        title="Unlock timesheet and reopen for employee revisions"
+                      >
+                        <Unlock size={12} />
+                        <span>Unlock Timesheet</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
