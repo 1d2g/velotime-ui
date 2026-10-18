@@ -11,7 +11,6 @@ export function calculateBudgetPacing({
   spentHours = 0,
   spentAmount = 0,
   taskBudgetsSum = 0,
-  tasks = [],
   referenceDate = new Date(),
 }) {
   const normType = String(budgetType || '').toUpperCase();

@@ -1161,6 +1161,13 @@ export default function App() {
       return { success: true };
     }
 
+    if (endpoint === "/api/timesheet/unlock") {
+      const { weekStartDate } = body || {};
+      const updated = submissions.map((s) => (s.weekStartDate === weekStartDate ? { ...s, status: "draft" } : s));
+      setSubmissions(updated);
+      return { success: true };
+    }
+
     // 4. Users / Team Endpoints
     if (endpoint === "/api/users") {
       return orgUsers;

@@ -96,7 +96,8 @@ export default function TimesheetMatrix({
     if (!apiCall) return;
     setIsSubmitting(true);
     try {
-      const weekStart = propDates[0].id;
+      const weekStart = propDates?.[0]?.id;
+      if (!weekStart) return;
       await apiCall(
         '/api/timesheet-submissions', 
         'POST', 
