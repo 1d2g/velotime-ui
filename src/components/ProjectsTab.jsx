@@ -175,6 +175,7 @@ export default function ProjectsTab({
   isDevActive = false,
   setViewUserId,
 }) {
+  const { addToast } = useToast();
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
 
