@@ -2050,21 +2050,21 @@ export default function App() {
                 </div>
               ) : activeTab === "Timesheets" ? (
                 <>
-                  <div className="flex flex-col gap-1.5 shrink-0 px-8 mb-2">
-                    <div className="flex items-center justify-between gap-4 flex-wrap lg:flex-nowrap">
+                  <div className="flex flex-col gap-1.5 shrink-0 px-3 sm:px-8 mb-2">
+                    <div className="flex items-center justify-between gap-3 sm:gap-4 flex-wrap lg:flex-nowrap">
                       {/* Left: Title + Controls Row (2 tight rows) */}
-                      <div className="flex flex-col gap-1 shrink-0">
+                      <div className="flex flex-col gap-1 shrink-0 max-w-full">
                         {/* Row 1: Title + Timeframe */}
-                        <div className="flex items-center gap-3">
-                          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight whitespace-nowrap">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <h1 className="text-base sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
                             Timesheet for {timesheetTitle}
                           </h1>
-                          <div className="bg-gray-200 dark:bg-zinc-950/80 p-0.5 flex items-center text-xs font-semibold select-none">
+                          <div className="bg-gray-200 dark:bg-zinc-950/80 p-0.5 flex items-center text-xs font-semibold select-none shrink-0">
                             {["day", "week", "month"].map((t) => (
                               <button
                                 key={t}
                                 onClick={() => setTimeframe(t)}
-                                className={`px-2.5 py-0.5 transition-all ${timeframe === t ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 font-bold" : "text-slate-500 dark:text-slate-500 hover:text-gray-850"}`}
+                                className={`px-2 sm:px-2.5 py-0.5 transition-all text-xs ${timeframe === t ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 font-bold shadow-xs" : "text-slate-500 dark:text-slate-500 hover:text-gray-850"}`}
                               >
                                 {t.charAt(0).toUpperCase() + t.slice(1)}
                               </button>
@@ -2098,10 +2098,9 @@ export default function App() {
                             </button>
                           </div>
 
-                          <div className="border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
-
-                          {/* Zoom Level */}
-                          <div className="flex items-center gap-0.5">
+                          {/* Zoom Level (Desktop Only) */}
+                          <div className="hidden sm:block border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
+                          <div className="hidden sm:flex items-center gap-0.5">
                             <button
                               onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
                               className="p-0.5 hover:bg-slate-200 rounded text-gray-650 transition-colors cursor-pointer"
@@ -2147,11 +2146,11 @@ export default function App() {
                               </div>
                             )}
 
-                          {/* Tutorial Actions */}
+                          {/* Tutorial Actions (Desktop Keyboard Only) */}
                           {isGuestMode && (
                             <>
-                              <div className="border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
-                              <div className="flex items-center gap-1.5">
+                              <div className="hidden sm:block border-l border-slate-300 dark:border-zinc-700 h-3.5 mx-1"></div>
+                              <div className="hidden sm:flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={handleStartWalkthrough}
@@ -2201,9 +2200,9 @@ export default function App() {
                       )}
 
                       {/* Right: Search & Saved Status */}
-                      <div className="flex flex-col gap-1.5 items-end shrink-0">
+                      <div className="flex flex-row sm:flex-col gap-1.5 items-center sm:items-end shrink-0 w-full sm:w-auto justify-between sm:justify-start mt-1 sm:mt-0">
                         {/* Search Bar */}
-                        <div className="relative w-56 max-w-full">
+                        <div className="relative flex-1 sm:w-56 max-w-full">
                           <svg
                             className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400 dark:text-slate-600"
                             fill="none"
@@ -2333,8 +2332,8 @@ export default function App() {
                     ) : (
                       <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
                         <div
-                          style={{ zoom: `${zoomLevel}%` }}
-                          className="h-full flex flex-col"
+                          style={typeof window !== "undefined" && window.innerWidth < 768 ? {} : { zoom: `${zoomLevel}%` }}
+                          className="h-full flex flex-col w-full overflow-hidden"
                         >
                           <TimesheetMatrix
                             dates={dates}

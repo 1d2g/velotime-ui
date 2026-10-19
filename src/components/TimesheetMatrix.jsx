@@ -132,7 +132,12 @@ export default function TimesheetMatrix({
   const theadRef = useRef(null);
   const gridScrollRef = useRef(null);
   const [heights, setHeights] = useState({ container: 0, thead: 0 });
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
   const [isCompact, setIsCompact] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerHeight < 860;
