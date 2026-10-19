@@ -1315,8 +1315,8 @@ export default function InvoicesTab({
               </div>
 
               {/* Line Items Table */}
-              <div className="py-6">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="py-6 overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                   <thead>
                     <tr className="border-b-2 border-slate-200 dark:border-zinc-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                       <th className="py-3 px-2 w-full">Description / Phase</th>

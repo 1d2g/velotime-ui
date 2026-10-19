@@ -229,36 +229,38 @@ export default function ClientAuditProofModal({
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
               1. Team Resource Allocation
             </h3>
-            <table className="w-full text-left border-collapse border border-slate-200 dark:border-zinc-800 text-xs">
-              <thead>
-                <tr className="bg-slate-100 dark:bg-zinc-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-zinc-800">
-                  <th className="p-2.5">Team Member</th>
-                  <th className="p-2.5">Billing Role</th>
-                  <th className="p-2.5 text-right">Approved Hours</th>
-                  <th className="p-2.5 text-right">Hourly Rate</th>
-                  <th className="p-2.5 text-right">Total Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {summary.members.map((m, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50">
-                    <td className="p-2.5 font-bold text-slate-900 dark:text-white print:text-black">
-                      {m.name}
-                    </td>
-                    <td className="p-2.5 text-slate-500">{m.role}</td>
-                    <td className="p-2.5 text-right font-mono font-semibold">
-                      {m.hours.toFixed(2)}h
-                    </td>
-                    <td className="p-2.5 text-right font-mono text-slate-500">
-                      ${m.rate.toFixed(2)}/h
-                    </td>
-                    <td className="p-2.5 text-right font-mono font-bold text-slate-900 dark:text-white print:text-black">
-                      ${m.total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse border border-slate-200 dark:border-zinc-800 text-xs min-w-[500px]">
+                <thead>
+                  <tr className="bg-slate-100 dark:bg-zinc-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-zinc-800">
+                    <th className="p-2.5">Team Member</th>
+                    <th className="p-2.5">Billing Role</th>
+                    <th className="p-2.5 text-right">Approved Hours</th>
+                    <th className="p-2.5 text-right">Hourly Rate</th>
+                    <th className="p-2.5 text-right">Total Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+                  {summary.members.map((m, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50">
+                      <td className="p-2.5 font-bold text-slate-900 dark:text-white print:text-black">
+                        {m.name}
+                      </td>
+                      <td className="p-2.5 text-slate-500">{m.role}</td>
+                      <td className="p-2.5 text-right font-mono font-semibold">
+                        {m.hours.toFixed(2)}h
+                      </td>
+                      <td className="p-2.5 text-right font-mono text-slate-500">
+                        ${m.rate.toFixed(2)}/h
+                      </td>
+                      <td className="p-2.5 text-right font-mono font-bold text-slate-900 dark:text-white print:text-black">
+                        ${m.total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Chronological Detailed Task Audit Log with Notes */}
@@ -266,7 +268,8 @@ export default function ClientAuditProofModal({
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
               2. Detailed Chronological Audit Log & Task Notes
             </h3>
-            <table className="w-full text-left border-collapse border border-slate-200 dark:border-zinc-800 text-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse border border-slate-200 dark:border-zinc-800 text-xs min-w-[560px]">
               <thead>
                 <tr className="bg-slate-100 dark:bg-zinc-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px] border-b border-slate-200 dark:border-zinc-800">
                   <th className="p-2.5 w-24">Date</th>
@@ -306,7 +309,8 @@ export default function ClientAuditProofModal({
                 )}
               </tbody>
             </table>
-            {entries.length > 30 && (
+          </div>
+          {entries.length > 30 && (
               <p className="text-[10px] text-slate-400 mt-1 italic">
                 Showing top 30 audited entries for executive overview. Full ledger archived in system database.
               </p>

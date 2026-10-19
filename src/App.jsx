@@ -2192,9 +2192,9 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Middle: Expanded Pricing Benchmark Chart filling the negative space */}
+                      {/* Middle: Expanded Pricing Benchmark Chart filling the negative space on wide screens */}
                       {isGuestMode && (
-                        <div className="flex-1 min-w-[340px] max-w-3xl px-1">
+                        <div className="hidden lg:block flex-1 min-w-[340px] max-w-3xl px-1">
                           <PricingBenchmarkChart initialSeats={validSeats || 12} />
                         </div>
                       )}
