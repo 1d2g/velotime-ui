@@ -8,9 +8,10 @@ import { ToastProvider } from "./contexts/ToastContext.jsx";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 
-import LegalPages from "./components/LegalPages.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import ControlPortal from "./control/ControlPortal.jsx";
+
+const LegalPages = React.lazy(() => import("./components/LegalPages.jsx"));
+const ControlPortal = React.lazy(() => import("./control/ControlPortal.jsx"));
 
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_xrWAkajTPLpTYFqgkS6L28qrLcgHnBjuRqz6YFN4UXCA";
 const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -58,41 +59,49 @@ const isPublicPage = [
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {isPublicPage ? (
-        <LegalPages path={path} />
-      ) : (
-        <ClerkProvider
-          publishableKey={PUBLISHABLE_KEY}
-          appearance={{
-            elements: {
-              logoImage: "/favicon.svg",
-            },
-            variables: {
-              colorPrimary: "#2563eb",
-            },
-          }}
-        >
-          <PostHogProvider client={posthog}>
-            <ToastProvider>
-              {isSsoCallback ? (
-                <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
-                  <div className="text-xs font-mono text-slate-400 mb-2">Connecting Google Account...</div>
-                  <AuthenticateWithRedirectCallback
-                    signInForceRedirectUrl="/"
-                    signUpForceRedirectUrl="/"
-                    signInFallbackRedirectUrl="/"
-                    signUpFallbackRedirectUrl="/"
-                  />
-                </div>
-              ) : isControlPage ? (
-                <ControlPortal />
-              ) : (
-                <App />
-              )}
-            </ToastProvider>
-          </PostHogProvider>
-        </ClerkProvider>
-      )}
+      <React.Suspense
+        fallback={
+          <div className="min-h-screen bg-slate-900 flex items-center justify-center text-xs font-mono text-slate-400">
+            Loading...
+          </div>
+        }
+      >
+        {isPublicPage ? (
+          <LegalPages path={path} />
+        ) : (
+          <ClerkProvider
+            publishableKey={PUBLISHABLE_KEY}
+            appearance={{
+              elements: {
+                logoImage: "/favicon.svg",
+              },
+              variables: {
+                colorPrimary: "#2563eb",
+              },
+            }}
+          >
+            <PostHogProvider client={posthog}>
+              <ToastProvider>
+                {isSsoCallback ? (
+                  <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+                    <div className="text-xs font-mono text-slate-400 mb-2">Connecting Google Account...</div>
+                    <AuthenticateWithRedirectCallback
+                      signInForceRedirectUrl="/"
+                      signUpForceRedirectUrl="/"
+                      signInFallbackRedirectUrl="/"
+                      signUpFallbackRedirectUrl="/"
+                    />
+                  </div>
+                ) : isControlPage ? (
+                  <ControlPortal />
+                ) : (
+                  <App />
+                )}
+              </ToastProvider>
+            </PostHogProvider>
+          </ClerkProvider>
+        )}
+      </React.Suspense>
     </ErrorBoundary>
   </React.StrictMode>,
 );

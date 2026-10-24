@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  SignedIn,
-  SignedOut,
-  SignIn,
   UserButton,
   useUser,
   useAuth,
@@ -10,20 +7,9 @@ import {
 } from "@clerk/clerk-react";
 import { usePostHog } from "posthog-js/react";
 import TimesheetMatrix from "./components/TimesheetMatrix";
-import ProjectsTab from "./components/ProjectsTab";
-import ReportsTab from "./components/ReportsTab";
-import InvoicesTab from "./components/InvoicesTab";
-import IntegrationsTab from "./components/IntegrationsTab";
-import { IntegrationManager } from "./services/integrations/IntegrationManager";
-import TeamTab from "./components/TeamTab";
-import OrganizationSettingsTab from "./components/OrganizationSettingsTab";
-import ApprovalsTab from "./components/ApprovalsTab";
-import ExpensesTab from "./components/ExpensesTab";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
-import OnboardingTour from "./components/OnboardingTour";
 import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
-import ImportWizardTab from "./components/ImportWizardTab";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
 import { Sparkles, LogIn, Keyboard, Play, Download, ArrowLeft } from "lucide-react";
@@ -36,6 +22,18 @@ import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import GoogleAuthButton from "./components/auth/GoogleAuthButton";
 import GuestMigrationBar from "./components/guest/GuestMigrationBar";
+import { executeGuestApiCall } from "./services/guestMockApi";
+
+// Lazy-loaded heavy tabs for fast initial page load & bundle code splitting
+const ProjectsTab = React.lazy(() => import("./components/ProjectsTab"));
+const ReportsTab = React.lazy(() => import("./components/ReportsTab"));
+const InvoicesTab = React.lazy(() => import("./components/InvoicesTab"));
+const IntegrationsTab = React.lazy(() => import("./components/IntegrationsTab"));
+const TeamTab = React.lazy(() => import("./components/TeamTab"));
+const OrganizationSettingsTab = React.lazy(() => import("./components/OrganizationSettingsTab"));
+const ApprovalsTab = React.lazy(() => import("./components/ApprovalsTab"));
+const ExpensesTab = React.lazy(() => import("./components/ExpensesTab"));
+const ImportWizardTab = React.lazy(() => import("./components/ImportWizardTab"));
 import {
   GUEST_USER_ID,
   GUEST_MOCK_USER,
@@ -69,6 +67,23 @@ const safeSetItem = (storage, key, value) => {
     }
   } catch (e) {}
 };
+
+function TabLoadingSkeleton() {
+  return (
+    <div className="flex-1 bg-slate-50 dark:bg-zinc-950 p-6 sm:p-10 overflow-y-auto animate-pulse">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="h-8 bg-slate-200 dark:bg-zinc-800 rounded w-1/4" />
+        <div className="h-4 bg-slate-200 dark:bg-zinc-800 rounded w-1/2" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+          <div className="h-28 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800" />
+          <div className="h-28 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800" />
+          <div className="h-28 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800" />
+        </div>
+        <div className="h-96 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800" />
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -374,250 +389,20 @@ export default function App() {
   }, [isAuditMode]);
 
   const handleGuestApiCall = (endpoint, method = "GET", body, options = {}) => {
-    const upperMethod = (method || "GET").toUpperCase();
-
-    // 1. Invoices Endpoints
-    if (endpoint === "/api/invoices") {
-      let invList;
-      try {
-        const raw = safeGetItem("localStorage", "velotime_guest_invoices");
-        invList = raw ? JSON.parse(raw) : INITIAL_GUEST_INVOICES;
-      } catch {
-        invList = INITIAL_GUEST_INVOICES;
-      }
-      if (!Array.isArray(invList) || invList.length === 0) {
-        invList = INITIAL_GUEST_INVOICES;
-        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(invList));
-      }
-
-      if (upperMethod === "GET") {
-        return invList;
-      }
-
-      if (upperMethod === "POST") {
-        const newInvoice = {
-          ...body,
-          id: `guest_inv_${Date.now()}`,
-          invoiceNumber: body.invoiceNumber || `INV-${1000 + invList.length + 1}`,
-          status: body.status || "draft",
-          dateIssued: body.dateIssued || new Date().toISOString().split("T")[0],
-          dueDate: body.dueDate || "",
-          lineItems: body.lineItems || [],
-          organization: GUEST_MOCK_USER.organization,
-        };
-        const updated = [newInvoice, ...invList];
-        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
-        return newInvoice;
-      }
-    }
-
-    if (endpoint.startsWith("/api/invoices/")) {
-      const parts = endpoint.split("/");
-      const invId = parts[3];
-      const isPdf = parts[4] === "pdf";
-
-      if (isPdf) {
-        return new Blob(["Mock PDF simulated preview in Guest Sandbox"], { type: "application/pdf" });
-      }
-
-      let invList;
-      try {
-        const raw = safeGetItem("localStorage", "velotime_guest_invoices");
-        invList = raw ? JSON.parse(raw) : INITIAL_GUEST_INVOICES;
-      } catch {
-        invList = INITIAL_GUEST_INVOICES;
-      }
-
-      if (upperMethod === "PUT") {
-        const updated = invList.map((inv) => (inv.id === invId ? { ...inv, ...body } : inv));
-        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
-        const matched = updated.find((i) => i.id === invId) || { id: invId, ...body };
-        return matched;
-      }
-
-      if (upperMethod === "DELETE") {
-        const updated = invList.filter((inv) => inv.id !== invId);
-        safeSetItem("localStorage", "velotime_guest_invoices", JSON.stringify(updated));
-        return { success: true };
-      }
-    }
-
-    // 2. Expenses Endpoints
-    if (endpoint === "/api/expenses") {
-      let expList = expenses;
-      if (!Array.isArray(expList) || expList.length === 0) {
-        try {
-          const raw = safeGetItem("localStorage", "velotime_guest_expenses");
-          expList = raw ? JSON.parse(raw) : INITIAL_GUEST_EXPENSES;
-        } catch {
-          expList = INITIAL_GUEST_EXPENSES;
-        }
-      }
-
-      if (upperMethod === "GET") {
-        return expList;
-      }
-
-      if (upperMethod === "POST") {
-        const newExpense = {
-          ...body,
-          id: `guest_exp_${Date.now()}`,
-          date: body.date || new Date().toISOString().split("T")[0],
-        };
-        const updated = [newExpense, ...expList];
-        setExpenses(updated);
-        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
-        return newExpense;
-      }
-    }
-
-    if (endpoint.startsWith("/api/expenses/")) {
-      const expId = endpoint.split("/")[3];
-      if (upperMethod === "PUT") {
-        const updated = expenses.map((exp) => (exp.id === expId ? { ...exp, ...body } : exp));
-        setExpenses(updated);
-        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
-        return { id: expId, ...body };
-      }
-      if (upperMethod === "DELETE") {
-        const updated = expenses.filter((exp) => exp.id !== expId);
-        setExpenses(updated);
-        safeSetItem("localStorage", "velotime_guest_expenses", JSON.stringify(updated));
-        return { success: true };
-      }
-    }
-
-    // 3. Timesheet Submissions Endpoints
-    if (endpoint === "/api/timesheet-submissions") {
-      if (upperMethod === "GET") {
-        return submissions;
-      }
-      if (upperMethod === "POST") {
-        const newSub = {
-          id: `sub_${Date.now()}`,
-          userId: GUEST_USER_ID,
-          user: { firstName: "Guest", lastName: "Evaluator", email: "guest@velotime.local" },
-          weekStartDate: body.weekStartDate || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          totalHours: totalGuestHours,
-          billableHours: totalGuestHours,
-          status: "submitted",
-          submittedAt: new Date().toISOString(),
-          note: body.note || null,
-        };
-        const updated = [newSub, ...submissions];
-        setSubmissions(updated);
-        return newSub;
-      }
-    }
-
-    if (endpoint.startsWith("/api/timesheet-submissions/") && endpoint.endsWith("/status")) {
-      const subId = endpoint.split("/")[3];
-      const updated = submissions.map((s) => (s.id === subId ? { ...s, status: body.status, note: body.note || s.note } : s));
-      setSubmissions(updated);
-      return { success: true };
-    }
-
-    if (endpoint === "/api/timesheet/unlock") {
-      const { weekStartDate } = body || {};
-      const updated = submissions.map((s) => (s.weekStartDate === weekStartDate ? { ...s, status: "draft" } : s));
-      setSubmissions(updated);
-      return { success: true };
-    }
-
-    // 4. Users / Team Endpoints
-    if (endpoint === "/api/users") {
-      return orgUsers;
-    }
-
-    if (endpoint.startsWith("/api/users/") && endpoint.endsWith("/rates")) {
-      const uId = endpoint.split("/")[3];
-      const updated = orgUsers.map((u) => (u.id === uId ? { ...u, defaultCostRate: body.defaultCostRate, defaultBillingRate: body.defaultBillingRate } : u));
-      setOrgUsers(updated);
-      return { success: true };
-    }
-
-    if (endpoint.startsWith("/api/users/") && endpoint.endsWith("/role")) {
-      const uId = endpoint.split("/")[3];
-      const updated = orgUsers.map((u) => (u.id === uId ? { ...u, role: body.role } : u));
-      setOrgUsers(updated);
-      return { success: true };
-    }
-
-    // 5. Tasks / Rates Endpoints
-    if (endpoint.startsWith("/api/tasks/") && endpoint.includes("/rates")) {
-      const taskId = endpoint.split("/")[3];
-      setTaskRates((prev) => {
-        const filtered = prev.filter((tr) => !(tr.taskId === taskId && tr.userId === (body.targetUserId || GUEST_USER_ID)));
-        return [...filtered, { taskId, userId: body.targetUserId || GUEST_USER_ID, billingRate: body.billingRate, costRate: body.costRate }];
-      });
-      return { success: true };
-    }
-
-    // 6. Organization Settings
-    if (endpoint === "/api/organization") {
-      if (body?.name) {
-        setDbUser((prev) => prev ? { ...prev, organization: { ...prev.organization, name: body.name } } : prev);
-      }
-      return { success: true };
-    }
-
-    if (endpoint === "/api/organization/invoice-settings") {
-      if (body?.invoicePrefix || body?.nextInvoiceNumber) {
-        setDbUser((prev) => prev ? { ...prev, organization: { ...prev.organization, invoicePrefix: body.invoicePrefix || prev.organization.invoicePrefix, nextInvoiceNumber: body.nextInvoiceNumber || prev.organization.nextInvoiceNumber } } : prev);
-      }
-      return { success: true };
-    }
-
-    // 7. Active Stopwatch & Timer Simulation in Guest Sandbox
-    if (endpoint === "/api/timer/toggle") {
-      const { action, taskId, dateId } = body || {};
-      let updatedUser = { ...dbUser };
-      if (action === "start") {
-        updatedUser.activeTimerTaskId = taskId;
-        updatedUser.activeTimerDateId = dateId;
-        updatedUser.activeTimerStart = new Date().toISOString();
-      } else {
-        if (updatedUser.activeTimerStart && updatedUser.activeTimerTaskId && updatedUser.activeTimerDateId) {
-          const elapsedHours = (Date.now() - new Date(updatedUser.activeTimerStart).getTime()) / (1000 * 60 * 60);
-          const roundedHours = Math.max(0.1, Math.round(elapsedHours * 10) / 10);
-          const key = `${GUEST_USER_ID}_${updatedUser.activeTimerDateId}_${updatedUser.activeTimerTaskId}`;
-          setEntries((prev) => ({
-            ...prev,
-            [key]: (parseFloat(prev[key]) || 0) + roundedHours,
-          }));
-        }
-        updatedUser.activeTimerTaskId = null;
-        updatedUser.activeTimerDateId = null;
-        updatedUser.activeTimerStart = null;
-      }
-      setDbUser(updatedUser);
-      return { success: true, user: updatedUser };
-    }
-
-    if (endpoint === "/api/timer/active") {
-      return {
-        activeTimerTaskId: dbUser?.activeTimerTaskId || null,
-        activeTimerDateId: dbUser?.activeTimerDateId || null,
-        activeTimerStart: dbUser?.activeTimerStart || null,
-      };
-    }
-
-    if (endpoint.startsWith("/api/projects/") && upperMethod === "PUT") {
-      const projId = endpoint.split("/")[3];
-      setProjects((prev) => prev.map((p) => (p.id === projId ? { ...p, ...body } : p)));
-      return { success: true, project: { id: projId, ...body } };
-    }
-
-    // 8. Stripe / Billing Simulation
-    if (endpoint.includes("/stripe")) {
-      return { url: "#" };
-    }
-
-    // Fallbacks
-    if (upperMethod === "GET") {
-      return [];
-    }
-    return { success: true };
+    return executeGuestApiCall(endpoint, method, body, options, {
+      dbUser,
+      setDbUser,
+      expenses,
+      setExpenses,
+      submissions,
+      setSubmissions,
+      orgUsers,
+      setOrgUsers,
+      setTaskRates,
+      setProjects,
+      setEntries,
+      totalGuestHours,
+    });
   };
 
   const apiCall = async (endpoint, method, body, successMessage = "", options = {}) => {
@@ -2373,131 +2158,135 @@ export default function App() {
                     )}
                   </div>
                 </>
-              ) : activeTab === "Projects" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <ProjectsTab
-                    projects={projects}
-                    entries={entries}
-                    rawEntries={rawEntries}
-                    dbUser={dbUser}
-                    orgUsers={orgUsers}
-                    taskRates={taskRates}
-                    apiCall={apiCall}
-                    forceSync={forceSync}
-                    clients={clients}
-                    onAddClient={handleAddClient}
-                    onUpdateClient={handleUpdateClient}
-                    onRenameProject={handleRenameProject}
-                    onUpdateProject={handleUpdateProject}
-                    onDeleteProject={handleDeleteProject}
-                    onAddProject={handleAddProject}
-                    onAddTask={handleAddTask}
-                    onRemoveTask={handleRemoveTask}
-                    onEditTask={handleEditTask}
-                    onOpenMigration={() => setActiveTab("Migration")}
-                    isDevActive={isDevActive}
-                    setViewUserId={setViewUserId}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Team" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <TeamTab
-                    dbUser={dbUser}
-                    orgUsers={orgUsers}
-                    projects={projects}
-                    entries={entries}
-                    taskRates={taskRates}
-                    apiCall={apiCall}
-                    forceSync={forceSync}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Reports" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <ReportsTab
-                    dbUser={dbUser}
-                    projects={projects}
-                    entries={entries}
-                    orgUsers={orgUsers}
-                    notes={notes}
-                    taskRates={taskRates}
-                    rawEntries={rawEntries}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Invoices" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <InvoicesTab
-                    dbUser={dbUser}
-                    projects={projects}
-                    entries={entries}
-                    rawEntries={rawEntries}
-                    expenses={expenses}
-                    orgUsers={orgUsers}
-                    apiCall={apiCall}
-                    taskRates={taskRates}
-                    forceSync={forceSync}
-                    clients={clients}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Approvals" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <ApprovalsTab
-                    dbUser={dbUser}
-                    orgUsers={orgUsers}
-                    submissions={submissions}
-                    apiCall={apiCall}
-                    forceSync={forceSync}
-                    onViewTimesheet={handleViewTimesheet}
-                    projects={projects}
-                    entries={entries}
-                    notes={notes}
-                    dates={dates}
-                    rawEntries={rawEntries}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Integrations" ? (
-                <IntegrationsTab
-                  dbUser={dbUser}
-                  projects={projects}
-                  rawEntries={rawEntries}
-                  entries={entries}
-                  notes={notes}
-                  dates={dates}
-                  clients={clients}
-                  orgUsers={orgUsers}
-                  taskRates={taskRates}
-                />
-              ) : activeTab === "Expenses" ? (
-                <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
-                  <ExpensesTab
-                    dbUser={dbUser}
-                    expenses={expenses}
-                    projects={projects}
-                    apiCall={apiCall}
-                    forceSync={forceSync}
-                  />
-                </TrialLockoutOverlay>
-              ) : activeTab === "Migration" || (activeTab === "Migration (Dev)" && isDevActive) ? (
-                <ImportWizardTab
-                  dbUser={dbUser}
-                  clients={clients}
-                  projects={projects}
-                  apiCall={apiCall}
-                  forceSync={forceSync}
-                  onBack={() => setActiveTab("Projects")}
-                />
-              ) : activeTab === "Settings" ? (
-                <OrganizationSettingsTab
-                  dbUser={dbUser}
-                  orgUsers={orgUsers}
-                  apiCall={apiCall}
-                  forceSync={forceSync}
-                />
               ) : (
-                <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 ">
-                  <h2 className="text-xl font-bold text-slate-400 dark:text-slate-600 ">
-                    Under Construction
-                  </h2>
-                </div>
+                <React.Suspense fallback={<TabLoadingSkeleton />}>
+                  {activeTab === "Projects" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <ProjectsTab
+                        projects={projects}
+                        entries={entries}
+                        rawEntries={rawEntries}
+                        dbUser={dbUser}
+                        orgUsers={orgUsers}
+                        taskRates={taskRates}
+                        apiCall={apiCall}
+                        forceSync={forceSync}
+                        clients={clients}
+                        onAddClient={handleAddClient}
+                        onUpdateClient={handleUpdateClient}
+                        onRenameProject={handleRenameProject}
+                        onUpdateProject={handleUpdateProject}
+                        onDeleteProject={handleDeleteProject}
+                        onAddProject={handleAddProject}
+                        onAddTask={handleAddTask}
+                        onRemoveTask={handleRemoveTask}
+                        onEditTask={handleEditTask}
+                        onOpenMigration={() => setActiveTab("Migration")}
+                        isDevActive={isDevActive}
+                        setViewUserId={setViewUserId}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Team" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <TeamTab
+                        dbUser={dbUser}
+                        orgUsers={orgUsers}
+                        projects={projects}
+                        entries={entries}
+                        taskRates={taskRates}
+                        apiCall={apiCall}
+                        forceSync={forceSync}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Reports" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <ReportsTab
+                        dbUser={dbUser}
+                        projects={projects}
+                        entries={entries}
+                        orgUsers={orgUsers}
+                        notes={notes}
+                        taskRates={taskRates}
+                        rawEntries={rawEntries}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Invoices" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <InvoicesTab
+                        dbUser={dbUser}
+                        projects={projects}
+                        entries={entries}
+                        rawEntries={rawEntries}
+                        expenses={expenses}
+                        orgUsers={orgUsers}
+                        apiCall={apiCall}
+                        taskRates={taskRates}
+                        forceSync={forceSync}
+                        clients={clients}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Approvals" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <ApprovalsTab
+                        dbUser={dbUser}
+                        orgUsers={orgUsers}
+                        submissions={submissions}
+                        apiCall={apiCall}
+                        forceSync={forceSync}
+                        onViewTimesheet={handleViewTimesheet}
+                        projects={projects}
+                        entries={entries}
+                        notes={notes}
+                        dates={dates}
+                        rawEntries={rawEntries}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Integrations" ? (
+                    <IntegrationsTab
+                      dbUser={dbUser}
+                      projects={projects}
+                      rawEntries={rawEntries}
+                      entries={entries}
+                      notes={notes}
+                      dates={dates}
+                      clients={clients}
+                      orgUsers={orgUsers}
+                      taskRates={taskRates}
+                    />
+                  ) : activeTab === "Expenses" ? (
+                    <TrialLockoutOverlay dbUser={dbUser} apiCall={apiCall}>
+                      <ExpensesTab
+                        dbUser={dbUser}
+                        expenses={expenses}
+                        projects={projects}
+                        apiCall={apiCall}
+                        forceSync={forceSync}
+                      />
+                    </TrialLockoutOverlay>
+                  ) : activeTab === "Migration" || (activeTab === "Migration (Dev)" && isDevActive) ? (
+                    <ImportWizardTab
+                      dbUser={dbUser}
+                      clients={clients}
+                      projects={projects}
+                      apiCall={apiCall}
+                      forceSync={forceSync}
+                      onBack={() => setActiveTab("Projects")}
+                    />
+                  ) : activeTab === "Settings" ? (
+                    <OrganizationSettingsTab
+                      dbUser={dbUser}
+                      orgUsers={orgUsers}
+                      apiCall={apiCall}
+                      forceSync={forceSync}
+                    />
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 ">
+                      <h2 className="text-xl font-bold text-slate-400 dark:text-slate-600 ">
+                        Under Construction
+                      </h2>
+                    </div>
+                  )}
+                </React.Suspense>
               )}
             </main>
             {/* Onboarding Tour paused pending review */}
