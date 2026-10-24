@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
+import { Check } from 'lucide-react';
 
 // Helper: RFC-4180 compliant CSV parser that handles quotes, escaped quotes, commas inside quotes, and newlines
 function parseCSV(text) {
@@ -703,7 +704,7 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
               {existingProjectMatchesCount > 0 && (
                 <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/80 p-4 text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
                   <div className="w-5 h-5 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 flex items-center justify-center font-bold shrink-0 text-xs">
-                    ✓
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                   </div>
                   <div className="space-y-1">
                     <div className="font-bold text-emerald-950 dark:text-emerald-100">
@@ -1039,7 +1040,7 @@ export default function ImportWizardTab({ dbUser, clients = [], projects = [], a
         {step === 3 && migrationResult && (
           <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 p-8 space-y-6 shadow-sm text-center">
             <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center font-black text-xl border border-emerald-300">
-              ✓
+              <Check className="w-6 h-6 stroke-[2.5]" />
             </div>
 
             <div>

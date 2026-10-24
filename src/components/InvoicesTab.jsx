@@ -206,6 +206,27 @@ export default function InvoicesTab({
     reader.readAsDataURL(file);
   };
 
+  const selectInvoice = (inv) => {
+    setActiveInvoice(inv);
+    setIsAddingLineItem(false);
+
+    const isPwp = (inv.notes && inv.notes.toLowerCase().includes("pay when paid")) || !inv.dueDate;
+    const tType = isPwp ? "pay_when_paid" : "net";
+    setTermsType(tType);
+
+    setSheetForm({
+      projectId: inv.projectId || "",
+      clientName: inv.clientName || "",
+      clientAddress: inv.clientAddress || "",
+      dateIssued: inv.dateIssued ? new Date(inv.dateIssued).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split("T")[0] : "",
+      notes: inv.notes || "",
+      status: inv.status || "draft",
+      taxName: inv.taxName || "Tax",
+      taxRate: inv.taxRate || 0,
+    });
+  };
+
   const fetchInvoices = async () => {
     try {
       const data = await apiCall("/api/invoices", "GET");
@@ -232,27 +253,6 @@ export default function InvoicesTab({
   useEffect(() => {
     fetchInvoices();
   }, [activeInvoiceId]);
-
-  const selectInvoice = (inv) => {
-    setActiveInvoice(inv);
-    setIsAddingLineItem(false);
-
-    const isPwp = (inv.notes && inv.notes.toLowerCase().includes("pay when paid")) || !inv.dueDate;
-    const tType = isPwp ? "pay_when_paid" : "net";
-    setTermsType(tType);
-
-    setSheetForm({
-      projectId: inv.projectId || "",
-      clientName: inv.clientName || "",
-      clientAddress: inv.clientAddress || "",
-      dateIssued: inv.dateIssued ? new Date(inv.dateIssued).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-      dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split("T")[0] : "",
-      notes: inv.notes || "",
-      status: inv.status || "draft",
-      taxName: inv.taxName || "Tax",
-      taxRate: inv.taxRate || 0,
-    });
-  };
 
   const getClientForProject = (projectId) => {
     if (!projectId) return null;
@@ -357,7 +357,7 @@ export default function InvoicesTab({
     setTermsType(mode);
     const issueDate = sheetForm.dateIssued || new Date().toISOString().split("T")[0];
 
-    let newDueDate = null;
+    let newDueDate;
     let newNotes = sheetForm.notes;
 
     if (mode === "pay_when_paid") {
@@ -556,7 +556,7 @@ export default function InvoicesTab({
       );
     const totalHours = unbilled.reduce((sum, e) => sum + e.hours, 0);
 
-    let rate = 0;
+    let rate;
     const tRate = (Array.isArray(taskRates) ? taskRates : []).find(
       (tr) => tr.taskId === liTaskId && tr.userId === liUserId,
     );

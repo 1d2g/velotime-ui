@@ -202,6 +202,7 @@ export default function ReportsTab({
   // Sort State
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [expandedRows, setExpandedRows] = useState({});
+  const [isAuditProofModalOpen, setIsAuditProofModalOpen] = useState(false);
 
   // Saved Custom Reports (Up to 20 per organization)
   const storageKey = `velotime_custom_reports_${orgId}`;
@@ -681,8 +682,6 @@ export default function ReportsTab({
     link.click();
     addToast("Exported report to CSV", "success");
   };
-
-  const [isAuditProofModalOpen, setIsAuditProofModalOpen] = useState(false);
 
   const handleExportQBO = () => {
     try {
@@ -1524,7 +1523,7 @@ export default function ReportsTab({
             : "Agency Project Portfolio"
         }
         dateRangeText={selectedPeriod}
-        invoiceNumber={`AUDIT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`}
+        invoiceNumber={`AUDIT-${new Date().getFullYear()}-${selectedProject !== "all" ? String(selectedProject).slice(-4).toUpperCase() : "AGY"}-${String(selectedPeriod).toUpperCase()}`}
         approvedBy={
           dbUser?.firstName
             ? `${dbUser.firstName} ${dbUser.lastName || ""} (Operations & Finance)`

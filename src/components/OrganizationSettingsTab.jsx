@@ -12,6 +12,24 @@ export default function OrganizationSettingsTab({
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [roleSaves, setRoleSaves] = useState({});
 
+  const [invoicePrefix, setInvoicePrefix] = useState(
+    dbUser?.organization?.invoicePrefix || "INV-",
+  );
+  const [nextInvoiceNumber, setNextInvoiceNumber] = useState(
+    dbUser?.organization?.nextInvoiceNumber || 1,
+  );
+  const [logoBase64, setLogoBase64] = useState(
+    dbUser?.organization?.logoBase64 || "",
+  );
+  const [timerRoundingMinutes, setTimerRoundingMinutes] = useState(
+    dbUser?.organization?.timerRoundingMinutes || 0,
+  );
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [isDisconnectingStripe, setIsDisconnectingStripe] = useState(false);
+  const [isDisconnectingQbo, setIsDisconnectingQbo] = useState(false);
+  const isAdmin = dbUser?.role === "admin" || dbUser?.role === "owner";
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.split("?")[1] || "");
@@ -28,7 +46,20 @@ export default function OrganizationSettingsTab({
     }
   }, []);
 
-  if (dbUser?.role !== "admin") {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      if (hash.includes("quickbooks=connected")) {
+        addToast("QuickBooks Online connected successfully!", "success");
+        if (forceSync) forceSync();
+      } else if (hash.includes("quickbooks_error=")) {
+        const errParam = new URLSearchParams(hash.split("?")[1] || "").get("quickbooks_error");
+        addToast(`QuickBooks connection failed: ${errParam || "Authorization error"}`, "error");
+      }
+    }
+  }, []);
+
+  if (!isAdmin) {
     return (
       <div className="flex-1 p-8 bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center text-center transition-colors">
         <svg
@@ -52,37 +83,6 @@ export default function OrganizationSettingsTab({
       </div>
     );
   }
-
-  const [invoicePrefix, setInvoicePrefix] = useState(
-    dbUser?.organization?.invoicePrefix || "INV-",
-  );
-  const [nextInvoiceNumber, setNextInvoiceNumber] = useState(
-    dbUser?.organization?.nextInvoiceNumber || 1,
-  );
-  const [logoBase64, setLogoBase64] = useState(
-    dbUser?.organization?.logoBase64 || "",
-  );
-  const [timerRoundingMinutes, setTimerRoundingMinutes] = useState(
-    dbUser?.organization?.timerRoundingMinutes || 0,
-  );
-  const [isSavingName, setIsSavingName] = useState(false);
-  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
-  const [isDisconnectingStripe, setIsDisconnectingStripe] = useState(false);
-  const [isDisconnectingQbo, setIsDisconnectingQbo] = useState(false);
-  const isAdmin = dbUser?.role === "admin" || dbUser?.role === "owner";
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash || "";
-      if (hash.includes("quickbooks=connected")) {
-        addToast("QuickBooks Online connected successfully!", "success");
-        if (forceSync) forceSync();
-      } else if (hash.includes("quickbooks_error=")) {
-        const errParam = new URLSearchParams(hash.split("?")[1] || "").get("quickbooks_error");
-        addToast(`QuickBooks connection failed: ${errParam || "Authorization error"}`, "error");
-      }
-    }
-  }, []);
 
   const handleDisconnectQuickBooks = async () => {
     if (!window.confirm("Are you sure you want to disconnect QuickBooks Online?")) return;

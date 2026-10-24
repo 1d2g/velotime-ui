@@ -64,12 +64,6 @@ export default function ClientAuditProofModal({
     };
   }, [entries]);
 
-  if (!isOpen) return null;
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   const verificationHash = useMemo(() => {
     const seed = `${clientName}-${projectName}-${dateRangeText}-${summary.totalHours}`;
     let hash = 0;
@@ -79,6 +73,12 @@ export default function ClientAuditProofModal({
     }
     return `VT-${Math.abs(hash).toString(16).toUpperCase().padStart(8, "0")}`;
   }, [clientName, projectName, dateRangeText, summary.totalHours]);
+
+  if (!isOpen) return null;
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto">

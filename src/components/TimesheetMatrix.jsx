@@ -274,11 +274,11 @@ export default function TimesheetMatrix({
       p.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortMode === 'hours') {
       p.sort((a, b) => {
-        const aHours = a.tasks.reduce((sum, t) => {
-          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        const aHours = (a.tasks || []).reduce((sum, t) => {
+          return sum + (dates || []).reduce((dSum, d) => dSum + (parseFloat(entries[`${viewUserId}_${d.id}_${t.id}`]) || 0), 0);
         }, 0);
-        const bHours = b.tasks.reduce((sum, t) => {
-          return sum + dates.reduce((dSum, d) => dSum + (entries[`${viewUserId}_${d.id}_${t.id}`] || 0), 0);
+        const bHours = (b.tasks || []).reduce((sum, t) => {
+          return sum + (dates || []).reduce((dSum, d) => dSum + (parseFloat(entries[`${viewUserId}_${d.id}_${t.id}`]) || 0), 0);
         }, 0);
         return bHours - aHours;
       });
@@ -769,19 +769,24 @@ export default function TimesheetMatrix({
 
   const getRowTotal = (dateId) => {
     let total = 0;
-    projects.forEach((p) =>
-      p.tasks.forEach((t) => {
-        total += entries[`${viewUserId}_${dateId}_${t.id}`] || 0;
+    (projects || []).forEach((p) =>
+      (p.tasks || []).forEach((t) => {
+        const val = parseFloat(entries[`${viewUserId}_${dateId}_${t.id}`]);
+        if (!isNaN(val)) total += val;
       }),
     );
-    return total;
+    return Math.round(total * 100) / 100;
   };
 
   const getProjectTotal = (dateId, project) => {
-    return project.tasks.reduce(
-      (sum, t) => sum + (entries[`${viewUserId}_${dateId}_${t.id}`] || 0),
+    const raw = (project?.tasks || []).reduce(
+      (sum, t) => {
+        const val = parseFloat(entries[`${viewUserId}_${dateId}_${t.id}`]);
+        return sum + (!isNaN(val) ? val : 0);
+      },
       0,
     );
+    return Math.round(raw * 100) / 100;
   };
 
   const stickyLeft1 =

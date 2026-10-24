@@ -354,8 +354,8 @@ const LegalPages = ({ path }) => {
     return <PublicInvoiceView invoiceId={invoiceId} />;
   }
 
-  let title = "";
-  let content = "";
+  let title;
+  let content;
   let isHtml = false;
 
   switch (path) {

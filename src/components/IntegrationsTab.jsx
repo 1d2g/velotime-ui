@@ -176,6 +176,7 @@ export default function IntegrationsTab({
 
   // Export scope filter: 'week' | 'month' | 'all'
   const [exportScope, setExportScope] = useState("week");
+  const [todayIso] = useState(() => new Date().toISOString().split("T")[0]);
 
   // Build unified, real entries list across rawEntries & live matrix cells
   const allResolvedEntries = useMemo(() => {
@@ -305,9 +306,10 @@ export default function IntegrationsTab({
       if (weekMatches.length > 0) return weekMatches;
     }
 
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const anchorDate = (Array.isArray(dates) && dates[0]?.id) || todayIso;
+    const sevenDaysAgo = new Date(new Date(anchorDate).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
     return allResolvedEntries.filter((e) => (e.date || "") >= sevenDaysAgo);
-  }, [allResolvedEntries, exportScope, dates]);
+  }, [allResolvedEntries, exportScope, dates, todayIso]);
 
   const totalScopedHours = useMemo(() => {
     return scopedEntries.reduce((sum, e) => sum + e.hours, 0);
@@ -483,7 +485,7 @@ export default function IntegrationsTab({
         if (dbUser?.organization?.quickbooksRealmId) {
           addToast("QuickBooks Online is connected and active!", "success");
         } else {
-          window.location.href = `${import.meta.env.VITE_API_URL || ""}/api/quickbooks/auth?orgId=${dbUser?.organizationId}`;
+          window.location.assign(`${import.meta.env.VITE_API_URL || ""}/api/quickbooks/auth?orgId=${dbUser?.organizationId}`);
         }
       },
     }
