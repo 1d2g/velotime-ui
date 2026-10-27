@@ -30,6 +30,10 @@ if (typeof window !== "undefined" && POSTHOG_KEY) {
         ? {
             minimum_duration_seconds: 3,
             strictMinimumDuration: true,
+            maskAllInputs: false,
+            maskInputOptions: {
+              password: true,
+            },
           }
         : false,
     });
