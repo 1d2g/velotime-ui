@@ -1764,6 +1764,15 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => {
+                        if (userCellEditCount > 0) {
+                          safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
+                            clients,
+                            projects,
+                            entries,
+                            notes,
+                            totalHours: totalGuestHours,
+                          }));
+                        }
                         setAuthScreenMode("signin");
                         setShowAuthScreen(true);
                       }}
