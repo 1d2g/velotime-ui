@@ -390,6 +390,47 @@ export default function TimesheetMatrix({
     };
   }, [isEditing]);
 
+  // Mouse / Trackpad click-and-drag horizontal panning on the grid
+  useEffect(() => {
+    const container = gridScrollRef.current;
+    if (!container) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeftStart = 0;
+
+    const handleMouseDown = (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest("input, textarea, button, a, [role='dialog'], .popover, .tour-")) return;
+      isDown = true;
+      startX = e.pageX - container.offsetLeft;
+      scrollLeftStart = container.scrollLeft;
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDown) return;
+      const x = e.pageX - container.offsetLeft;
+      const walk = (x - startX);
+      if (Math.abs(walk) > 3) {
+        container.scrollLeft = scrollLeftStart - walk;
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDown = false;
+    };
+
+    container.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      container.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
   // Synchronize horizontal and vertical scroll to ensure focused cell and project header
   // are never hidden behind sticky columns (Day/Date/Total) or sticky headers
   useEffect(() => {
