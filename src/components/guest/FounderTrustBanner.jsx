@@ -47,117 +47,65 @@ export default function FounderTrustBanner({
   };
 
   return (
-    <div className="w-full bg-slate-950 text-white border-b border-slate-800 px-4 py-2 text-xs font-sans z-50 shrink-0 select-none">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
-        {/* Left: Founder Identity & Transparent Personal Message */}
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+    <div className="w-full bg-slate-950 text-white border-b border-slate-800 px-4 py-1.5 text-xs font-sans z-50 shrink-0 select-none">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        {/* Left: Founder Identity & Concise Personal Message */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="relative shrink-0 flex items-center justify-center">
-            <div className="w-6 h-6 bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] tracking-wider border border-slate-600 select-none">
+            <div className="w-5 h-5 bg-slate-800 text-white flex items-center justify-center font-bold text-[9px] tracking-wider border border-slate-600 select-none">
               DG
             </div>
             <span
-              className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-500 border border-slate-950"
+              className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 border border-slate-950"
               title="Founder Online"
             />
           </div>
 
-          <div className="text-[11px] leading-tight text-slate-200">
+          <div className="text-[11px] leading-tight text-slate-300 truncate">
             <span className="font-bold text-white mr-1.5">{founderName} (Founder):</span>
             {competitor?.toLowerCase() === "harvest" ? (
-              <span className="text-slate-300">
-                Evaluating VeloTime as an alternative to Harvest? VeloTime delivers the speed of a 10-second keyboard spreadsheet matrix with full client reporting and invoicing at a flat $5/seat (a third of Harvest's $14+/seat cost). Instant live sandbox — zero credit card required. Direct line:{" "}
-                <a
-                  href={`mailto:${founderEmail}?subject=Evaluating%20VeloTime%20vs%20Harvest`}
-                  className="text-white underline font-semibold hover:text-slate-200"
-                >
-                  {founderEmail}
-                </a>
-                {" "}— I read and answer every email personally.
+              <span>
+                Comparing against Harvest? VeloTime is a flat <strong className="text-white">$5/seat</strong> (vs Harvest&apos;s $14/seat) with 10-second keyboard entry, live timers, and invoicing. Questions?{" "}
               </span>
             ) : competitor ? (
-              <span className="text-slate-300">
-                Evaluating VeloTime as an alternative to {competitor}? VeloTime delivers the speed of a 10-second keyboard spreadsheet matrix with full client reporting and invoicing at a flat $5/seat. Instant sandbox — zero credit card required. Direct line:{" "}
-                <a
-                  href={`mailto:${founderEmail}?subject=Evaluating%20VeloTime%20vs%20${encodeURIComponent(competitor)}`}
-                  className="text-white underline font-semibold hover:text-slate-200"
-                >
-                  {founderEmail}
-                </a>
-                {" "}— I read and answer every email personally.
+              <span>
+                Comparing against {competitor}? VeloTime is a flat <strong className="text-white">$5/seat</strong> with 10-second keyboard entry, live timers, and invoicing. Questions?{" "}
               </span>
-            ) : isTrial ? (
-              <span className="text-slate-300">
-                Welcome to your 14-day free trial sandbox!{" "}
-                {companyName ? `(${companyName}) ` : ""}
-                {trialSeats ? `Configured for ${trialSeats} seats ($${trialSeats * 5}/mo). ` : ""}
-                Instant access with full team spreadsheet matrix, zero credit card required. Test logging below, and claim whenever you're ready.{" "}
-                Direct line:{" "}
-                <a
-                  href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime%2014-day%20trial')}%20workspace`}
-                  className="text-white underline font-semibold hover:text-slate-200"
-                >
-                  {founderEmail}
-                </a>
+            ) : companyName ? (
+              <span>
+                Welcome to the <strong className="text-white">{companyName}</strong> sandbox{trialSeats ? ` (${trialSeats} seats · $${trialSeats * 5}/mo)` : ""}. Test the grid below — zero credit card required. Questions?{" "}
               </span>
             ) : (
-              <span className="text-slate-300">
-                {companyName ? `Welcome to the ${companyName} evaluation workspace! ` : "Building VeloTime for independent studios and agencies. "}Evaluating for your team or have questions on custom rates and migration? Direct line:{" "}
-                <a
-                  href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || 'VeloTime')}%20workspace`}
-                  className="text-white underline font-semibold hover:text-slate-200"
-                >
-                  {founderEmail}
-                </a>
-                {" "}— I read and answer every email personally.
+              <span>
+                Interactive Guest Sandbox — test arrow-key navigation &amp; live timers below ($5/seat flat, zero credit card required). Direct founder line:{" "}
               </span>
             )}
+            <a
+              href={`mailto:${founderEmail}?subject=Question%20about%20${encodeURIComponent(companyName || "VeloTime")}%20workspace`}
+              className="text-white underline font-semibold hover:text-rose-300 transition-colors"
+            >
+              {founderEmail}
+            </a>
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
-          <a
-            href="https://velotime.dg.tools"
-            className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
-            title="Read overview, features, and pricing on main site"
-          >
-            <ArrowLeft className="w-3 h-3 text-slate-400" />
-            <span>Main Site</span>
-          </a>
-
-          {onClaimWorkspace && (
-            <button
-              type="button"
-              onClick={onClaimWorkspace}
-              className="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[11px] tracking-wider transition-colors inline-flex items-center gap-1 shadow-sm cursor-pointer"
-            >
-              <Sparkles className="w-3 h-3 text-white" />
-              <span>Save & Claim Workspace</span>
-            </button>
-          )}
-
-          <a
-            href={`mailto:${founderEmail}?subject=Question%20about%20VeloTime%20workspace`}
-            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-900 font-bold text-[11px] tracking-wider transition-colors inline-flex items-center gap-1 shadow-sm cursor-pointer"
-          >
-            <Mail className="w-3 h-3 text-slate-900" />
-            <span>Email Dustin</span>
-          </a>
-
+        {/* Right: Minimal Actions (No duplicate Main Site / Save buttons that already exist in Header below) */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={handleCopy}
-            className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-semibold text-[10px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            title="Copy founder email address"
           >
             {copied ? (
               <>
-                <Check className="w-3 h-3 text-rose-400" />
-                <span className="text-rose-400">Copied!</span>
+                <Check className="w-2.5 h-2.5 text-emerald-400" />
+                <span className="text-emerald-400">Copied</span>
               </>
             ) : (
               <>
-                <Copy className="w-3 h-3 text-slate-400" />
-                <span>Copy Email</span>
+                <Copy className="w-2.5 h-2.5 text-slate-400" />
+                <span className="hidden sm:inline">Copy Email</span>
               </>
             )}
           </button>
@@ -165,7 +113,7 @@ export default function FounderTrustBanner({
           <button
             type="button"
             onClick={handleDismiss}
-            className="p-1 text-slate-400 hover:text-white transition-colors ml-0.5 cursor-pointer"
+            className="p-0.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Dismiss founder banner"
             aria-label="Dismiss banner"
           >

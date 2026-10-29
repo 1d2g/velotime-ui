@@ -12,12 +12,11 @@ import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
 import AuthScreen from "./components/AuthScreen";
 import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
-import { Sparkles, LogIn, Keyboard, Play, Download, ArrowLeft } from "lucide-react";
+import { Sparkles, LogIn, Keyboard, Play, Download, UploadCloud, ArrowLeft } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
 import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
 import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletionModal";
-import PricingBenchmarkChart from "./components/guest/PricingBenchmarkChart";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import GoogleAuthButton from "./components/auth/GoogleAuthButton";
@@ -221,7 +220,15 @@ export default function App() {
   }, [entries]);
 
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const companyParam = searchParams?.get("company")?.trim() || "";
+  const rawCompanyParam = searchParams?.get("company")?.trim() || "";
+  const rawUtmSource = searchParams?.get("utm_source")?.toLowerCase() || "";
+  // Guard against corporate email link-rewriting scanners (Mimecast/Barracuda) that Caesar-cipher query params (e.g. utm_source=bhgefbdu, company=Devdu'f Cebdgvdf)
+  const isCipheredScannerUrl =
+    rawUtmSource === "bhgefbdu" ||
+    rawUtmSource === "dab_cbegafe_bhgefbdu" ||
+    /\b(cebdgvdf|fghevbf|abyybjhc)\b/i.test(rawCompanyParam) ||
+    /'f\b/i.test(rawCompanyParam);
+  const companyParam = isCipheredScannerUrl ? "" : rawCompanyParam;
   const isAuditMode = searchParams?.get("audit_mode") === "true";
   const authParam = searchParams?.get("mode");
   const isTrialParam = searchParams?.get("trial") === "true";
@@ -247,29 +254,12 @@ export default function App() {
   const [walkthroughActive, setWalkthroughActive] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isWalkthroughModalOpen, setIsWalkthroughModalOpen] = useState(false);
-  const [isCornerVideoOpen, setIsCornerVideoOpen] = useState(() => {
-    try {
-      return sessionStorage.getItem("velotime_corner_video_dismissed") !== "true";
-    } catch {
-      return true;
-    }
-  });
+  // Keep video widget closed by default so it only opens when the user explicitly clicks "Video (26s)"
+  const [isCornerVideoOpen, setIsCornerVideoOpen] = useState(false);
+  // Keep CSV migration dropbar collapsed by default unless the user clicks "Import CSV" or has imported data
+  const [showImportBar, setShowImportBar] = useState(false);
 
   const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
-
-  // Welcoming notification for 14-day trial sandbox visitors
-  useEffect(() => {
-    if (isGuestMode && isTrialParam) {
-      const shownKey = "velotime_trial_welcome_toast_shown";
-      if (!safeGetItem("sessionStorage", shownKey)) {
-        safeSetItem("sessionStorage", shownKey, "true");
-        addToast(
-          "Welcome to your 14-day trial workspace! Instant sandbox — zero credit card required.",
-          "info"
-        );
-      }
-    }
-  }, [isGuestMode, isTrialParam]);
 
   const handleStartWalkthrough = () => {
     if (activeTab !== "Timesheets") {
@@ -1015,7 +1005,16 @@ export default function App() {
     link.click();
     document.body.removeChild(link);
     if (isGuestMode) {
-      addToast("Timesheet CSV exported. Save your workspace to sync with your team.", "success");
+      if (posthog) {
+        try {
+          posthog.capture("demo_csv_exported", {
+            totalHours: totalGuestHours,
+            projectsCount: projects.length,
+          });
+        } catch (e) {}
+      }
+      addToast("Timesheet CSV exported. Save your workspace to keep your projects & hours.", "success");
+      handleOpenClaimModal();
     } else {
       addToast("Timesheet CSV exported successfully", "success");
     }
@@ -1364,7 +1363,15 @@ export default function App() {
       [`${uid}_${dateId}_${taskId}`]: numValue,
     }));
     if (isGuestMode) {
-      setUserCellEditCount((prev) => prev + 1);
+      setUserCellEditCount((prev) => {
+        const next = prev + 1;
+        if (next === 1 && posthog) {
+          try {
+            posthog.capture("guest_matrix_interacted", { action: "cell_edit", dateId, taskId, value: numValue });
+          } catch (e) {}
+        }
+        return next;
+      });
       return;
     }
     if (taskId.startsWith("temp_") || taskId.startsWith("guest_")) return;
@@ -1381,6 +1388,17 @@ export default function App() {
   };
 
   const handleToggleTimer = async (taskId, dateId, action) => {
+    if (isGuestMode) {
+      setUserCellEditCount((prev) => {
+        const next = prev + 1;
+        if (next === 1 && posthog) {
+          try {
+            posthog.capture("guest_matrix_interacted", { action: `timer_${action}`, dateId, taskId });
+          } catch (e) {}
+        }
+        return next;
+      });
+    }
     try {
       const res = await apiCall("/api/timer/toggle", "POST", { taskId, dateId, action });
       if (res && res.user) {
@@ -1958,6 +1976,19 @@ export default function App() {
                                 </button>
                                 <button
                                   type="button"
+                                  onClick={() => setShowImportBar((prev) => !prev)}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border shadow-xs transition-colors cursor-pointer select-none ${
+                                    showImportBar || importedDemoInfo
+                                      ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900"
+                                      : "bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-zinc-700"
+                                  }`}
+                                  title="Import your existing Harvest, Toggl, or Clockify CSV export"
+                                >
+                                  <UploadCloud className="w-2.5 h-2.5" />
+                                  <span>Import CSV</span>
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={handleExportCsv}
                                   className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
                                   title="Export current timesheet entries to CSV"
@@ -1965,26 +1996,11 @@ export default function App() {
                                   <Download className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" />
                                   <span>Export CSV</span>
                                 </button>
-                                <a
-                                  href="https://velotime.dg.tools"
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-slate-300 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer select-none"
-                                  title="Return to main site (Overview, Comparisons & Pricing)"
-                                >
-                                  <ArrowLeft className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400" />
-                                  <span>Main Site</span>
-                                </a>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
-
-                      {/* Middle: Expanded Pricing Benchmark Chart filling the negative space on wide screens */}
-                      {isGuestMode && (
-                        <div className="hidden lg:block flex-1 min-w-[340px] max-w-3xl px-1">
-                          <PricingBenchmarkChart initialSeats={validSeats || 12} />
-                        </div>
-                      )}
 
                       {/* Right: Search & Saved Status */}
                       <div className="flex flex-row sm:flex-col gap-1.5 items-center sm:items-end shrink-0 w-full sm:w-auto justify-between sm:justify-start mt-1 sm:mt-0">
@@ -2074,7 +2090,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
-                    {isGuestMode && (
+                    {isGuestMode && (showImportBar || importedDemoInfo) && (
                       <GuestMigrationBar
                         dates={dates}
                         onApplyDemoImport={handleApplyDemoImport}
