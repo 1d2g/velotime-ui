@@ -789,7 +789,7 @@ export default function App() {
   useEffect(() => {
     if (isGuestMode) {
       const templateVer = safeGetItem("localStorage", "velotime_guest_template_ver");
-      const isCurrentTemplate = templateVer === "v5";
+      const isCurrentTemplate = templateVer === "v6";
 
       if (isCurrentTemplate) {
         try {
@@ -822,8 +822,8 @@ export default function App() {
         }
       }
 
-      // Hybrid Default (v5: complete rich demo dataset for all tabs with full week for Sarah Chen)
-      safeSetItem("localStorage", "velotime_guest_template_ver", "v5");
+      // Hybrid Default (v6: complete rich demo dataset for all tabs with 5 projects for horizontal trackpad scroll)
+      safeSetItem("localStorage", "velotime_guest_template_ver", "v6");
       const dynamicUser = companyParam
         ? {
             ...GUEST_MOCK_USER,

@@ -35,6 +35,8 @@ export const INITIAL_GUEST_CLIENTS = [
   { id: "guest_c1", name: "Client A", address: "100 Creative Way, Studio Suite 4B" },
   { id: "guest_c2", name: "Client B", address: "250 Market St, Floor 12" },
   { id: "guest_c3", name: "Client C", address: "80 Innovation Park, Building 2" },
+  { id: "guest_c4", name: "Client D", address: "400 Enterprise Plaza, Suite 900" },
+  { id: "guest_c5", name: "Studio Internal", address: "HQ Operations & R&D" },
 ];
 
 export const INITIAL_GUEST_PROJECTS = [
@@ -84,6 +86,37 @@ export const INITIAL_GUEST_PROJECTS = [
       { id: "guest_t3_a", name: "Task A", isBillable: true },
       { id: "guest_t3_b", name: "Task B", isBillable: true },
       { id: "guest_t3_c", name: "Task C", isBillable: true },
+    ],
+  },
+  {
+    id: "guest_p4",
+    name: "Client D Retainer",
+    clientId: "guest_c4",
+    client: { id: "guest_c4", name: "Client D" },
+    clientName: "Client D",
+    hourlyRate: 180,
+    budget: 36000,
+    budgetHours: 200,
+    isCollapsed: false,
+    tasks: [
+      { id: "guest_t4_a", name: "Architecture", isBillable: true },
+      { id: "guest_t4_b", name: "Implementation", isBillable: true },
+      { id: "guest_t4_c", name: "QA & Review", isBillable: true },
+    ],
+  },
+  {
+    id: "guest_p5",
+    name: "Internal R&D & Ops",
+    clientId: "guest_c5",
+    client: { id: "guest_c5", name: "Studio Internal" },
+    clientName: "Studio Internal",
+    hourlyRate: 0,
+    budget: 0,
+    budgetHours: 80,
+    isCollapsed: false,
+    tasks: [
+      { id: "guest_t5_a", name: "Tooling & CI", isBillable: false },
+      { id: "guest_t5_b", name: "Team Sync", isBillable: false },
     ],
   },
 ];

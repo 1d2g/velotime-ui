@@ -331,12 +331,17 @@ export default function TimesheetMatrix({
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
 
   // Enable smooth two-finger horizontal trackpad scrolling across projects
-  // (intercepting wheel events before <input>/<textarea> cells swallow deltaX)
+  // (intercepting wheel events before <input>/<textarea> cells swallow deltaX,
+  // with sub-pixel remainder accumulation so fractional trackpad deltas never truncate to 0)
   useEffect(() => {
-    const container = gridScrollRef.current;
-    if (!container) return;
+    const rootEl = containerRef.current || gridScrollRef.current;
+    if (!rootEl) return;
+    let remX = 0;
+    let remY = 0;
 
     const handleWheel = (e) => {
+      const container = gridScrollRef.current;
+      if (!container) return;
       if (e.ctrlKey || e.metaKey) return;
       if (e.target && e.target.closest && e.target.closest(".popover, [role='dialog']")) {
         return;
@@ -350,10 +355,10 @@ export default function TimesheetMatrix({
       let dx = e.deltaX * multiplier;
       let dy = e.deltaY * multiplier;
 
-      if (e.shiftKey && Math.abs(dx) < 1 && Math.abs(dy) >= 1) {
+      if (e.shiftKey && Math.abs(dx) < 0.5 && Math.abs(dy) > 0) {
         dx = dy;
         dy = 0;
-      } else if (maxScrollLeft > 0 && Math.abs(dx) < 1 && Math.abs(dy) >= 1) {
+      } else if (maxScrollLeft > 0 && Math.abs(dx) < 0.5 && Math.abs(dy) > 0) {
         const canScrollVertically =
           (dy > 0 && container.scrollTop < maxScrollTop - 2) ||
           (dy < 0 && container.scrollTop > 2);
@@ -364,18 +369,27 @@ export default function TimesheetMatrix({
       }
 
       let shouldPrevent = false;
-      if (Math.abs(dx) > 0 && maxScrollLeft > 0) {
-        const nextLeft = Math.max(0, Math.min(maxScrollLeft, container.scrollLeft + dx));
-        container.scrollLeft = nextLeft;
+      if (dx !== 0 && maxScrollLeft > 0) {
+        remX += dx;
+        const stepX = Math.trunc(remX);
+        if (stepX !== 0) {
+          container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, container.scrollLeft + stepX));
+          remX -= stepX;
+        }
         shouldPrevent = true;
       }
 
-      if (Math.abs(dy) > 0 && maxScrollTop > 0) {
-        const prevTop = container.scrollTop;
-        const nextTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
-        if (nextTop !== prevTop) {
-          container.scrollTop = nextTop;
-          shouldPrevent = true;
+      if (dy !== 0 && maxScrollTop > 0) {
+        remY += dy;
+        const stepY = Math.trunc(remY);
+        if (stepY !== 0) {
+          const prevTop = container.scrollTop;
+          const nextTop = Math.max(0, Math.min(maxScrollTop, prevTop + stepY));
+          if (nextTop !== prevTop) {
+            container.scrollTop = nextTop;
+            shouldPrevent = true;
+          }
+          remY -= stepY;
         }
       }
 
@@ -384,9 +398,9 @@ export default function TimesheetMatrix({
       }
     };
 
-    container.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    rootEl.addEventListener("wheel", handleWheel, { capture: true, passive: false });
     return () => {
-      container.removeEventListener("wheel", handleWheel, { capture: true });
+      rootEl.removeEventListener("wheel", handleWheel, { capture: true });
     };
   }, [isMobile]);
 
@@ -1417,7 +1431,7 @@ export default function TimesheetMatrix({
                 </React.Fragment>
               ))}
 
-              <th aria-hidden="true" className={`sticky top-0 bg-white dark:bg-zinc-900 w-[28vw] min-w-[12rem] ${tier1HeightClass} border-none z-20 pointer-events-none`}></th>
+              <th aria-hidden="true" className={`sticky top-0 bg-white dark:bg-zinc-900 ${tier1HeightClass} border-none z-20 pointer-events-none p-0`}><div style={{ width: "calc(100vw - 420px)", minWidth: "640px", height: "1px" }} /></th>
 
               <th
                 className={`${stickyRight} sticky top-0 z-50 bg-white dark:bg-zinc-900 w-14 min-w-[3.5rem] max-w-[3.5rem] border-b border-l border-slate-300 dark:border-zinc-700 p-1 relative`}
