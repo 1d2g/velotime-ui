@@ -5,42 +5,14 @@ import "./index.css";
 import "./i18n";
 import { ClerkProvider, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
-import posthog from "posthog-js";
-import { PostHogProvider } from "posthog-js/react";
+import { PostHogProvider, posthogProxy, initDeferredPostHog } from "./services/posthogClient.js";
 
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 const LegalPages = React.lazy(() => import("./components/LegalPages.jsx"));
 const ControlPortal = React.lazy(() => import("./control/ControlPortal.jsx"));
 
-const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_xrWAkajTPLpTYFqgkS6L28qrLcgHnBjuRqz6YFN4UXCA";
-const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
-
-if (typeof window !== "undefined") {
-  window.posthog = posthog;
-}
-
-if (typeof window !== "undefined" && POSTHOG_KEY) {
-  try {
-    const isEmbedded = window.self !== window.top || new URLSearchParams(window.location.search).get("embed") === "true";
-    posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_HOST,
-      person_profiles: "identified_only",
-      session_recording: !isEmbedded
-        ? {
-            minimum_duration_seconds: 3,
-            strictMinimumDuration: true,
-            maskAllInputs: false,
-            maskInputOptions: {
-              password: true,
-            },
-          }
-        : false,
-    });
-  } catch (err) {
-    // Non-fatal if blocked by strict browser privacy policies
-  }
-}
+initDeferredPostHog();
 
 // You will get this key from your Clerk Dashboard
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -84,7 +56,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               },
             }}
           >
-            <PostHogProvider client={posthog}>
+            <PostHogProvider client={posthogProxy}>
               <ToastProvider>
                 {isSsoCallback ? (
                   <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">

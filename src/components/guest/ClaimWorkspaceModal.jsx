@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Sparkles, ShieldCheck, Download, ArrowRight, Check, ArrowLeft } from "lucide-react";
 import { SignUp } from "@clerk/clerk-react";
 import GoogleAuthButton from "../auth/GoogleAuthButton";
+import { notifyHighIntentMilestone } from "../../utils/highIntentNotifier";
 
 /**
  * ClaimWorkspaceModal
@@ -129,6 +130,10 @@ export default function ClaimWorkspaceModal({
                   label="Sign up with Google (1-Click)"
                   source="claim_workspace_modal"
                   onBeforeRedirect={() => {
+                    notifyHighIntentMilestone(null, "guest_signup_initiated", {
+                      headline: "[SIGNUP INITIATED] Guest clicked 1-Click Google Sign Up in Claim Modal",
+                      details: `${totalHours.toFixed(1)}h logged across ${projectsCount} projects (${clientsCount} clients)`,
+                    });
                     if (onInitiateSignUp) onInitiateSignUp();
                   }}
                   className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-900 dark:border-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md hover:shadow-lg cursor-pointer"
@@ -146,6 +151,10 @@ export default function ClaimWorkspaceModal({
                   <button
                     type="button"
                     onClick={() => {
+                      notifyHighIntentMilestone(null, "guest_signup_initiated", {
+                        headline: "[SIGNUP INITIATED] Guest clicked Continue with Email in Claim Modal",
+                        details: `${totalHours.toFixed(1)}h logged across ${projectsCount} projects (${clientsCount} clients)`,
+                      });
                       if (onInitiateSignUp) onInitiateSignUp();
                       try {
                         if (typeof window !== "undefined" && window.posthog) {

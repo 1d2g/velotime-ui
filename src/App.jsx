@@ -10,18 +10,21 @@ import TimesheetMatrix from "./components/TimesheetMatrix";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
-import AuthScreen from "./components/AuthScreen";
-import WorkspaceOnboardingModal from "./components/WorkspaceOnboardingModal";
 import { Sparkles, LogIn, Keyboard, Play, Download, UploadCloud, ArrowLeft } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
-import ClaimWorkspaceModal from "./components/guest/ClaimWorkspaceModal";
-import CornerVideoTutorial from "./components/guest/CornerVideoTutorial";
-import WalkthroughCompletionModal from "./components/guest/WalkthroughCompletionModal";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import GoogleAuthButton from "./components/auth/GoogleAuthButton";
-import GuestMigrationBar from "./components/guest/GuestMigrationBar";
 import { executeGuestApiCall } from "./services/guestMockApi";
+import { notifyHighIntentMilestone } from "./utils/highIntentNotifier";
+
+// Lazy-loaded modals & secondary screens not needed on initial Guest Sandbox render
+const AuthScreen = React.lazy(() => import("./components/AuthScreen"));
+const WorkspaceOnboardingModal = React.lazy(() => import("./components/WorkspaceOnboardingModal"));
+const ClaimWorkspaceModal = React.lazy(() => import("./components/guest/ClaimWorkspaceModal"));
+const CornerVideoTutorial = React.lazy(() => import("./components/guest/CornerVideoTutorial"));
+const WalkthroughCompletionModal = React.lazy(() => import("./components/guest/WalkthroughCompletionModal"));
+const GuestMigrationBar = React.lazy(() => import("./components/guest/GuestMigrationBar"));
 
 // Lazy-loaded heavy tabs for fast initial page load & bundle code splitting
 const ProjectsTab = React.lazy(() => import("./components/ProjectsTab"));
@@ -132,6 +135,10 @@ export default function App() {
               });
             } catch (e) {}
           }
+          notifyHighIntentMilestone(posthog, "true_signup_conversion", {
+            headline: "[NEW ACCOUNT SIGNUP] User completed VeloTime account registration",
+            details: `Email: ${user.primaryEmailAddress?.emailAddress || "unknown"} | Name: ${user.fullName || "N/A"}`,
+          });
         }
         safeSetItem("localStorage", convKey, "true");
       }
@@ -905,6 +912,10 @@ export default function App() {
             });
           } catch (e) {}
         }
+        notifyHighIntentMilestone(posthog, "guest_workspace_claimed", {
+          headline: "[WORKSPACE CLAIMED] Guest synced sandbox workspace to permanent cloud account",
+          details: `${(parsedStash.totalHours || 0).toFixed?.(1) || parsedStash.totalHours || 0}h claimed across ${parsedStash.projects?.length || 0} projects (${user.primaryEmailAddress?.emailAddress || "authenticated user"})`,
+        });
         forceSync();
       } catch (err) {
         console.error("Failed to claim guest data via API:", err);
@@ -922,6 +933,10 @@ export default function App() {
       totalHours: totalGuestHours,
     };
     safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify(stash));
+    notifyHighIntentMilestone(posthog, "guest_claim_modal_opened", {
+      headline: "[HIGH INTENT] Guest opened Save & Claim Studio Workspace modal",
+      details: `${totalGuestHours.toFixed(1)}h logged across ${projects.length} projects (${userCellEditCount} cell edits)`,
+    });
     setIsClaimModalOpen(true);
   };
 
@@ -952,6 +967,10 @@ export default function App() {
         });
       } catch (e) {}
     }
+    notifyHighIntentMilestone(posthog, "guest_csv_migrated", {
+      headline: "[HIGH INTENT] Guest imported a timesheet CSV into the live sandbox",
+      details: `Platform: ${info.platform} | File: ${info.fileName} | ${info.projectCount} projects, ${info.taskCount} tasks`,
+    });
   };
 
   const handleResetDemoData = () => {
@@ -1013,6 +1032,10 @@ export default function App() {
           });
         } catch (e) {}
       }
+      notifyHighIntentMilestone(posthog, "guest_csv_exported", {
+        headline: "[HIGH INTENT] Guest exported a timesheet CSV from the sandbox",
+        details: `${totalGuestHours.toFixed(1)}h exported across ${projects.length} projects`,
+      });
       addToast("Timesheet CSV exported. Save your workspace to keep your projects & hours.", "success");
       handleOpenClaimModal();
     } else {
@@ -1370,6 +1393,12 @@ export default function App() {
             posthog.capture("guest_matrix_interacted", { action: "cell_edit", dateId, taskId, value: numValue });
           } catch (e) {}
         }
+        if (next === 3) {
+          notifyHighIntentMilestone(posthog, "guest_active_grid_evaluation", {
+            headline: "[HIGH INTENT] Visitor actively evaluating weekly keyboard matrix (3+ cell edits)",
+            details: `Edited ${next} cells in guest sandbox (${projects.length} projects, ${totalGuestHours.toFixed(1)}h total)`,
+          });
+        }
         return next;
       });
       return;
@@ -1508,7 +1537,9 @@ export default function App() {
 
       {showAuthScreen && !isSignedIn && !isAuditMode ? (
         <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
-          <AuthScreen initialMode={authScreenMode} onBackToGuest={handleBackToGuest} />
+          <React.Suspense fallback={<TabLoadingSkeleton />}>
+            <AuthScreen initialMode={authScreenMode} onBackToGuest={handleBackToGuest} />
+          </React.Suspense>
         </div>
       ) : lockout === "seat_limit_reached" && !isAuditMode && !isGuestMode ? (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-center">
@@ -1552,7 +1583,7 @@ export default function App() {
                 <GuestReturnBanner
                   totalHours={totalGuestHours}
                   clientsCount={clients.length}
-                  onClaimWorkspace={() => setIsClaimModalOpen(true)}
+                  onClaimWorkspace={handleOpenClaimModal}
                 />
               ) : (
                 <FounderTrustBanner
@@ -1562,7 +1593,7 @@ export default function App() {
                   isTrial={isTrialParam}
                   trialSeats={validSeats}
                   competitor={competitorParam}
-                  onClaimWorkspace={() => setIsClaimModalOpen(true)}
+                  onClaimWorkspace={handleOpenClaimModal}
                 />
               )}
               {typeof window !== "undefined" && window.innerWidth < 768 && (
@@ -1578,14 +1609,18 @@ export default function App() {
               )}
             </>
           )}
-          <WorkspaceOnboardingModal
-            isOpen={shouldShowOnboarding}
-            onClose={() => setDismissedOnboarding(true)}
-            user={user}
-            apiCall={apiCall}
-            forceSync={forceSync}
-            setActiveTab={setActiveTab}
-          />
+          {shouldShowOnboarding && (
+            <React.Suspense fallback={null}>
+              <WorkspaceOnboardingModal
+                isOpen={shouldShowOnboarding}
+                onClose={() => setDismissedOnboarding(true)}
+                user={user}
+                apiCall={apiCall}
+                forceSync={forceSync}
+                setActiveTab={setActiveTab}
+              />
+            </React.Suspense>
+          )}
           <header className="bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-700 px-6 py-3 flex items-center justify-between shrink-0 z-50 transition-colors">
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 <a
@@ -2100,14 +2135,16 @@ export default function App() {
                   </div>
                   <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-300 dark:border-zinc-700">
                     {isGuestMode && (showImportBar || importedDemoInfo) && (
-                      <GuestMigrationBar
-                        dates={dates}
-                        onApplyDemoImport={handleApplyDemoImport}
-                        onResetDemoData={handleResetDemoData}
-                        importedInfo={importedDemoInfo}
-                        onClaimWorkspace={handleOpenClaimModal}
-                        onOpenFullWizard={() => setActiveTab("Migration")}
-                      />
+                      <React.Suspense fallback={null}>
+                        <GuestMigrationBar
+                          dates={dates}
+                          onApplyDemoImport={handleApplyDemoImport}
+                          onResetDemoData={handleResetDemoData}
+                          importedInfo={importedDemoInfo}
+                          onClaimWorkspace={handleOpenClaimModal}
+                          onOpenFullWizard={() => setActiveTab("Migration")}
+                        />
+                      </React.Suspense>
                     )}
                     {projects.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center">
@@ -2321,48 +2358,60 @@ export default function App() {
 
       {isGuestMode && (
         <>
-          <CornerVideoTutorial
-            isOpen={isCornerVideoOpen}
-            onClose={() => setIsCornerVideoOpen(false)}
-            onStartWalkthrough={handleStartWalkthrough}
-          />
-          <WalkthroughCompletionModal
-            isOpen={isWalkthroughModalOpen}
-            onClose={() => setIsWalkthroughModalOpen(false)}
-            onClaimWorkspace={() => {
-              setIsWalkthroughModalOpen(false);
-              setIsClaimModalOpen(true);
-            }}
-          />
+          {isCornerVideoOpen && (
+            <React.Suspense fallback={null}>
+              <CornerVideoTutorial
+                isOpen={isCornerVideoOpen}
+                onClose={() => setIsCornerVideoOpen(false)}
+                onStartWalkthrough={handleStartWalkthrough}
+              />
+            </React.Suspense>
+          )}
+          {isWalkthroughModalOpen && (
+            <React.Suspense fallback={null}>
+              <WalkthroughCompletionModal
+                isOpen={isWalkthroughModalOpen}
+                onClose={() => setIsWalkthroughModalOpen(false)}
+                onClaimWorkspace={() => {
+                  setIsWalkthroughModalOpen(false);
+                  handleOpenClaimModal();
+                }}
+              />
+            </React.Suspense>
+          )}
           <GuestFloatingActionBar
             totalHours={totalGuestHours}
             projectsCount={projects.length}
             clientsCount={clients.length}
             userCellEditCount={userCellEditCount}
             isTrial={isTrialParam}
-            onClaimWorkspace={() => setIsClaimModalOpen(true)}
+            onClaimWorkspace={handleOpenClaimModal}
             onExportCsv={handleExportCsv}
           />
         </>
       )}
 
-      <ClaimWorkspaceModal
-        isOpen={isClaimModalOpen}
-        onClose={() => setIsClaimModalOpen(false)}
-        totalHours={totalGuestHours}
-        projectsCount={projects.length}
-        clientsCount={clients.length}
-        onExportCsv={handleExportCsv}
-        onInitiateSignUp={() => {
-          safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
-            clients,
-            projects,
-            entries,
-            notes,
-            totalHours: totalGuestHours,
-          }));
-        }}
-      />
+      {isClaimModalOpen && (
+        <React.Suspense fallback={null}>
+          <ClaimWorkspaceModal
+            isOpen={isClaimModalOpen}
+            onClose={() => setIsClaimModalOpen(false)}
+            totalHours={totalGuestHours}
+            projectsCount={projects.length}
+            clientsCount={clients.length}
+            onExportCsv={handleExportCsv}
+            onInitiateSignUp={() => {
+              safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
+                clients,
+                projects,
+                entries,
+                notes,
+                totalHours: totalGuestHours,
+              }));
+            }}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }

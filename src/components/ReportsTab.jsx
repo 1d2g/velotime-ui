@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useToast } from "../contexts/ToastContext";
-import * as XLSX from "xlsx";
 import ClientAuditProofModal from "./ClientAuditProofModal";
 import { exportQBOTimeActivities, exportXeroTimesheets } from "../utils/accountingBridge";
 import { calculateBudgetPacing } from "../utils/budgetPacing";
@@ -588,7 +587,7 @@ export default function ReportsTab({
   // ---------------------------------------------------------------------------
   // EXCEL & CSV EXPORTERS
   // ---------------------------------------------------------------------------
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     let rows = [];
     if (groupBy === "raw") {
       rows = filteredEntries.map((e) => ({
@@ -647,6 +646,7 @@ export default function ReportsTab({
       return;
     }
 
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Report Data");

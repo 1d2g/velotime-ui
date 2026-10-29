@@ -5,7 +5,6 @@ import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
-import { motion } from "framer-motion";
 import { Pencil, ChevronUp, ChevronDown, Lock, Unlock, Clock, Check } from "lucide-react";
 
 export default function TimesheetMatrix({
