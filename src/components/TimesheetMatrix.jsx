@@ -253,7 +253,8 @@ export default function TimesheetMatrix({
     return rows;
   }, [dates, timeframe]);
 
-  const rowKeys = gridRows.map((r) => r.id);
+  const rowKeys = useMemo(() => gridRows.map((r) => r.id), [gridRows]);
+  const lastScrolledCellRef = useRef(null);
 
   const filteredProjects = useMemo(() => {
     let p = [...projects];
@@ -329,11 +330,77 @@ export default function TimesheetMatrix({
     }
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
 
+  // Enable smooth two-finger horizontal trackpad scrolling across projects
+  // (intercepting wheel events before <input>/<textarea> cells swallow deltaX)
+  useEffect(() => {
+    const container = gridScrollRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      if (e.ctrlKey || e.metaKey) return;
+      if (e.target && e.target.closest && e.target.closest(".popover, [role='dialog']")) {
+        return;
+      }
+
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      const maxScrollTop = container.scrollHeight - container.clientHeight;
+      if (maxScrollLeft <= 0 && maxScrollTop <= 0) return;
+
+      const multiplier = e.deltaMode === 1 ? 24 : e.deltaMode === 2 ? 300 : 1;
+      let dx = e.deltaX * multiplier;
+      let dy = e.deltaY * multiplier;
+
+      if (e.shiftKey && Math.abs(dx) < 1 && Math.abs(dy) >= 1) {
+        dx = dy;
+        dy = 0;
+      } else if (maxScrollLeft > 0 && Math.abs(dx) < 1 && Math.abs(dy) >= 1) {
+        const canScrollVertically =
+          (dy > 0 && container.scrollTop < maxScrollTop - 2) ||
+          (dy < 0 && container.scrollTop > 2);
+        if (!canScrollVertically) {
+          dx = dy;
+          dy = 0;
+        }
+      }
+
+      let shouldPrevent = false;
+      if (Math.abs(dx) > 0 && maxScrollLeft > 0) {
+        const nextLeft = Math.max(0, Math.min(maxScrollLeft, container.scrollLeft + dx));
+        container.scrollLeft = nextLeft;
+        shouldPrevent = true;
+      }
+
+      if (Math.abs(dy) > 0 && maxScrollTop > 0) {
+        const prevTop = container.scrollTop;
+        const nextTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
+        if (nextTop !== prevTop) {
+          container.scrollTop = nextTop;
+          shouldPrevent = true;
+        }
+      }
+
+      if (shouldPrevent) {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    return () => {
+      container.removeEventListener("wheel", handleWheel, { capture: true });
+    };
+  }, [isMobile]);
+
   // Synchronize horizontal and vertical scroll to ensure focused cell and project header
   // are never hidden behind sticky columns (Day/Date/Total) or sticky headers
   useEffect(() => {
-    if (!selectedCell || !gridScrollRef.current) return;
+    if (!selectedCell || !gridScrollRef.current) {
+      lastScrolledCellRef.current = null;
+      return;
+    }
     const { r, c } = selectedCell;
+    const cellIdentity = `${r}_${c}`;
+    if (lastScrolledCellRef.current === cellIdentity) return;
+    lastScrolledCellRef.current = cellIdentity;
     const rowId = rowKeys[r];
     const colKey = visibleColKeys[c];
     if (!rowId || !colKey) return;
@@ -1044,7 +1111,7 @@ export default function TimesheetMatrix({
 
       <div 
         ref={gridScrollRef}
-        className="flex-1 overflow-auto no-scrollbar bg-white dark:bg-zinc-900 transition-colors"
+        className="flex-1 min-w-0 w-full overflow-auto matrix-scrollbar overscroll-x-contain bg-white dark:bg-zinc-900 transition-colors"
         onMouseLeave={handleGridMouseLeave}
       >
         <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
@@ -1350,6 +1417,8 @@ export default function TimesheetMatrix({
                 </React.Fragment>
               ))}
 
+              <th aria-hidden="true" className={`sticky top-0 bg-white dark:bg-zinc-900 w-[28vw] min-w-[12rem] ${tier1HeightClass} border-none z-20 pointer-events-none`}></th>
+
               <th
                 className={`${stickyRight} sticky top-0 z-50 bg-white dark:bg-zinc-900 w-14 min-w-[3.5rem] max-w-[3.5rem] border-b border-l border-slate-300 dark:border-zinc-700 p-1 relative`}
                 rowSpan={2}
@@ -1540,6 +1609,7 @@ export default function TimesheetMatrix({
                   <th className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors`}></th>
                 </React.Fragment>
               ))}
+              <th aria-hidden="true" className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-[28vw] min-w-[12rem] border-none z-20 pointer-events-none`}></th>
             </tr>
           </thead>
 
@@ -1667,6 +1737,8 @@ export default function TimesheetMatrix({
                         <td className="w-4 bg-transparent border-none" />
                       </React.Fragment>
                     ))}
+
+                    <td aria-hidden="true" className="w-[28vw] min-w-[12rem] bg-transparent border-none pointer-events-none" />
 
                     {(() => {
                       const cIndex = visibleColKeys.indexOf("add_project");
@@ -1875,6 +1947,8 @@ export default function TimesheetMatrix({
                       <td className={`w-4 bg-transparent border-none ${rowHeightClass}`}></td>
                     </React.Fragment>
                   ))}
+
+                  <td aria-hidden="true" className={`w-[28vw] min-w-[12rem] bg-transparent border-none pointer-events-none ${rowHeightClass}`}></td>
 
                   {(() => {
                     const cIndex = visibleColKeys.indexOf("add_project");

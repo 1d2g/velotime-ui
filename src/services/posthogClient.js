@@ -104,3 +104,4 @@ export function PostHogProvider({ children }) {
 export function usePostHog() {
   return posthogProxy;
 }
+

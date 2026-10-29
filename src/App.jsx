@@ -1533,6 +1533,11 @@ export default function App() {
  .hide-caret { caret-color: transparent !important; }
  .no-scrollbar::-webkit-scrollbar { display: none; }
  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+ .matrix-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.55) transparent; overscroll-behavior-x: contain; }
+ .matrix-scrollbar::-webkit-scrollbar { height: 7px; width: 7px; }
+ .matrix-scrollbar::-webkit-scrollbar-track { background: transparent; }
+ .matrix-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.55); border-radius: 9999px; }
+ .matrix-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.85); }
  `}</style>
 
       {showAuthScreen && !isSignedIn && !isAuditMode ? (

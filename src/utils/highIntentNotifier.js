@@ -117,3 +117,4 @@ export function notifyHighIntentMilestone(posthog, milestone, options = {}) {
     }
   } catch {}
 }
+
