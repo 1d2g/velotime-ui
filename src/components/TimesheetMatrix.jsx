@@ -5,7 +5,7 @@ import AddTaskPopover from "./AddTaskPopover";
 import AddProjectPopover from "./AddProjectPopover";
 import LiveTimerDisplay from "./LiveTimerDisplay";
 import { useToast } from "../contexts/ToastContext";
-import { Pencil, ChevronUp, ChevronDown, Lock, Unlock, Clock, Check } from "lucide-react";
+import { Pencil, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Lock, Unlock, Clock, Check } from "lucide-react";
 
 export default function TimesheetMatrix({
   dates: propDates,
@@ -331,36 +331,35 @@ export default function TimesheetMatrix({
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
 
   // Enable smooth two-finger horizontal trackpad scrolling across projects
-  // while keeping vertical scrolling strictly vertical (for Month view & normal page feel).
+  // and mouse Shift+Wheel, while keeping vertical scrolling strictly vertical for Month view.
   useEffect(() => {
-    const rootEl = containerRef.current || gridScrollRef.current;
-    if (!rootEl) return;
-    let remX = 0;
-    let remY = 0;
-
     const handleWheel = (e) => {
       const container = gridScrollRef.current;
       if (!container) return;
       if (e.ctrlKey || e.metaKey) return;
-      if (e.target && e.target.closest && e.target.closest(".popover, [role='dialog']")) {
+      if (e.target && e.target.closest && e.target.closest(".popover, [role='dialog'], select, textarea")) {
         return;
       }
 
+      // Check if mouse event is within the timesheet matrix area
+      const matrixRoot = containerRef.current || container;
+      if (!matrixRoot.contains(e.target)) return;
+
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
       const maxScrollTop = container.scrollHeight - container.clientHeight;
-      if (maxScrollLeft <= 0 && maxScrollTop <= 0) return;
 
       const multiplier = e.deltaMode === 1 ? 24 : e.deltaMode === 2 ? 300 : 1;
       let dx = e.deltaX * multiplier;
       let dy = e.deltaY * multiplier;
 
-      if (e.shiftKey && Math.abs(dx) < 0.5 && Math.abs(dy) > 0) {
+      // Mouse wheel with Shift held converts vertical wheel to horizontal scroll
+      if (e.shiftKey && dy !== 0) {
         dx = dy;
         dy = 0;
       }
 
-      let shouldPrevent = false;
-      if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal trackpad gesture or Shift+Wheel: scroll through projects
+      if (dx !== 0 && maxScrollLeft > 0) {
         if (
           document.activeElement &&
           document.activeElement.tagName === "INPUT" &&
@@ -369,43 +368,28 @@ export default function TimesheetMatrix({
         ) {
           document.activeElement.blur();
         }
-        if (maxScrollLeft > 0) {
-          remX += dx;
-          const prevLeft = container.scrollLeft;
-          const targetLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + remX));
-          container.scrollLeft = targetLeft;
-          const movedX = container.scrollLeft - prevLeft;
-          remX -= movedX;
-          if (targetLeft <= 0 || targetLeft >= maxScrollLeft) {
-            remX = 0;
-          }
-          shouldPrevent = true;
+        const prevLeft = container.scrollLeft;
+        container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + dx));
+        if (container.scrollLeft !== prevLeft) {
+          e.preventDefault();
         }
-      } else if (dy !== 0 && maxScrollTop > 0) {
-        remY += dy;
+      }
+
+      // Vertical trackpad gesture or standard wheel: strictly vertical scroll (e.g. Month view)
+      if (dy !== 0 && maxScrollTop > 0) {
         const prevTop = container.scrollTop;
-        const targetTop = Math.max(0, Math.min(maxScrollTop, prevTop + remY));
-        container.scrollTop = targetTop;
-        const movedY = container.scrollTop - prevTop;
-        remY -= movedY;
-        if (movedY !== 0) {
-          shouldPrevent = true;
+        container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
+        if (container.scrollTop !== prevTop) {
+          e.preventDefault();
         }
-        if (targetTop <= 0 || targetTop >= maxScrollTop) {
-          remY = 0;
-        }
-      }
-
-      if (shouldPrevent) {
-        e.preventDefault();
       }
     };
 
-    rootEl.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
-      rootEl.removeEventListener("wheel", handleWheel, { capture: true });
+      window.removeEventListener("wheel", handleWheel);
     };
-  }, [isMobile, isEditing]);
+  }, [isEditing]);
 
   // Synchronize horizontal and vertical scroll to ensure focused cell and project header
   // are never hidden behind sticky columns (Day/Date/Total) or sticky headers
@@ -1101,6 +1085,29 @@ export default function TimesheetMatrix({
             {mode.label}
           </button>
         ))}
+        {/* Quick project scroll chevrons */}
+        <div className="ml-auto flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              gridScrollRef.current?.scrollBy({ left: -260, behavior: "smooth" });
+            }}
+            className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+            title="Scroll projects left"
+          >
+            <ChevronLeft size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              gridScrollRef.current?.scrollBy({ left: 260, behavior: "smooth" });
+            }}
+            className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+            title="Scroll projects right"
+          >
+            <ChevronRight size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Interactive Walkthrough Active Banner */}
@@ -1128,7 +1135,8 @@ export default function TimesheetMatrix({
 
       <div 
         ref={gridScrollRef}
-        className="flex-1 min-w-0 w-full overflow-auto matrix-scrollbar overscroll-x-contain bg-white dark:bg-zinc-900 transition-colors"
+        style={{ touchAction: "pan-x pan-y" }}
+        className="flex-1 min-w-0 w-full overflow-auto matrix-scrollbar overscroll-x-contain touch-pan-x touch-pan-y bg-white dark:bg-zinc-900 transition-colors"
         onMouseLeave={handleGridMouseLeave}
       >
         <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
