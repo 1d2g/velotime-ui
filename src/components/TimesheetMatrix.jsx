@@ -357,7 +357,9 @@ export default function TimesheetMatrix({
         dy = 0;
       }
 
-      // Horizontal trackpad gesture or Shift+Wheel: scroll through projects
+      const isMonth = timeframe === "month";
+
+      // 1. Explicit horizontal movement (trackpad deltaX or Shift+wheel)
       if (dx !== 0 && maxScrollLeft > 0) {
         if (
           document.activeElement &&
@@ -374,12 +376,42 @@ export default function TimesheetMatrix({
         }
       }
 
-      // Vertical trackpad gesture or standard wheel: strictly vertical scroll (e.g. Month view)
-      if (dy !== 0 && maxScrollTop > 0) {
-        const prevTop = container.scrollTop;
-        container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
-        if (container.scrollTop !== prevTop) {
-          e.preventDefault();
+      // 2. Vertical movement (deltaY)
+      if (dy !== 0) {
+        if (isMonth && maxScrollTop > 0) {
+          // Month view: strictly scroll vertically through all 31 days
+          const prevTop = container.scrollTop;
+          container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
+          if (container.scrollTop !== prevTop) {
+            e.preventDefault();
+          }
+        } else if (!isMonth && maxScrollLeft > 0 && Math.abs(dx) === 0) {
+          // Week view & Day view (Main screen):
+          // In Week view, all 7 days are already on screen. Many Windows laptop trackpads
+          // emit deltaY for two-finger gestures unless Shift is held.
+          // If the viewport is extremely constrained vertically (>120px overflow), scroll days down;
+          // otherwise, scroll through projects horizontally with natural two-finger swipe!
+          if (maxScrollTop > 120) {
+            const prevTop = container.scrollTop;
+            container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
+            if (container.scrollTop !== prevTop) {
+              e.preventDefault();
+            }
+          } else {
+            if (
+              document.activeElement &&
+              document.activeElement.tagName === "INPUT" &&
+              document.activeElement.id?.startsWith("cell_input_") &&
+              !isEditing
+            ) {
+              document.activeElement.blur();
+            }
+            const prevLeft = container.scrollLeft;
+            container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + dy));
+            if (container.scrollLeft !== prevLeft) {
+              e.preventDefault();
+            }
+          }
         }
       }
     };
@@ -388,7 +420,7 @@ export default function TimesheetMatrix({
     return () => {
       window.removeEventListener("wheel", handleWheel);
     };
-  }, [isEditing]);
+  }, [isEditing, timeframe]);
 
   // Mouse / Trackpad click-and-drag horizontal panning on the grid
   useEffect(() => {
