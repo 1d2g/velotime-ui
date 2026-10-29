@@ -331,8 +331,7 @@ export default function TimesheetMatrix({
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
 
   // Enable smooth two-finger horizontal trackpad scrolling across projects
-  // (intercepting wheel events before <input>/<textarea> cells swallow deltaX,
-  // with sub-pixel remainder accumulation so fractional trackpad deltas never truncate to 0)
+  // while keeping vertical scrolling strictly vertical (for Month view & normal page feel).
   useEffect(() => {
     const rootEl = containerRef.current || gridScrollRef.current;
     if (!rootEl) return;
@@ -358,38 +357,42 @@ export default function TimesheetMatrix({
       if (e.shiftKey && Math.abs(dx) < 0.5 && Math.abs(dy) > 0) {
         dx = dy;
         dy = 0;
-      } else if (maxScrollLeft > 0 && Math.abs(dx) < 0.5 && Math.abs(dy) > 0) {
-        const canScrollVertically =
-          (dy > 0 && container.scrollTop < maxScrollTop - 2) ||
-          (dy < 0 && container.scrollTop > 2);
-        if (!canScrollVertically) {
-          dx = dy;
-          dy = 0;
-        }
       }
 
       let shouldPrevent = false;
-      if (dx !== 0 && maxScrollLeft > 0) {
-        remX += dx;
-        const stepX = Math.trunc(remX);
-        if (stepX !== 0) {
-          container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, container.scrollLeft + stepX));
-          remX -= stepX;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "INPUT" &&
+          document.activeElement.id?.startsWith("cell_input_") &&
+          !isEditing
+        ) {
+          document.activeElement.blur();
         }
-        shouldPrevent = true;
-      }
-
-      if (dy !== 0 && maxScrollTop > 0) {
-        remY += dy;
-        const stepY = Math.trunc(remY);
-        if (stepY !== 0) {
-          const prevTop = container.scrollTop;
-          const nextTop = Math.max(0, Math.min(maxScrollTop, prevTop + stepY));
-          if (nextTop !== prevTop) {
-            container.scrollTop = nextTop;
-            shouldPrevent = true;
+        if (maxScrollLeft > 0) {
+          remX += dx;
+          const prevLeft = container.scrollLeft;
+          const targetLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + remX));
+          container.scrollLeft = targetLeft;
+          const movedX = container.scrollLeft - prevLeft;
+          remX -= movedX;
+          if (targetLeft <= 0 || targetLeft >= maxScrollLeft) {
+            remX = 0;
           }
-          remY -= stepY;
+          shouldPrevent = true;
+        }
+      } else if (dy !== 0 && maxScrollTop > 0) {
+        remY += dy;
+        const prevTop = container.scrollTop;
+        const targetTop = Math.max(0, Math.min(maxScrollTop, prevTop + remY));
+        container.scrollTop = targetTop;
+        const movedY = container.scrollTop - prevTop;
+        remY -= movedY;
+        if (movedY !== 0) {
+          shouldPrevent = true;
+        }
+        if (targetTop <= 0 || targetTop >= maxScrollTop) {
+          remY = 0;
         }
       }
 
@@ -402,7 +405,7 @@ export default function TimesheetMatrix({
     return () => {
       rootEl.removeEventListener("wheel", handleWheel, { capture: true });
     };
-  }, [isMobile]);
+  }, [isMobile, isEditing]);
 
   // Synchronize horizontal and vertical scroll to ensure focused cell and project header
   // are never hidden behind sticky columns (Day/Date/Total) or sticky headers
@@ -2397,7 +2400,7 @@ function TimesheetNoteCell({
           onKeyDown={handleKeyDown}
           placeholder="Add note..."
           className={`w-full h-full block text-left outline-none transition-all cursor-cell bg-transparent text-xs text-gray-750 resize-none font-normal leading-snug p-1.5 border border-transparent no-scrollbar
- ${isSelected ? "bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900" : "hover:bg-gray-150/40"}
+ ${isSelected ? "pointer-events-auto bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900" : "pointer-events-none hover:bg-gray-150/40"}
  `}
           style={{ scrollbarWidth: "none" }}
           disabled={!isActive}

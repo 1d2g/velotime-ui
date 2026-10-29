@@ -134,7 +134,19 @@ export default function TimesheetCell({
     <td
       id={`cell_${rowId}_${taskId}`}
       tabIndex={-1}
-      onClick={onSelect}
+      onClick={() => {
+        if (onSelect) onSelect();
+        if (inputRef.current && !isNoteOpen && !isLocked) {
+          inputRef.current.focus({ preventScroll: true });
+        }
+      }}
+      onDoubleClick={() => {
+        if (onSelect) onSelect();
+        if (onEditStart) onEditStart();
+        if (inputRef.current && !isNoteOpen && !isLocked) {
+          inputRef.current.focus({ preventScroll: true });
+        }
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`border-b border-r border-slate-300 dark:border-zinc-700 p-0 relative w-24 min-w-[6rem] max-w-[6rem] ${isCompact ? "h-9" : "h-12"} transition-colors ${isLocked ? "cursor-not-allowed bg-slate-50/60 dark:bg-zinc-950/40" : "cursor-cell group-hover:bg-primary-50/40"} scroll-mt-[8rem] scroll-ml-[19rem] align-middle 
@@ -180,7 +192,7 @@ export default function TimesheetCell({
         }}
         onBlur={onEditEnd}
         className={`w-full h-full ${isCompact ? "min-h-[28px] text-xs py-0.5" : "min-h-[40px] text-sm"} block text-center outline-none transition-all ${isLocked ? "cursor-not-allowed text-slate-500 dark:text-zinc-400 select-none" : "cursor-cell"} bg-transparent
- ${isEditing && isSelected ? "caret-auto" : "caret-transparent"} 
+ ${isEditing && isSelected ? "pointer-events-auto caret-auto" : "pointer-events-none caret-transparent"} 
  ${isFuture ? "text-slate-400 dark:text-slate-600 " : "text-slate-900 dark:text-slate-100 "}
  ${displayAuditRed ? "text-red-700 font-semibold" : ""}
  ${isSelected || isWalkthroughTarget ? "font-bold" : ""}
