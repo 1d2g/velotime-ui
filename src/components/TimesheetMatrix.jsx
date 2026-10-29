@@ -1494,7 +1494,6 @@ export default function TimesheetMatrix({
                 </React.Fragment>
               ))}
 
-              <th aria-hidden="true" className={`sticky top-0 bg-white dark:bg-zinc-900 ${tier1HeightClass} border-none z-20 pointer-events-none p-0`}><div style={{ width: "calc(100vw - 420px)", minWidth: "640px", height: "1px" }} /></th>
 
               <th
                 className={`${stickyRight} sticky top-0 z-50 bg-white dark:bg-zinc-900 w-14 min-w-[3.5rem] max-w-[3.5rem] border-b border-l border-slate-300 dark:border-zinc-700 p-1 relative`}
@@ -1686,7 +1685,6 @@ export default function TimesheetMatrix({
                   <th className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-4 min-w-[1rem] max-w-[1rem] border-none z-30 transition-colors`}></th>
                 </React.Fragment>
               ))}
-              <th aria-hidden="true" className={`sticky ${tier2TopClass} bg-white dark:bg-zinc-900 w-[28vw] min-w-[12rem] border-none z-20 pointer-events-none`}></th>
             </tr>
           </thead>
 
@@ -1815,7 +1813,6 @@ export default function TimesheetMatrix({
                       </React.Fragment>
                     ))}
 
-                    <td aria-hidden="true" className="w-[28vw] min-w-[12rem] bg-transparent border-none pointer-events-none" />
 
                     {(() => {
                       const cIndex = visibleColKeys.indexOf("add_project");
@@ -2025,7 +2022,6 @@ export default function TimesheetMatrix({
                     </React.Fragment>
                   ))}
 
-                  <td aria-hidden="true" className={`w-[28vw] min-w-[12rem] bg-transparent border-none pointer-events-none ${rowHeightClass}`}></td>
 
                   {(() => {
                     const cIndex = visibleColKeys.indexOf("add_project");
