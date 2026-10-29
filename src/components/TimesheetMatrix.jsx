@@ -331,7 +331,7 @@ export default function TimesheetMatrix({
   }, [walkthroughActive, walkthroughStep, walkthroughDateId, gridRows, visibleColKeys]);
 
   // Enable smooth two-finger horizontal trackpad scrolling across projects
-  // and mouse Shift+Wheel, while keeping vertical scrolling strictly vertical for Month view.
+  // and mouse Shift+Wheel, while keeping vertical scrolling strictly vertical.
   useEffect(() => {
     const handleWheel = (e) => {
       const container = gridScrollRef.current;
@@ -351,67 +351,47 @@ export default function TimesheetMatrix({
       let dx = e.deltaX * multiplier;
       let dy = e.deltaY * multiplier;
 
-      // Mouse wheel with Shift held converts vertical wheel to horizontal scroll
-      if ((e.shiftKey || e.altKey) && dy !== 0) {
+      // Mouse wheel with Shift or Alt held converts vertical wheel to horizontal scroll
+      const isShiftScroll = (e.shiftKey || e.altKey) && dy !== 0;
+      if (isShiftScroll) {
         dx = dy;
         dy = 0;
       }
 
-      const isMonth = timeframe === "month";
-
-      // 1. Explicit horizontal movement (trackpad deltaX or Shift+wheel)
-      if (dx !== 0 && maxScrollLeft > 0) {
-        if (
-          document.activeElement &&
-          document.activeElement.tagName === "INPUT" &&
-          document.activeElement.id?.startsWith("cell_input_") &&
-          !isEditing
-        ) {
-          document.activeElement.blur();
+      // Axis-lock for clean gestures: determine dominant scroll intent
+      if (!isShiftScroll) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          dy = 0; // Pure horizontal swipe
+        } else {
+          dx = 0; // Pure vertical scroll
         }
+      }
+
+      // 1. HORIZONTAL SCROLLING:
+      // Strictly triggered by trackpad horizontal swipe (dx !== 0) or Shift+Wheel
+      if (dx !== 0 && maxScrollLeft > 0) {
         const prevLeft = container.scrollLeft;
-        container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + dx));
-        if (container.scrollLeft !== prevLeft) {
+        if (typeof container.scrollBy === "function") {
+          container.scrollBy({ left: dx, behavior: "instant" });
+        } else {
+          container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + dx));
+        }
+        if (container.scrollLeft !== prevLeft || isShiftScroll) {
           e.preventDefault();
         }
       }
 
-      // 2. Vertical movement (deltaY)
-      if (dy !== 0) {
-        if (isMonth && maxScrollTop > 0) {
-          // Month view: strictly scroll vertically through all 31 days
-          const prevTop = container.scrollTop;
+      // 2. VERTICAL SCROLLING:
+      // Strictly vertical (e.g. Month view)! NEVER moves grid horizontally without Shift.
+      if (dy !== 0 && maxScrollTop > 0) {
+        const prevTop = container.scrollTop;
+        if (typeof container.scrollBy === "function") {
+          container.scrollBy({ top: dy, behavior: "instant" });
+        } else {
           container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
-          if (container.scrollTop !== prevTop) {
-            e.preventDefault();
-          }
-        } else if (!isMonth && maxScrollLeft > 0 && Math.abs(dx) === 0) {
-          // Week view & Day view (Main screen):
-          // In Week view, all 7 days are already on screen. Many Windows laptop trackpads
-          // emit deltaY for two-finger gestures unless Shift is held.
-          // If the viewport is extremely constrained vertically (>120px overflow), scroll days down;
-          // otherwise, scroll through projects horizontally with natural two-finger swipe!
-          if (maxScrollTop > 120) {
-            const prevTop = container.scrollTop;
-            container.scrollTop = Math.max(0, Math.min(maxScrollTop, prevTop + dy));
-            if (container.scrollTop !== prevTop) {
-              e.preventDefault();
-            }
-          } else {
-            if (
-              document.activeElement &&
-              document.activeElement.tagName === "INPUT" &&
-              document.activeElement.id?.startsWith("cell_input_") &&
-              !isEditing
-            ) {
-              document.activeElement.blur();
-            }
-            const prevLeft = container.scrollLeft;
-            container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, prevLeft + dy));
-            if (container.scrollLeft !== prevLeft) {
-              e.preventDefault();
-            }
-          }
+        }
+        if (container.scrollTop !== prevTop) {
+          e.preventDefault();
         }
       }
     };
@@ -420,7 +400,7 @@ export default function TimesheetMatrix({
     return () => {
       window.removeEventListener("wheel", handleWheel);
     };
-  }, [isEditing, timeframe]);
+  }, []);
 
   // Mouse / Trackpad click-and-drag horizontal panning on the grid
   useEffect(() => {
@@ -1208,7 +1188,7 @@ export default function TimesheetMatrix({
       <div 
         ref={gridScrollRef}
         style={{ touchAction: "pan-x pan-y" }}
-        className="flex-1 min-w-0 w-full overflow-auto matrix-scrollbar overscroll-x-contain touch-pan-x touch-pan-y bg-white dark:bg-zinc-900 transition-colors"
+        className="flex-1 min-w-0 w-full overflow-auto matrix-scrollbar overscroll-x-none touch-pan-x touch-pan-y bg-white dark:bg-zinc-900 transition-colors"
         onMouseLeave={handleGridMouseLeave}
       >
         <table className="min-w-full w-max border-separate border-spacing-0 bg-white dark:bg-zinc-900 ">
