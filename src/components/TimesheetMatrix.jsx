@@ -341,9 +341,8 @@ export default function TimesheetMatrix({
         return;
       }
 
-      // Check if mouse event is within the timesheet matrix area
-      const matrixRoot = containerRef.current || container;
-      if (!matrixRoot.contains(e.target)) return;
+      // If user is inside an unrelated modal or select, do not hijack
+      if (e.target && e.target.closest && e.target.closest(".modal, [role='dialog']")) return;
 
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
       const maxScrollTop = container.scrollHeight - container.clientHeight;
@@ -353,7 +352,7 @@ export default function TimesheetMatrix({
       let dy = e.deltaY * multiplier;
 
       // Mouse wheel with Shift held converts vertical wheel to horizontal scroll
-      if (e.shiftKey && dy !== 0) {
+      if ((e.shiftKey || e.altKey) && dy !== 0) {
         dx = dy;
         dy = 0;
       }

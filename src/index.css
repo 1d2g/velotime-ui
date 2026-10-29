@@ -3,6 +3,9 @@
 @plugin "@tailwindcss/typography";
 
 @layer base {
+  html, body {
+    overscroll-behavior-x: none;
+  }
   body {
     background-color: #e5e7eb;
     color: #0f172a;
