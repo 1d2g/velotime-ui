@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { SignIn, SignUp } from "@clerk/clerk-react";
-import { Check, Lock, ArrowLeft } from "lucide-react";
+import { SignIn, SignUp, ClerkLoaded, ClerkLoading, ClerkFailed, useClerk } from "@clerk/clerk-react";
+import { Check, Lock, ArrowLeft, AlertCircle, RefreshCw } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import FounderChatBubble from "./FounderChatBubble";
 import FounderAdBanner from "./FounderAdBanner";
@@ -151,6 +151,21 @@ const safeGetItem = (storage, key, fallback = null) => {
 export default function AuthScreen({ onBackToGuest, initialMode }) {
   const posthog = usePostHog();
   const lastCapturedModeRef = useRef(null);
+  const clerk = useClerk();
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (clerk?.loaded) {
+      setLoadTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (!clerk?.loaded) {
+        setLoadTimedOut(true);
+      }
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [clerk?.loaded]);
 
   const targetCompany = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -507,27 +522,118 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
         </div>
 
         {/* Clerk Auth Component */}
-        <div className="w-full flex justify-center">
-          {authMode === "signup" ? (
-            <SignUp
-              routing="hash"
-              signInUrl="#sign-in"
-              fallbackRedirectUrl="/"
-              forceRedirectUrl="/"
-              signInFallbackRedirectUrl="/"
-              signInForceRedirectUrl="/"
-              appearance={clerkAppearance}
-            />
+        <div className="w-full flex flex-col items-center justify-center min-h-[300px]">
+          {loadTimedOut && !clerk?.loaded ? (
+            <div className="w-full p-5 rounded-xl border border-rose-500/30 bg-zinc-900/90 backdrop-blur-md shadow-2xl text-center space-y-3.5">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/25 text-rose-400 mx-auto">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Authentication service unavailable
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                  An ad blocker, privacy extension, or strict tracking prevention may be blocking login scripts on this browser.
+                </p>
+              </div>
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs transition-all shadow-md cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Reload Page</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBackToDemo}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all cursor-pointer"
+                >
+                  <span>Test Live Demo (No Account)</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-zinc-500 pt-1">
+                Need help? Reach founder directly at <a href="mailto:dgray@dg.tools" className="text-rose-400 underline">dgray@dg.tools</a>
+              </p>
+            </div>
           ) : (
-            <SignIn
-              routing="hash"
-              signUpUrl="#sign-up"
-              fallbackRedirectUrl="/"
-              forceRedirectUrl="/"
-              signUpFallbackRedirectUrl="/"
-              signUpForceRedirectUrl="/"
-              appearance={clerkAppearance}
-            />
+            <>
+              <ClerkLoading>
+                <div className="w-full p-4 sm:p-6 rounded-xl border border-white/10 bg-zinc-900/60 backdrop-blur-md animate-pulse space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="h-3 w-28 bg-white/10 rounded"></div>
+                    <div className="h-10 w-full bg-zinc-800/80 rounded-lg border border-zinc-700/50"></div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="h-3 w-20 bg-white/10 rounded"></div>
+                    <div className="h-10 w-full bg-zinc-800/80 rounded-lg border border-zinc-700/50"></div>
+                  </div>
+                  <div className="h-10 w-full bg-white/20 rounded-lg mt-3"></div>
+                  <div className="flex items-center justify-center gap-2 pt-1 text-zinc-500 text-[11px]">
+                    <div className="w-3 h-3 rounded-full border-2 border-zinc-500 border-t-transparent animate-spin"></div>
+                    <span>Connecting to secure login...</span>
+                  </div>
+                </div>
+              </ClerkLoading>
+
+              <ClerkLoaded>
+                {authMode === "signup" ? (
+                  <SignUp
+                    routing="hash"
+                    signInUrl="#sign-in"
+                    fallbackRedirectUrl="/"
+                    forceRedirectUrl="/"
+                    signInFallbackRedirectUrl="/"
+                    signInForceRedirectUrl="/"
+                    appearance={clerkAppearance}
+                  />
+                ) : (
+                  <SignIn
+                    routing="hash"
+                    signUpUrl="#sign-up"
+                    fallbackRedirectUrl="/"
+                    forceRedirectUrl="/"
+                    signUpFallbackRedirectUrl="/"
+                    signUpForceRedirectUrl="/"
+                    appearance={clerkAppearance}
+                  />
+                )}
+              </ClerkLoaded>
+
+              <ClerkFailed>
+                <div className="w-full p-5 rounded-xl border border-rose-500/30 bg-zinc-900/90 backdrop-blur-md shadow-2xl text-center space-y-3.5">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/25 text-rose-400 mx-auto">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white tracking-tight">
+                      Authentication service unavailable
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                      An ad blocker or strict privacy extension is blocking login scripts. Please allow scripts on this domain or refresh.
+                    </p>
+                  </div>
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs transition-all shadow-md cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Reload Page</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBackToDemo}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all cursor-pointer"
+                    >
+                      <span>Test Live Demo (No Account)</span>
+                    </button>
+                  </div>
+                </div>
+              </ClerkFailed>
+            </>
           )}
         </div>
 

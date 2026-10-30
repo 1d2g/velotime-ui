@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSignUp, useSignIn, useClerk } from "@clerk/clerk-react";
+import { useToast } from "../../contexts/ToastContext";
 
 export function GoogleIcon({ className = "w-4 h-4" }) {
   return (
@@ -35,6 +36,7 @@ export default function GoogleAuthButton({
   const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
   const { signIn, isLoaded: isSignInLoaded } = useSignIn();
   const clerk = useClerk();
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const defaultLabel = mode === "signup" ? "Sign up with Google" : "Continue with Google";
@@ -91,6 +93,12 @@ export default function GoogleAuthButton({
         });
         return;
       }
+
+      // If Clerk failed to load or is being blocked by browser extensions/firewall
+      setIsLoading(false);
+      if (toast?.addToast) {
+        toast.addToast("Authentication service is loading or blocked by your browser extensions. Please reload the page or check your ad blocker.", "error");
+      }
     } catch (err) {
       console.warn("Direct Google sign up attempt error:", err);
       // Fallback: if user already has an account, authenticate via signIn
@@ -107,6 +115,9 @@ export default function GoogleAuthButton({
         console.error("Google sign in fallback error:", fallbackErr);
       }
       setIsLoading(false);
+      if (toast?.addToast) {
+        toast.addToast("Unable to complete Google sign in. Please reload the page or try email login.", "error");
+      }
     }
   };
 
