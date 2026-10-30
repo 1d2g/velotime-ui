@@ -47,6 +47,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         ) : (
           <ClerkProvider
             publishableKey={PUBLISHABLE_KEY}
+            clerkJSUrl="/vendor-auth.js"
             appearance={{
               elements: {
                 logoImage: "/favicon.svg",

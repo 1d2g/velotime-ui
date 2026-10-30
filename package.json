@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/sync-auth-runtime.mjs",
     "build": "vite build && node scripts/copy-spa-routes.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
