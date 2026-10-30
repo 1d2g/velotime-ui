@@ -1,3 +1,5 @@
+import { LogOut } from "lucide-react";
+import { useClerk } from "@clerk/clerk-react";
 import React, { useState, useEffect } from "react";
 import { useToast } from "../contexts/ToastContext";
 

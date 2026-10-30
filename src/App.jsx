@@ -4,13 +4,14 @@ import {
   useUser,
   useAuth,
   useOrganization,
+  useClerk,
 } from "@clerk/clerk-react";
 import { usePostHog } from "posthog-js/react";
 import TimesheetMatrix from "./components/TimesheetMatrix";
 import TrialLockoutOverlay from "./components/TrialLockoutOverlay";
 import { useToast } from "./contexts/ToastContext";
 import DevModeBadge from "./components/DevModeBadge";
-import { Sparkles, LogIn, Keyboard, Play, Download, UploadCloud, ArrowLeft } from "lucide-react";
+import { Sparkles, LogIn, Keyboard, Play, Download, UploadCloud, ArrowLeft, LogOut } from "lucide-react";
 import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
@@ -93,6 +94,23 @@ export default function App() {
   const { organization, membership, isLoaded: isOrgLoaded } = useOrganization();
   const posthog = usePostHog();
   const { addToast } = useToast();
+  const clerk = useClerk();
+  const handleSignOut = async () => {
+    try {
+      safeSetItem("localStorage", "velotime_has_signed_in", "");
+      if (typeof window !== "undefined") {
+        window.sessionStorage.clear();
+      }
+      if (clerk && typeof clerk.signOut === "function") {
+        await clerk.signOut();
+      }
+    } catch (err) {
+      console.warn("Sign out error:", err);
+    }
+    if (typeof window !== "undefined") {
+      window.location.href = "/?mode=signin";
+    }
+  };
 
 
   useEffect(() => {
@@ -1835,7 +1853,18 @@ export default function App() {
                           : "Employee"}
                       </div>
                     </div>
-                    <UserButton afterSignOutUrl="/" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <UserButton afterSignOutUrl="/" />
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="p-1.5 text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors cursor-pointer"
+                        title="Sign out of workspace"
+                        aria-label="Sign out"
+                      >
+                        <LogOut className="w-4 h-4" />
+                      </button>
+                    </div>
                   </>
                 )}
 
@@ -1893,6 +1922,19 @@ export default function App() {
                     {tab}
                   </button>
                 ))}
+                {!isGuestMode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="w-full text-left px-4 py-2.5 font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-2 border-t border-slate-200 dark:border-zinc-800 pt-3 mt-1 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -2345,6 +2387,7 @@ export default function App() {
                       orgUsers={orgUsers}
                       apiCall={apiCall}
                       forceSync={forceSync}
+                      onSignOut={handleSignOut}
                     />
                   ) : (
                     <div className="flex-1 flex items-center justify-center m-8 border-2 border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 ">
