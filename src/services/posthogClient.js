@@ -51,6 +51,16 @@ export function initDeferredPostHog() {
 
   const loadAndInit = async () => {
     try {
+      const ua = navigator.userAgent || "";
+      if (
+        navigator.webdriver ||
+        /Google-AdWords-Express|AdsBot-Google|Googlebot|HeadlessChrome|bingbot|AhrefsBot|SemrushBot|DotBot|MJ12bot|Bytespider|GPTBot|ClaudeBot|PerplexityBot|PetalBot|YandexBot|Baiduspider|facebookexternalhit|LinkedInBot|Slackbot|Twitterbot/i.test(
+          ua
+        )
+      ) {
+        return;
+      }
+
       const mod = await import("posthog-js");
       const posthog = mod.default || mod;
       const isEmbedded =
