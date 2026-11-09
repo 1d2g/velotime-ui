@@ -24,7 +24,9 @@ export default function FounderChatBubble({
 
   const handleCopyEmail = (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(founderEmail);
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(founderEmail).catch(() => {});
+    }
     setCopied(true);
     if (posthog) {
       posthog.capture("founder_bubble_interacted", { action: "copy_email" });

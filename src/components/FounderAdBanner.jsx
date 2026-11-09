@@ -70,7 +70,9 @@ export default function FounderAdBanner({
 
   const handleCopy = (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(founderEmail);
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(founderEmail).catch(() => {});
+    }
     setCopied(true);
     if (posthog) {
       posthog.capture("founder_ad_banner_interacted", {

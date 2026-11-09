@@ -29,12 +29,32 @@ export default function FounderTrustBanner({
   if (isDismissed) return null;
 
   const handleCopy = () => {
+    const fallbackCopy = (text) => {
+      try {
+        const el = document.createElement("textarea");
+        el.value = text;
+        el.setAttribute("readonly", "");
+        el.style.position = "fixed";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      } catch {
+        // Ignore clipboard errors in unfocused/sandboxed contexts
+      }
+    };
+
     try {
-      navigator.clipboard.writeText(founderEmail);
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(founderEmail).catch(() => fallbackCopy(founderEmail));
+      } else {
+        fallbackCopy(founderEmail);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
+      fallbackCopy(founderEmail);
     }
   };
 

@@ -109,7 +109,9 @@ Accounts Receivable`,
 
   const handleCopy = () => {
     const fullText = `Subject: ${subject}\n\n${body}`;
-    navigator.clipboard.writeText(fullText);
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(fullText).catch(() => {});
+    }
     setCopied(true);
     addToast("Reminder email copied to clipboard", "success");
     setTimeout(() => setCopied(false), 2000);
