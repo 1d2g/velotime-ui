@@ -205,7 +205,34 @@ export default function ReportsTab({
 
   // Saved Custom Reports (Up to 20 per organization)
   const storageKey = `velotime_custom_reports_${orgId}`;
+  const billingFlagsKey = `velotime_entry_billing_flags_${orgId}`;
   const [savedReports, setSavedReports] = useState([]);
+  // 3-State Entry Billing Status ('billable' | 'at_risk' | 'write_off')
+  const [entryBillingFlags, setEntryBillingFlags] = useState(() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(`velotime_entry_billing_flags_${orgId}`) : null;
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const cycleEntryBillingStatus = (entryKey, currentIsBillable) => {
+    if (!currentIsBillable) return;
+    const current = entryBillingFlags[entryKey] || "billable";
+    const next = current === "billable" ? "at_risk" : current === "at_risk" ? "write_off" : "billable";
+    const updated = { ...entryBillingFlags, [entryKey]: next };
+    setEntryBillingFlags(updated);
+    try {
+      localStorage.setItem(billingFlagsKey, JSON.stringify(updated));
+    } catch {}
+    const labelMap = {
+      billable: "Billable (Ready to Invoice)",
+      at_risk: "At-Risk / Disputed (Flagged for Review)",
+      write_off: "Write-Off (Excluded from Invoice, Kept in Utilization & Cost)"
+    };
+    addToast(`Entry status set to: ${labelMap[next]}`, "success");
+  };
 
   useEffect(() => {
     try {
@@ -336,9 +363,15 @@ export default function ReportsTab({
       }
 
       const clientName = projectObj?.clientName || projectObj?.name?.split(" - ")[0] || "General Clients";
+      const entryKey = `${e.userId}_${e.dateId}_${e.taskId}`;
+      const billingStatus = isBillable ? (entryBillingFlags[entryKey] || "billable") : "non_billable";
+      const effectiveRevenue = isBillable && billingStatus !== "write_off" ? e.hours * billingRate : 0;
+      const effectiveCost = e.hours * costRate;
 
       return {
         ...e,
+        entryKey,
+        billingStatus,
         userName: derivedName,
         projectName: projectObj ? projectObj.name : "Unknown Project",
         projectId: projectObj ? projectObj.id : null,
@@ -348,12 +381,13 @@ export default function ReportsTab({
         billingRate,
         costRate,
         rate: billingRate,
-        amount: isBillable ? e.hours * billingRate : 0,
-        cost: e.hours * costRate,
-        revenue: isBillable ? e.hours * billingRate : 0,
+        amount: effectiveRevenue,
+        cost: effectiveCost,
+        revenue: effectiveRevenue,
+        profit: effectiveRevenue - effectiveCost,
       };
     });
-  }, [parsedEntries, orgUsers, projects, taskRates]);
+  }, [parsedEntries, orgUsers, projects, taskRates, entryBillingFlags]);
 
   // Date Filtering Engine
   const dateFilterMatch = (dateStr) => {
@@ -1364,10 +1398,12 @@ export default function ReportsTab({
                           <th className="py-3 px-3">Team Member</th>
                           <th className="py-3 px-3">Project</th>
                           <th className="py-3 px-3">Task</th>
+                          <th className="py-3 px-3 text-center">Billing Status</th>
                           <th className="py-3 px-3 text-right">Hours</th>
                           <th className="py-3 px-3 text-right">Rate</th>
                           <th className="py-3 px-3 text-right">Revenue</th>
                           <th className="py-3 px-3 text-right">Cost</th>
+                          <th className="py-3 px-3 text-right">Profit</th>
                           <th className="py-3 px-4">Notes</th>
                         </>
                       ) : (
@@ -1398,19 +1434,57 @@ export default function ReportsTab({
                         </td>
                       </tr>
                     ) : groupBy === "raw" ? (
-                      aggregatedReportData.map((e, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors">
-                          <td className="py-3 px-4 font-mono text-slate-500">{e.dateId}</td>
-                          <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">{e.userName}</td>
-                          <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{e.projectName}</td>
-                          <td className="py-3 px-3 text-slate-500">{e.taskName}</td>
-                          <td className="py-3 px-3 text-right font-mono font-bold">{e.hours.toFixed(2)}</td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-500">${e.rate}</td>
-                          <td className="py-3 px-3 text-right font-mono text-primary-600 dark:text-primary-400 font-bold">${e.revenue.toFixed(2)}</td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-500">${e.cost.toFixed(2)}</td>
-                          <td className="py-3 px-4 text-xs text-slate-400 italic max-w-xs truncate">{e.note || "-"}</td>
-                        </tr>
-                      ))
+                      aggregatedReportData.map((e, idx) => {
+                        const rowProfit = (e.revenue || 0) - (e.cost || 0);
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors">
+                            <td className="py-3 px-4 font-mono text-slate-500">{e.dateId}</td>
+                            <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">{e.userName}</td>
+                            <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{e.projectName}</td>
+                            <td className="py-3 px-3 text-slate-500">{e.taskName}</td>
+                            <td className="py-3 px-3 text-center">
+                              {e.isBillable ? (
+                                <button
+                                  type="button"
+                                  onClick={() => cycleEntryBillingStatus(e.entryKey, e.isBillable)}
+                                  title="Click to cycle: Billable → At-Risk / Disputed → Write-Off"
+                                  className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-colors ${
+                                    e.billingStatus === "write_off"
+                                      ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800"
+                                      : e.billingStatus === "at_risk"
+                                        ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800"
+                                        : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
+                                  }`}
+                                >
+                                  {e.billingStatus === "write_off"
+                                    ? "Write-Off ($0)"
+                                    : e.billingStatus === "at_risk"
+                                      ? "At-Risk"
+                                      : "Billable"}
+                                </button>
+                              ) : (
+                                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                  Non-Billable
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-right font-mono font-bold">{e.hours.toFixed(2)}</td>
+                            <td className="py-3 px-3 text-right font-mono text-slate-500">${e.rate}</td>
+                            <td className="py-3 px-3 text-right font-mono text-primary-600 dark:text-primary-400 font-bold">
+                              {e.billingStatus === "write_off" ? (
+                                <span className="line-through text-rose-500">$0.00</span>
+                              ) : (
+                                `$${e.revenue.toFixed(2)}`
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-right font-mono text-slate-500">${e.cost.toFixed(2)}</td>
+                            <td className={`py-3 px-3 text-right font-mono font-bold ${rowProfit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
+                              ${rowProfit.toFixed(2)}
+                            </td>
+                            <td className="py-3 px-4 text-xs text-slate-400 italic max-w-xs truncate">{e.note || "-"}</td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       aggregatedReportData.map((row) => {
                         const hasSub = row.subRows && row.subRows.length > 0;

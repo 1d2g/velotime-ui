@@ -19,9 +19,23 @@ export default function ApprovalsTab({
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectNote, setRejectNote] = useState({});
   const [expandedSubId, setExpandedSubId] = useState(null);
+  const [inlineOverrides, setInlineOverrides] = useState({});
+  const [editingRowId, setEditingRowId] = useState(null);
 
   const toggleExpand = (id) => {
     setExpandedSubId((prev) => (prev === id ? null : id));
+  };
+
+  const handleInlineRowSave = (rowId, newHours, newNote) => {
+    setInlineOverrides((prev) => ({
+      ...prev,
+      [rowId]: {
+        hours: Math.max(0, parseFloat(newHours) || 0),
+        note: newNote,
+      },
+    }));
+    setEditingRowId(null);
+    addToast("Manager inline adjustment saved — ready to approve without rejecting.", "success");
   };
 
   const handleUpdateStatus = async (id, status) => {
@@ -299,33 +313,90 @@ export default function ApprovalsTab({
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/50">
-                                {breakdownRows.map((row) => (
-                                  <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40">
-                                    <td className="py-2 px-3 font-semibold text-slate-800 dark:text-zinc-200">
-                                      {row.projectName}
-                                    </td>
-                                    <td className="py-2 px-3 text-slate-700 dark:text-zinc-300">
-                                      {row.taskName}
-                                    </td>
-                                    <td className="py-2 px-3 text-slate-500 dark:text-zinc-400 italic max-w-xs truncate">
-                                      {row.note || "—"}
-                                    </td>
-                                    <td className="py-2 px-3 text-center">
-                                      {row.isBillable ? (
-                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                                          Billable
-                                        </span>
-                                      ) : (
-                                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase">
-                                          Non-billable
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
-                                      {row.hours.toFixed(1)}h
-                                    </td>
-                                  </tr>
-                                ))}
+                                {breakdownRows.map((row) => {
+                                  const override = inlineOverrides[row.id];
+                                  const displayHours = override?.hours !== undefined ? override.hours : row.hours;
+                                  const displayNote = override?.note !== undefined ? override.note : row.note;
+                                  const isRowEditing = editingRowId === row.id;
+
+                                  return (
+                                    <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40">
+                                      <td className="py-2 px-3 font-semibold text-slate-800 dark:text-zinc-200">
+                                        {row.projectName}
+                                      </td>
+                                      <td className="py-2 px-3 text-slate-700 dark:text-zinc-300">
+                                        {row.taskName}
+                                      </td>
+                                      <td className="py-2 px-3 text-slate-500 dark:text-zinc-400 italic max-w-xs">
+                                        {isRowEditing ? (
+                                          <input
+                                            type="text"
+                                            defaultValue={displayNote}
+                                            id={`note_${row.id}`}
+                                            placeholder="Edit billing memo..."
+                                            className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 px-2 py-0.5 text-xs not-italic text-slate-900 dark:text-white"
+                                          />
+                                        ) : (
+                                          <span
+                                            onClick={() => setEditingRowId(row.id)}
+                                            className="cursor-pointer hover:text-slate-900 dark:hover:text-white hover:underline"
+                                            title="Click to fix typo inline without rejecting timesheet"
+                                          >
+                                            {displayNote || "Click to add memo..."}
+                                          </span>
+                                        )}
+                                      </td>
+                                      <td className="py-2 px-3 text-center">
+                                        {row.isBillable ? (
+                                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                                            Billable
+                                          </span>
+                                        ) : (
+                                          <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase">
+                                            Non-billable
+                                          </span>
+                                        )}
+                                      </td>
+                                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                                        {isRowEditing ? (
+                                          <div className="inline-flex items-center justify-end gap-1">
+                                            <input
+                                              type="number"
+                                              step="0.25"
+                                              defaultValue={displayHours}
+                                              id={`hrs_${row.id}`}
+                                              className="w-16 bg-slate-50 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 px-1.5 py-0.5 text-right text-xs font-mono"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const hEl = document.getElementById(`hrs_${row.id}`);
+                                                const nEl = document.getElementById(`note_${row.id}`);
+                                                handleInlineRowSave(
+                                                  row.id,
+                                                  hEl ? hEl.value : displayHours,
+                                                  nEl ? nEl.value : displayNote
+                                                );
+                                              }}
+                                              className="px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-sans font-bold uppercase cursor-pointer"
+                                            >
+                                              Save
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingRowId(row.id)}
+                                            className="cursor-pointer hover:text-rose-600 dark:hover:text-rose-400 hover:underline"
+                                            title="Click to adjust hours inline"
+                                          >
+                                            {Number(displayHours).toFixed(1)}h ✎
+                                          </button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </div>

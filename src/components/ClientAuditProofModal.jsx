@@ -74,10 +74,23 @@ export default function ClientAuditProofModal({
     return `VT-${Math.abs(hash).toString(16).toUpperCase().padStart(8, "0")}`;
   }, [clientName, projectName, dateRangeText, summary.totalHours]);
 
+  const [copiedLink, setCopiedLink] = React.useState(false);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCopyShareLink = () => {
+    try {
+      const shareUrl = `https://app.velotime.dg.tools/?mode=guest&audit_ref=${encodeURIComponent(verificationHash)}&client=${encodeURIComponent(clientName)}&project=${encodeURIComponent(projectName)}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    } catch {}
   };
 
   return (
@@ -92,11 +105,19 @@ export default function ClientAuditProofModal({
                 Client Audit Proof Report
               </h2>
               <p className="text-xs text-slate-500">
-                1-page executive timesheet proof ready for client invoice attachment
+                1-page executive timesheet proof &amp; live read-only client verification link
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 transition-colors cursor-pointer shadow-xs"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>{copiedLink ? "Live Client Link Copied!" : "Copy Live Client Link"}</span>
+            </button>
             <button
               type="button"
               onClick={handlePrint}
