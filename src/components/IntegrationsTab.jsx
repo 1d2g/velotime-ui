@@ -44,6 +44,18 @@ export default function IntegrationsTab({
     autoSync: config.jira?.autoSync !== false,
   });
 
+  const [linearForm, setLinearForm] = useState({
+    apiKey: config.linear?.apiKey || "",
+    teamKey: config.linear?.teamKey || "",
+    autoSync: config.linear?.autoSync !== false,
+  });
+
+  const [zapierForm, setZapierForm] = useState({
+    webhookUrl: config.zapier?.webhookUrl || "",
+    events: config.zapier?.events || ["entry.saved", "timesheet.submitted", "invoice.created", "retainer.alert"],
+    autoSync: config.zapier?.autoSync !== false,
+  });
+
   const refreshData = () => {
     setConfig(IntegrationManager.getConfig());
     setMappings(IntegrationManager.getMappings());
@@ -166,6 +178,67 @@ export default function IntegrationsTab({
     } finally {
       setIsTesting(false);
     }
+  };
+
+  const handleSaveLinear = async (e) => {
+    e.preventDefault();
+    setIsTesting(true);
+    try {
+      const auth = await IntegrationManager.testProvider("linear", {
+        apiKey: linearForm.apiKey,
+      });
+      IntegrationManager.updateProviderConfig("linear", {
+        enabled: true,
+        apiKey: linearForm.apiKey,
+        teamKey: linearForm.teamKey || auth.teams?.[0]?.key || "ENG",
+        autoSync: linearForm.autoSync,
+        accountName: auth.name || auth.email,
+        remoteProjects: auth.issues || [],
+        lastSynced: new Date().toISOString(),
+      });
+      refreshData();
+      setActiveModal(null);
+      addToast(`Connected to Linear (${auth.name || auth.email})`, "success");
+    } catch (err) {
+      addToast(`Linear connection failed: ${err.message}`, "error");
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handleSaveZapier = async (e) => {
+    e.preventDefault();
+    setIsTesting(true);
+    try {
+      const auth = await IntegrationManager.testProvider("zapier", {
+        webhookUrl: zapierForm.webhookUrl,
+      });
+      IntegrationManager.updateProviderConfig("zapier", {
+        enabled: true,
+        webhookUrl: zapierForm.webhookUrl,
+        events: zapierForm.events,
+        autoSync: zapierForm.autoSync,
+        accountName: auth.name || "Webhook Active",
+        lastSynced: new Date().toISOString(),
+      });
+      refreshData();
+      setActiveModal(null);
+      addToast(`Zapier / Make Webhook verified and connected (${auth.name})!`, "success");
+    } catch (err) {
+      addToast(`Webhook verification failed: ${err.message}`, "error");
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const toggleZapierEvent = (evtKey) => {
+    setZapierForm((prev) => {
+      const exists = prev.events.includes(evtKey);
+      return {
+        ...prev,
+        events: exists ? prev.events.filter((e) => e !== evtKey) : [...prev.events, evtKey],
+      };
+    });
   };
 
   const handleMappingChange = (localProjectId, provider, field, value) => {
@@ -468,11 +541,22 @@ export default function IntegrationsTab({
     {
       id: "linear",
       name: "Linear",
-      description: "Sync project tasks and sprint milestones directly from Linear issues into your weekly matrix.",
-      connected: false,
-      comingSoon: true,
+      description: "Sync project tasks and sprint milestones directly from Linear issues into your weekly matrix via Linear GraphQL.",
+      connected: config.linear?.enabled && Boolean(config.linear?.apiKey),
+      account: config.linear?.accountName,
+      lastSynced: config.linear?.lastSynced,
       color: "bg-indigo-600",
-      onConnect: () => addToast("Linear sync adapter is in active beta. Coming in next update!", "info"),
+      onConnect: () => setActiveModal("linear"),
+    },
+    {
+      id: "zapier",
+      name: "Zapier & Make Webhooks",
+      description: "Stream real-time JSON events (time entries logged, timesheets approved, invoices created, 85% retainer burn alerts) to 7,000+ apps via Zapier Catch Hooks or Make.",
+      connected: config.zapier?.enabled && Boolean(config.zapier?.webhookUrl),
+      account: config.zapier?.accountName,
+      lastSynced: config.zapier?.lastSynced,
+      color: "bg-amber-600",
+      onConnect: () => setActiveModal("zapier"),
     },
     {
       id: "qbo",
@@ -1138,6 +1222,151 @@ export default function IntegrationsTab({
                   className="bg-primary-600 hover:bg-primary-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isTesting ? "Testing Connection..." : "Save & Connect"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* LINEAR MODAL */}
+      {activeModal === "linear" && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Linear (GraphQL)</h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Paste your Linear Personal API Key (Linear Settings &rarr; Security &amp; Access &rarr; Personal API Keys) or enter <code className="font-mono bg-slate-100 dark:bg-zinc-800 px-1 py-0.5">lin_api_demo_reviewer</code> to test in sandbox mode.
+            </p>
+
+            <form onSubmit={handleSaveLinear} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] mb-1">
+                  Linear Personal API Key
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="lin_api_..."
+                  value={linearForm.apiKey}
+                  onChange={(e) => setLinearForm({ ...linearForm, apiKey: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] mb-1">
+                  Default Team Key (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. ENG or DES"
+                  value={linearForm.teamKey}
+                  onChange={(e) => setLinearForm({ ...linearForm, teamKey: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono uppercase outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="linear-auto"
+                  checked={linearForm.autoSync}
+                  onChange={(e) => setLinearForm({ ...linearForm, autoSync: e.target.checked })}
+                  className="rounded-none text-primary-600 cursor-pointer"
+                />
+                <label htmlFor="linear-auto" className="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Auto-sync issue hours when matrix cell is updated
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal(null)}
+                  className="px-4 py-2 font-bold text-slate-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isTesting}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isTesting ? "Verifying GraphQL..." : "Save & Connect"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ZAPIER & WEBHOOKS MODAL */}
+      {activeModal === "zapier" && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-lg w-full shadow-2xl">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Zapier &amp; Make Webhooks</h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Create a <strong>Webhooks by Zapier (Catch Hook)</strong> or <strong>Make Custom Webhook</strong> trigger and paste the HTTPS endpoint below. VeloTime will immediately fire a sample verification JSON payload.
+            </p>
+
+            <form onSubmit={handleSaveZapier} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] mb-1">
+                  Catch Hook / Destination Webhook URL
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://hooks.zapier.com/hooks/catch/123456/abcdef/"
+                  value={zapierForm.webhookUrl}
+                  onChange={(e) => setZapierForm({ ...zapierForm, webhookUrl: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-none-none p-3 text-slate-900 dark:text-white font-mono outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] mb-2">
+                  Subscribed Trigger Events
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 dark:bg-zinc-800/70 p-3 border border-slate-200 dark:border-zinc-700">
+                  {[
+                    { key: "entry.saved", label: "Timesheet Cell Logged (entry.saved)" },
+                    { key: "timesheet.submitted", label: "Week Approved (timesheet.submitted)" },
+                    { key: "invoice.created", label: "Invoice Finalized (invoice.created)" },
+                    { key: "retainer.alert", label: "85% Retainer Cap Alert (retainer.alert)" },
+                  ].map((evt) => (
+                    <label key={evt.key} className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={zapierForm.events.includes(evt.key)}
+                        onChange={() => toggleZapierEvent(evt.key)}
+                        className="rounded-none text-amber-600 cursor-pointer"
+                      />
+                      <span>{evt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-slate-900 text-emerald-400 p-3 font-mono text-[10px] overflow-x-auto border border-slate-800">
+                <div className="text-slate-400 mb-1 uppercase font-bold">// Sample Outbound JSON Payload</div>
+                {`{"event":"entry.saved","client":"Apex Retainer Group","project":"Q4 Platform","hours":2.5,"billable":true,"retainerBurnPct":68.4}`}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal(null)}
+                  className="px-4 py-2 font-bold text-slate-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isTesting}
+                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2.5 rounded-none-none shadow-md transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isTesting ? "Sending Test Payload..." : "Verify & Connect Webhook"}
                 </button>
               </div>
             </form>

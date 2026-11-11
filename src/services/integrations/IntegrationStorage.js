@@ -8,12 +8,14 @@ export const IntegrationStorage = {
   getConfig: () => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_CONFIG);
-      return raw ? JSON.parse(raw) : {
+      const defaults = {
         toggl: { enabled: false, apiKey: '', workspaceId: '', autoSync: true, lastSynced: null, remoteProjects: [] },
         harvest: { enabled: false, token: '', accountId: '', autoSync: true, lastSynced: null, remoteProjects: [] },
         jira: { enabled: false, domain: '', email: '', apiToken: '', autoSync: true, lastSynced: null, remoteProjects: [] },
-        linear: { enabled: false, apiKey: '', autoSync: true, lastSynced: null },
+        linear: { enabled: false, apiKey: '', teamKey: '', autoSync: true, lastSynced: null, remoteProjects: [] },
+        zapier: { enabled: false, webhookUrl: '', events: ['entry.saved', 'timesheet.submitted', 'invoice.created', 'retainer.alert'], autoSync: true, lastSynced: null },
       };
+      return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
     } catch (e) {
       return {};
     }
