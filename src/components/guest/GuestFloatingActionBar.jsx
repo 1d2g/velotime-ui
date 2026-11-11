@@ -35,9 +35,8 @@ export default function GuestFloatingActionBar({
   }, [isDismissed]);
 
   const isFriday = new Date().getDay() === 5;
-  // Only surface the floating action bar AFTER the visitor has genuinely interacted with the grid
-  // (at least 2 edits/actions), avoiding premature banner clutter on initial load.
-  const shouldShow = !isDismissed && userCellEditCount >= 2;
+  // Surface the floating action bar once the visitor edits a cell, explores for 15s, or arrived via a Trial CTA
+  const shouldShow = !isDismissed && (userCellEditCount >= 1 || dwellSeconds >= 15 || isTrial);
 
   if (!shouldShow) return null;
 

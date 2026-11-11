@@ -275,7 +275,7 @@ export default function App() {
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [authScreenMode, setAuthScreenMode] = useState(authParam === "signin" || authParam === "login" ? "signin" : "signup");
-  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(Boolean(isTrialParam && !isExplicitSignIn));
   const [walkthroughActive, setWalkthroughActive] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isWalkthroughModalOpen, setIsWalkthroughModalOpen] = useState(false);
@@ -2439,7 +2439,7 @@ export default function App() {
         </>
       )}
 
-      {isClaimModalOpen && (
+      {isGuestMode && isClaimModalOpen && (
         <React.Suspense fallback={null}>
           <ClaimWorkspaceModal
             isOpen={isClaimModalOpen}

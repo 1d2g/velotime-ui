@@ -200,13 +200,21 @@ export default function ClaimWorkspaceModal({
                     Subscribe directly to Pro ($5/seat/mo) &rarr;
                   </button>
                 </p>
-                <div>
+                <div className="flex items-center justify-center gap-4 pt-1">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-[11px] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold underline underline-offset-2 cursor-pointer transition-colors"
+                  >
+                    Explore Interactive Sandbox First (No Login)
+                  </button>
+                  <span className="text-slate-300 dark:text-zinc-700">&bull;</span>
                   <a
                     href="https://velotime.dg.tools"
                     className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium inline-flex items-center gap-1 transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3" />
-                    <span>Return to main site (Features, Comparison & Pricing)</span>
+                    <span>Main Site</span>
                   </a>
                 </div>
               </div>
