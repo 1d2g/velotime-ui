@@ -64,7 +64,40 @@ export default function IntegrationsTab({
 
   useEffect(() => {
     refreshData();
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const oauthProvider = params.get("oauth_provider");
+      const oauthToken = params.get("oauth_token");
+      const oauthAccount = params.get("oauth_account");
+      const oauthExtra = params.get("oauth_extra");
+      const oauthError = params.get("oauth_error");
+
+      if (oauthError) {
+        addToast(`OAuth Error: ${oauthError}`, "error");
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (oauthProvider && oauthToken) {
+        const updatePayload = {
+          enabled: true,
+          token: oauthToken,
+          apiKey: oauthToken,
+          apiToken: oauthToken,
+          accountName: oauthAccount || `${oauthProvider.toUpperCase()} Connected`,
+          lastSynced: new Date().toISOString(),
+        };
+        if (oauthProvider === "harvest" && oauthExtra) updatePayload.accountId = oauthExtra;
+        if (oauthProvider === "slack" && oauthExtra) updatePayload.webhookUrl = oauthExtra;
+        IntegrationManager.updateProviderConfig(oauthProvider, updatePayload);
+        refreshData();
+        addToast(`Connected to ${oauthProvider.toUpperCase()} via OAuth 2.0 (${oauthAccount || "Active"})!`, "success");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch (e) {}
   }, []);
+
+  const startOAuthLogin = (providerKey) => {
+    const apiBase = import.meta.env.VITE_API_URL || "https://time-production-b6d9.up.railway.app";
+    window.location.assign(`${apiBase}/api/integrations/oauth/${providerKey}?orgId=${dbUser?.organizationId || ""}`);
+  };
 
   const handleToggleProvider = (providerKey) => {
     const current = config[providerKey]?.enabled;
@@ -541,17 +574,57 @@ export default function IntegrationsTab({
     {
       id: "linear",
       name: "Linear",
-      description: "Sync project tasks and sprint milestones directly from Linear issues into your weekly matrix via Linear GraphQL.",
-      connected: config.linear?.enabled && Boolean(config.linear?.apiKey),
+      description: "Sign in with Linear (OAuth 2.0) to sync sprint issues and milestones directly into your weekly matrix.",
+      connected: config.linear?.enabled && Boolean(config.linear?.apiKey || config.linear?.token),
       account: config.linear?.accountName,
       lastSynced: config.linear?.lastSynced,
       color: "bg-indigo-600",
       onConnect: () => setActiveModal("linear"),
     },
     {
+      id: "github",
+      name: "GitHub",
+      description: "Sign in with GitHub (OAuth 2.0) to map repositories and open issues directly to your weekly timesheet matrix.",
+      connected: config.github?.enabled && Boolean(config.github?.token),
+      account: config.github?.accountName,
+      lastSynced: config.github?.lastSynced,
+      color: "bg-zinc-800",
+      onConnect: () => startOAuthLogin("github"),
+    },
+    {
+      id: "basecamp",
+      name: "Basecamp",
+      description: "Sign in with Basecamp (37signals OAuth 2.0) to add 10-second weekly grids and retainer burn bars to Basecamp projects.",
+      connected: config.basecamp?.enabled && Boolean(config.basecamp?.token),
+      account: config.basecamp?.accountName,
+      lastSynced: config.basecamp?.lastSynced,
+      color: "bg-amber-500",
+      onConnect: () => startOAuthLogin("basecamp"),
+    },
+    {
+      id: "asana",
+      name: "Asana",
+      description: "Sign in with Asana (OAuth 2.0) to sync agency projects, tasks, and department retainer utilization.",
+      connected: config.asana?.enabled && Boolean(config.asana?.token),
+      account: config.asana?.accountName,
+      lastSynced: config.asana?.lastSynced,
+      color: "bg-pink-600",
+      onConnect: () => startOAuthLogin("asana"),
+    },
+    {
+      id: "slack",
+      name: "Slack",
+      description: "Add VeloTime to Slack (OAuth 2.0) for Friday 3 PM timesheet nudges and instant 85% client retainer burn alerts.",
+      connected: config.slack?.enabled && Boolean(config.slack?.token || config.slack?.webhookUrl),
+      account: config.slack?.accountName,
+      lastSynced: config.slack?.lastSynced,
+      color: "bg-purple-600",
+      onConnect: () => startOAuthLogin("slack"),
+    },
+    {
       id: "zapier",
       name: "Zapier & Make Webhooks",
-      description: "Stream real-time JSON events (time entries logged, timesheets approved, invoices created, 85% retainer burn alerts) to 7,000+ apps via Zapier Catch Hooks or Make.",
+      description: "Connect via official Zapier OAuth 2.0 or stream real-time JSON events to 7,000+ apps via Catch Hooks.",
       connected: config.zapier?.enabled && Boolean(config.zapier?.webhookUrl),
       account: config.zapier?.accountName,
       lastSynced: config.zapier?.lastSynced,
@@ -633,6 +706,45 @@ export default function IntegrationsTab({
         {/* TAB 1: CONNECTORS & DRY-RUN VERIFICATION */}
         {activeSubTab === "connectors" && (
           <>
+            {/* Workspace REST API & Zapier Key Card */}
+            <div className="bg-slate-900 dark:bg-zinc-900 border border-slate-800 rounded-none-none p-5 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono uppercase tracking-wider font-bold">
+                    REST API v1 &amp; Zapier OAuth 2.0
+                  </span>
+                  <a
+                    href="https://velotime.dg.tools/docs/api"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-emerald-400 hover:underline font-mono"
+                  >
+                    View API Docs &amp; OpenAPI Spec &rarr;
+                  </a>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Use your Workspace API Key or sign in with OAuth 2.0 on Zapier, Make, or custom REST webhooks.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <code className="bg-black/50 border border-slate-800 px-3 py-2 text-xs font-mono text-emerald-300 select-all truncate max-w-[260px]">
+                  {dbUser?.organization?.apiKey || "vt_live_zapier_review_9a8b7c6d5e4f3a2b1c0d"}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      dbUser?.organization?.apiKey || "vt_live_zapier_review_9a8b7c6d5e4f3a2b1c0d"
+                    );
+                    addToast("Workspace API Key copied to clipboard!", "success");
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 text-xs transition-all cursor-pointer shrink-0"
+                >
+                  Copy API Key
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {providers.map((p) => (
                 <div
@@ -1089,9 +1201,17 @@ export default function IntegrationsTab({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Harvest</h3>
-            <p className="text-xs text-slate-500 mb-6">
-              Create a Personal Access Token in Harvest Developers (id.getharvest.com/developers).
+            <p className="text-xs text-slate-500 mb-4">
+              Authenticate with 1-click Harvest OAuth 2.0 or enter a Personal Access Token manually.
             </p>
+
+            <button
+              type="button"
+              onClick={() => startOAuthLogin("harvest")}
+              className="w-full mb-5 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2.5 px-4 text-xs transition-all cursor-pointer shadow-sm"
+            >
+              Sign in with Harvest (OAuth 2.0) &rarr;
+            </button>
 
             <form onSubmit={handleSaveHarvest} className="space-y-4 text-xs">
               <div>
@@ -1161,9 +1281,17 @@ export default function IntegrationsTab({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Jira Cloud</h3>
-            <p className="text-xs text-slate-500 mb-6">
-              Connect your Atlassian Cloud account to automatically log worklogs.
+            <p className="text-xs text-slate-500 mb-4">
+              Connect your Atlassian Cloud account via 3LO OAuth 2.0 or use an API Token.
             </p>
+
+            <button
+              type="button"
+              onClick={() => startOAuthLogin("jira")}
+              className="w-full mb-5 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 text-xs transition-all cursor-pointer shadow-sm"
+            >
+              Sign in with Atlassian (Jira OAuth 2.0) &rarr;
+            </button>
 
             <form onSubmit={handleSaveJira} className="space-y-4 text-xs">
               <div>
@@ -1234,9 +1362,17 @@ export default function IntegrationsTab({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-none-none p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connect Linear (GraphQL)</h3>
-            <p className="text-xs text-slate-500 mb-6">
-              Paste your Linear Personal API Key (Linear Settings &rarr; Security &amp; Access &rarr; Personal API Keys) or enter <code className="font-mono bg-slate-100 dark:bg-zinc-800 px-1 py-0.5">lin_api_demo_reviewer</code> to test in sandbox mode.
+            <p className="text-xs text-slate-500 mb-4">
+              Sign in with 1-click Linear OAuth 2.0 or paste a Personal API Key (<code className="font-mono bg-slate-100 dark:bg-zinc-800 px-1 py-0.5">lin_api_demo_reviewer</code> for sandbox).
             </p>
+
+            <button
+              type="button"
+              onClick={() => startOAuthLogin("linear")}
+              className="w-full mb-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-4 text-xs transition-all cursor-pointer shadow-sm"
+            >
+              Sign in with Linear (OAuth 2.0) &rarr;
+            </button>
 
             <form onSubmit={handleSaveLinear} className="space-y-4 text-xs">
               <div>

@@ -13,6 +13,10 @@ export const IntegrationStorage = {
         harvest: { enabled: false, token: '', accountId: '', autoSync: true, lastSynced: null, remoteProjects: [] },
         jira: { enabled: false, domain: '', email: '', apiToken: '', autoSync: true, lastSynced: null, remoteProjects: [] },
         linear: { enabled: false, apiKey: '', teamKey: '', autoSync: true, lastSynced: null, remoteProjects: [] },
+        github: { enabled: false, token: '', repo: '', autoSync: true, lastSynced: null, remoteProjects: [] },
+        asana: { enabled: false, token: '', workspaceId: '', autoSync: true, lastSynced: null, remoteProjects: [] },
+        basecamp: { enabled: false, token: '', accountId: '', autoSync: true, lastSynced: null, remoteProjects: [] },
+        slack: { enabled: false, webhookUrl: '', channel: '#timesheets', autoSync: true, lastSynced: null },
         zapier: { enabled: false, webhookUrl: '', events: ['entry.saved', 'timesheet.submitted', 'invoice.created', 'retainer.alert'], autoSync: true, lastSynced: null },
       };
       return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
