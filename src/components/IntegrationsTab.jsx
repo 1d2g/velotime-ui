@@ -710,14 +710,14 @@ export default function IntegrationsTab({
             <div className="bg-slate-900 dark:bg-zinc-900 border border-slate-800 rounded-none-none p-5 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono uppercase tracking-wider font-bold">
+                  <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-mono uppercase tracking-wider font-bold">
                     REST API v1 &amp; Zapier OAuth 2.0
                   </span>
                   <a
                     href="https://velotime.dg.tools/docs/api"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-emerald-400 hover:underline font-mono"
+                    className="text-xs text-rose-400 hover:underline font-mono"
                   >
                     View API Docs &amp; OpenAPI Spec &rarr;
                   </a>
@@ -727,7 +727,7 @@ export default function IntegrationsTab({
                 </p>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <code className="bg-black/50 border border-slate-800 px-3 py-2 text-xs font-mono text-emerald-300 select-all truncate max-w-[260px]">
+                <code className="bg-black/50 border border-slate-800 px-3 py-2 text-xs font-mono text-rose-300 select-all truncate max-w-[260px]">
                   {dbUser?.organization?.apiKey || "vt_live_zapier_review_9a8b7c6d5e4f3a2b1c0d"}
                 </code>
                 <button
@@ -738,7 +738,7 @@ export default function IntegrationsTab({
                     );
                     addToast("Workspace API Key copied to clipboard!", "success");
                   }}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 text-xs transition-all cursor-pointer shrink-0"
+                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-2 text-xs transition-all cursor-pointer shrink-0"
                 >
                   Copy API Key
                 </button>
