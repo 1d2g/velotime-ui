@@ -16,6 +16,7 @@ import FounderTrustBanner from "./components/guest/FounderTrustBanner";
 import GuestFloatingActionBar from "./components/guest/GuestFloatingActionBar";
 import GuestReturnBanner from "./components/guest/GuestReturnBanner";
 import GoogleAuthButton from "./components/auth/GoogleAuthButton";
+import MobileGoogleAuthBridge from "./components/auth/MobileGoogleAuthBridge";
 import { executeGuestApiCall } from "./services/guestMockApi";
 import { notifyHighIntentMilestone } from "./utils/highIntentNotifier";
 
@@ -266,16 +267,36 @@ export default function App() {
     (gadCampaignId === "24295180019" ? "harvest" : "")
   )?.toLowerCase();
 
+  const isMobileAuth = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mobile_auth") === "1") return true;
+    const lsFlag = safeGetItem("localStorage", "velotime_mobile_auth");
+    const ssFlag = safeGetItem("sessionStorage", "velotime_mobile_auth");
+    if (lsFlag === "1" || ssFlag === "1") {
+      const ts = Number(
+        safeGetItem("localStorage", "velotime_mobile_auth_ts") ||
+          safeGetItem("sessionStorage", "velotime_mobile_auth_ts") ||
+          "0",
+      );
+      if (!ts || Date.now() - ts < 5 * 60 * 1000) {
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
   // Explicit signin/login request always opens auth screen.
   // Explicit signup opens auth screen UNLESS trial=true or mode=guest, which routes to live sandbox.
   const isExplicitSignIn =
-    authParam === "signin" ||
-    authParam === "login" ||
-    (authParam === "signup" && !isTrialParam);
+    !isMobileAuth &&
+    (authParam === "signin" ||
+      authParam === "login" ||
+      (authParam === "signup" && !isTrialParam));
 
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [authScreenMode, setAuthScreenMode] = useState(authParam === "signin" || authParam === "login" ? "signin" : "signup");
-  const [isClaimModalOpen, setIsClaimModalOpen] = useState(Boolean(isTrialParam && !isExplicitSignIn));
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(Boolean(isTrialParam && !isExplicitSignIn && !isMobileAuth));
   const [walkthroughActive, setWalkthroughActive] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isWalkthroughModalOpen, setIsWalkthroughModalOpen] = useState(false);
@@ -284,7 +305,7 @@ export default function App() {
   // Keep CSV migration dropbar collapsed by default unless the user clicks "Import CSV" or has imported data
   const [showImportBar, setShowImportBar] = useState(false);
 
-  const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen;
+  const isGuestMode = !isSignedIn && !isAuditMode && !showAuthScreen && !isMobileAuth;
 
   const handleStartWalkthrough = () => {
     if (activeTab !== "Timesheets") {
@@ -907,7 +928,7 @@ export default function App() {
   // Handshake: Automatically claim stashed guest data upon successful sign-in
   useEffect(() => {
     async function checkAndClaimGuestData() {
-      if (!isSignedIn || !user || !dbUser || isAuditMode) return;
+      if (!isSignedIn || !user || !dbUser || isAuditMode || isMobileAuth) return;
       const guestStash = safeGetItem("localStorage", "velotime_guest_stash");
       if (!guestStash) return;
 
@@ -1063,7 +1084,7 @@ export default function App() {
 
   useEffect(() => {
     async function syncDatabase() {
-      if (!isSignedIn || !user || !isOrgLoaded) return;
+      if (!isSignedIn || !user || !isOrgLoaded || isMobileAuth) return;
       try {
         const token = await getToken();
         const apiUrl = import.meta.env.VITE_API_URL;
@@ -1541,7 +1562,7 @@ export default function App() {
   return (
     <div
       className={`font-sans text-sm ${
-        showAuthScreen && !isSignedIn && !isAuditMode
+        isMobileAuth || (showAuthScreen && !isSignedIn && !isAuditMode)
           ? "min-h-screen min-h-[100dvh] h-auto overflow-y-auto"
           : "h-screen overflow-hidden"
       } flex flex-col bg-gray-200 dark:bg-zinc-950 text-slate-900 dark:text-slate-100`}
@@ -1558,7 +1579,9 @@ export default function App() {
  .matrix-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.85); }
  `}</style>
 
-      {showAuthScreen && !isSignedIn && !isAuditMode ? (
+      {isMobileAuth ? (
+        <MobileGoogleAuthBridge />
+      ) : showAuthScreen && !isSignedIn && !isAuditMode ? (
         <div className="w-full min-h-screen min-h-[100dvh] flex-1 flex flex-col overflow-y-auto overscroll-contain">
           <React.Suspense fallback={<TabLoadingSkeleton />}>
             <AuthScreen initialMode={authScreenMode} onBackToGuest={handleBackToGuest} />

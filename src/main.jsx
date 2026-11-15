@@ -22,6 +22,45 @@ if (!PUBLISHABLE_KEY) {
 }
 
 const path = window.location.pathname;
+const urlParams = new URLSearchParams(window.location.search);
+
+const safeSetMobileFlag = (key, value) => {
+  try {
+    window.localStorage?.setItem(key, value);
+  } catch {}
+  try {
+    window.sessionStorage?.setItem(key, value);
+  } catch {}
+};
+
+const safeGetMobileFlag = (key) => {
+  try {
+    const lsVal = window.localStorage?.getItem(key);
+    if (lsVal !== null) return lsVal;
+  } catch {}
+  try {
+    return window.sessionStorage?.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+if (urlParams.get("mobile_auth") === "1") {
+  safeSetMobileFlag("velotime_mobile_auth", "1");
+  safeSetMobileFlag("velotime_mobile_auth_ts", String(Date.now()));
+  const redirectParam = urlParams.get("redirect_uri");
+  if (redirectParam && redirectParam.startsWith("velotime://")) {
+    safeSetMobileFlag("velotime_mobile_redirect", redirectParam);
+  }
+}
+
+const mobileAuthTs = Number(safeGetMobileFlag("velotime_mobile_auth_ts") || "0");
+const isMobileAuthCallback =
+  urlParams.get("mobile_auth") === "1" ||
+  (safeGetMobileFlag("velotime_mobile_auth") === "1" &&
+    (!mobileAuthTs || Date.now() - mobileAuthTs < 5 * 60 * 1000));
+const postAuthRedirectUrl = isMobileAuthCallback ? "/?mobile_auth=1" : "/";
+
 const isSsoCallback = path === "/sso-callback" || path.startsWith("/sso-callback");
 const isControlPage = path === "/control" || path.startsWith("/control");
 const isPublicPage = [
@@ -62,10 +101,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                   <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
                     <div className="text-xs font-mono text-slate-400 mb-2">Connecting Google Account...</div>
                     <AuthenticateWithRedirectCallback
-                      signInForceRedirectUrl="/"
-                      signUpForceRedirectUrl="/"
-                      signInFallbackRedirectUrl="/"
-                      signUpFallbackRedirectUrl="/"
+                      signInForceRedirectUrl={postAuthRedirectUrl}
+                      signUpForceRedirectUrl={postAuthRedirectUrl}
+                      signInFallbackRedirectUrl={postAuthRedirectUrl}
+                      signUpFallbackRedirectUrl={postAuthRedirectUrl}
                     />
                   </div>
                 ) : isControlPage ? (
