@@ -200,6 +200,42 @@ export const CONTROL_SCRIPTS = [
     defaultFlags: {},
     flagOptions: [],
     buildCommand: () => "npm run twitter-radar"
+  },
+  {
+    id: "reddit_timesheet_radar",
+    name: "All-Competitor Reddit Timesheet Radar",
+    category: "Social & Growth",
+    file: "scripts/reddit-timesheet-radar.mjs",
+    workflowFile: "reddit-radar.yml",
+    description: "Polls Harvest, Clockify, Toggl, agency, architecture & accounting subreddits and deduplicates against u/1d2g.",
+    defaultFlags: {},
+    flagOptions: [],
+    buildCommand: () => "node scripts/reddit-timesheet-radar.mjs"
+  },
+  {
+    id: "greenfield_dispatch",
+    name: "Greenfield Blended Reservoir Dispatcher",
+    category: "Email Outreach",
+    file: "scripts/greenfield-dispatch.mjs",
+    workflowFile: null,
+    description: "Sends blended Touch 1 + Touch 2 emails from the enriched 500+ greenfield lead reservoir with domain deduplication.",
+    defaultFlags: {
+      blend: true,
+      send: true,
+      limit: 33
+    },
+    flagOptions: [
+      { key: "limit", label: "Batch Size", type: "number", default: 33 },
+      { key: "blend", label: "Blend Touch 1 + Touch 2 (--blend)", type: "boolean", default: true },
+      { key: "send", label: "Live Send (--send)", type: "boolean", default: true }
+    ],
+    buildCommand: (flags) => {
+      const parts = ["node scripts/greenfield-dispatch.mjs"];
+      if (flags.blend) parts.push("--blend");
+      if (flags.send) parts.push("--send");
+      if (flags.limit) parts.push(`--limit ${flags.limit}`);
+      return parts.join(" ");
+    }
   }
 ];
 

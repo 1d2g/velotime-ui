@@ -17,10 +17,11 @@ import PostHogAudits from "./PostHogAudits";
 import UserEvolution from "./UserEvolution";
 import GscTelemetry from "./GscTelemetry";
 import MiniPostHogDashboard from "./MiniPostHogDashboard";
+import RedditRadarConsole from "./RedditRadarConsole";
 
 export default function ControlDashboard() {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState("scripts"); // 'scripts' | 'posthog_audits' | 'gsc' | 'posthog_mini'
+  const [activeTab, setActiveTab] = useState("reddit_radar"); // 'reddit_radar' | 'scripts' | 'posthog_audits' | 'gsc' | 'posthog_mini'
   const [timeStr, setTimeStr] = useState("");
   const [isBusinessHours, setIsBusinessHours] = useState(false);
   const [theme, setTheme] = useState(() => {
@@ -75,7 +76,8 @@ export default function ControlDashboard() {
   }, []);
 
   const tabs = [
-    { id: "scripts", label: "Scripts & Outreach", icon: Terminal, count: "11 Scripts" },
+    { id: "reddit_radar", label: "Reddit Interceptor", icon: Radio, count: "Live Queue" },
+    { id: "scripts", label: "Scripts & Outreach", icon: Terminal, count: "12 Scripts" },
     { id: "posthog_audits", label: "PostHog Audits & AI", icon: Eye, count: "UX Audits" },
     { id: "user_evolution", label: "User Evolution & Retention", icon: Users, count: "Repeat Cohorts" },
     { id: "gsc", label: "Search Console (GSC)", icon: Search, count: "Organic Telemetry" },
@@ -119,7 +121,7 @@ export default function ControlDashboard() {
         </div>
 
         {/* Center Tabs Navigation - Matches VeloTime App Segmented Nav */}
-        <div className="hidden md:flex flex-1 justify-center max-w-2xl px-4">
+        <div className="hidden md:flex flex-1 justify-center max-w-4xl px-4">
           <nav className="flex w-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
             {tabs.map((tab) => (
               <button
@@ -195,6 +197,7 @@ export default function ControlDashboard() {
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
+        {activeTab === "reddit_radar" && <RedditRadarConsole />}
         {activeTab === "scripts" && <ScriptsConsole />}
         {activeTab === "posthog_audits" && <PostHogAudits />}
         {activeTab === "user_evolution" && <UserEvolution />}
