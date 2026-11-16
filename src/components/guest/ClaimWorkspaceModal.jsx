@@ -38,7 +38,7 @@ export default function ClaimWorkspaceModal({
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-300 dark:border-rose-800">
-                14-Day Free Cloud Trial
+                60-Day Free Cloud Trial
               </span>
               <span className="text-xs font-mono text-slate-500">No Credit Card</span>
             </div>

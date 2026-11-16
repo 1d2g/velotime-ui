@@ -444,7 +444,7 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
             {authMode === "signup" ? (
               <>
                 <h1 className="text-base sm:text-lg font-black text-white tracking-tight">
-                  {targetCompany ? `Start ${targetCompany}'s 14-day free trial` : "Start your 14-day free trial"}
+                  {targetCompany ? `Start ${targetCompany}'s 60-day free trial` : "Start your 60-day free trial"}
                 </h1>
                 <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
                   Zero credit card required. Full team matrix & margin telemetry{targetCompany ? ` for ${targetCompany}` : ""}.
@@ -495,7 +495,7 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
                     onClick={() => setAuthMode("signup")}
                     className="font-bold text-white underline hover:text-rose-300 transition-colors cursor-pointer"
                   >
-                    Start 14-day free trial &rarr;
+                    Start 60-day free trial &rarr;
                   </button>
                 </div>
               </>

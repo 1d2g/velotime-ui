@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Download, ArrowRight, X, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Download, X, ShieldCheck, Mail } from "lucide-react";
+import GoogleAuthButton from "../auth/GoogleAuthButton";
+import { notifyHighIntentMilestone } from "../../utils/highIntentNotifier";
 
 /**
  * GuestFloatingActionBar
  *
  * Sticky bottom action bar that surfaces in Guest Sandbox once active engagement
- * is verified (45s dwell time OR >= 2 cell edits). Bridges in-grid evaluation
- * directly to cloud workspace preservation and CSV export.
+ * is verified (15s dwell time, >= 1 cell edit, or trial param). Bridges in-grid
+ * evaluation directly to 1-click Google workspace preservation, email claim, or CSV export.
  */
 export default function GuestFloatingActionBar({
   totalHours = 0,
@@ -16,6 +18,7 @@ export default function GuestFloatingActionBar({
   isTrial = false,
   onClaimWorkspace,
   onExportCsv,
+  onInitiateSignUp,
 }) {
   const [dwellSeconds, setDwellSeconds] = useState(0);
   const [isDismissed, setIsDismissed] = useState(() => {
@@ -48,7 +51,7 @@ export default function GuestFloatingActionBar({
   };
 
   return (
-    <div className="fixed bottom-4 inset-x-0 mx-auto z-40 max-w-2xl px-4 select-none animate-in fade-in slide-in-from-bottom-3 duration-300 pointer-events-auto">
+    <div className="fixed bottom-4 inset-x-0 mx-auto z-40 max-w-3xl px-4 select-none animate-in fade-in slide-in-from-bottom-3 duration-300 pointer-events-auto">
       <div className="bg-slate-950/95 dark:bg-zinc-900/95 backdrop-blur-md text-white border-2 border-slate-800 dark:border-zinc-700 shadow-2xl px-3.5 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Left: Engagement stats and value prop */}
         <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
@@ -70,8 +73,8 @@ export default function GuestFloatingActionBar({
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+        {/* Right: Direct 1-click Google Save + Email/Export options */}
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
           {onExportCsv && (
             <button
               type="button"
@@ -80,19 +83,34 @@ export default function GuestFloatingActionBar({
               title="Download current entries as CSV"
             >
               <Download className="w-3.5 h-3.5 text-slate-400" />
-              <span>Export CSV</span>
+              <span className="hidden lg:inline">CSV</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={onClaimWorkspace}
-            className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            title="Save workspace with email or export options"
           >
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Save &amp; Claim Free Trial</span>
-            <ArrowRight className="w-3.5 h-3.5 text-white" />
+            <Mail className="w-3.5 h-3.5 text-slate-400" />
+            <span>Email / Export</span>
           </button>
+
+          <GoogleAuthButton
+            mode="signup"
+            label="Save with Google — 60 Days Free"
+            shortLabel="Save with Google"
+            source="guest_floating_bar"
+            onBeforeRedirect={() => {
+              notifyHighIntentMilestone(null, "guest_signup_initiated", {
+                headline: "[SIGNUP INITIATED] Guest clicked 1-Click Google Save in Floating Bar",
+                details: `${totalHours.toFixed(1)}h logged across ${projectsCount} projects (${clientsCount} clients)`,
+              });
+              if (onInitiateSignUp) onInitiateSignUp();
+            }}
+            className="w-auto py-1.5 px-3 bg-white hover:bg-slate-100 text-slate-950 border border-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+          />
 
           <button
             type="button"

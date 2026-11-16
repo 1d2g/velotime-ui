@@ -257,7 +257,7 @@ export default function WorkspaceOnboardingModal({
               <div className="bg-slate-50 dark:bg-zinc-950/60 border border-slate-200 dark:border-zinc-800 p-3.5 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
                   <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>14-day unrestricted trial with full features</span>
+                  <span>60-day unrestricted trial with full features</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
                   <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />

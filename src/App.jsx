@@ -2458,6 +2458,15 @@ export default function App() {
             isTrial={isTrialParam}
             onClaimWorkspace={handleOpenClaimModal}
             onExportCsv={handleExportCsv}
+            onInitiateSignUp={() => {
+              safeSetItem("localStorage", "velotime_guest_stash", JSON.stringify({
+                clients,
+                projects,
+                entries,
+                notes,
+                totalHours: totalGuestHours,
+              }));
+            }}
           />
         </>
       )}

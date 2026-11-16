@@ -300,7 +300,7 @@ export default function OrganizationSettingsTab({
                     ></path>
                   </svg>
                   <h3 className="text-lg font-bold text-blue-800">
-                    14-Day Free Trial
+                    60-Day Free Trial
                   </h3>
                 </div>
                 <p className="text-primary-700 text-sm mb-4">
@@ -311,7 +311,7 @@ export default function OrganizationSettingsTab({
                       (new Date() - new Date(dbUser.organization.createdAt)) /
                         (1000 * 60 * 60 * 24),
                     );
-                    const remaining = Math.max(0, 14 - daysSince);
+                    const remaining = Math.max(0, 60 - daysSince);
                     return ` You have ${remaining} day${remaining === 1 ? "" : "s"} remaining in your trial.`;
                   })()}
                 </p>

@@ -24,7 +24,7 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
   // Calculate days since creation
   const now = new Date();
   const daysSince = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-  const trialDuration = 14;
+  const trialDuration = 60;
 
   if (daysSince <= trialDuration) {
     return children; // Still in trial
@@ -62,7 +62,7 @@ export default function TrialLockoutOverlay({ dbUser, apiCall, children }) {
             Trial Expired
           </h2>
           <p className="text-slate-500 dark:text-slate-500 mb-8 leading-relaxed">
-            Your 14-day free trial of VeloTime has ended. To continue logging
+            Your 60-day free trial of VeloTime has ended. To continue logging
             hours, generating invoices, and managing your team, please upgrade
             to the Pro plan.
           </p>
