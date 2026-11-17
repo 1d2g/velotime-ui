@@ -294,9 +294,12 @@ export default function App() {
       authParam === "login" ||
       (authParam === "signup" && !isTrialParam));
 
+  const isExplicitClaimParam = searchParams?.get("claim") === "true";
   const [showAuthScreen, setShowAuthScreen] = useState(isExplicitSignIn);
   const [authScreenMode, setAuthScreenMode] = useState(authParam === "signin" || authParam === "login" ? "signin" : "signup");
-  const [isClaimModalOpen, setIsClaimModalOpen] = useState(Boolean(isTrialParam && !isExplicitSignIn && !isMobileAuth));
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(
+    Boolean(isExplicitClaimParam && !isExplicitSignIn && !isMobileAuth)
+  );
   const [walkthroughActive, setWalkthroughActive] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isWalkthroughModalOpen, setIsWalkthroughModalOpen] = useState(false);
