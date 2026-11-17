@@ -51,6 +51,96 @@ const INITIAL_DISMISSED_IDS = [
 
 const INITIAL_QUEUED_THREADS = [
   {
+    postId: "1xynw7x",
+    subreddit: "Bookkeeping",
+    competitor: "QuickBooks / QBO",
+    title: "Moving 50 Clients from QBD to QBO. Worth the Cost?",
+    url: "https://www.reddit.com/r/Bookkeeping/comments/1xynw7x/moving_50_clients_from_qbd_to_qbo_worth_the_cost/",
+    updated: "2026-11-17T15:49:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xymme0",
+    subreddit: "civilengineering",
+    competitor: "Engineering / Billable Efficiency",
+    title: "Why work smarter if we don’t get paid more?",
+    url: "https://www.reddit.com/r/civilengineering/comments/1xymme0/why_work_smarter_if_we_dont_get_paid_more/",
+    updated: "2026-11-17T15:00:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xye31u",
+    subreddit: "Architects",
+    competitor: "Architecture / Scope Creep",
+    title: "When to cut a client loose (clients taking too much unpaid time)",
+    url: "https://www.reddit.com/r/Architects/comments/1xye31u/when_to_cut_a_client_loose/",
+    updated: "2026-11-17T07:20:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xxtqi8",
+    subreddit: "LawFirm",
+    competitor: "Billable Hours / LawFirm",
+    title: "Hired my buddy. He’s great with clients. So why are his hours flat?",
+    url: "https://www.reddit.com/r/LawFirm/comments/1xxtqi8/hired_my_buddy_hes_great_with_clients_so_why_are/",
+    updated: "2026-11-16T16:25:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1vemakv",
+    subreddit: "TimeTrackingSoftware",
+    competitor: "Consultants / Invoicing",
+    title: "Consulting hours tracking and invoicing",
+    url: "https://www.reddit.com/r/TimeTrackingSoftware/comments/1vemakv/consulting_hours_tracking_and_invoicing/",
+    updated: "2026-10-18T12:00:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1v1pu1k",
+    subreddit: "TimeTrackingSoftware",
+    competitor: "General Time Tracking",
+    title: "What's the best time tracking software you've used?",
+    url: "https://www.reddit.com/r/TimeTrackingSoftware/comments/1v1pu1k/whats_the_best_time_tracking_software_youve/",
+    updated: "2026-10-12T12:00:00+00:00",
+    priority: 2
+  },
+  {
+    postId: "1tjvlrs",
+    subreddit: "timesheetsoftware",
+    competitor: "Timesheet Recommendation",
+    title: "Which timesheet software would you recommend in 2026?",
+    url: "https://www.reddit.com/r/timesheetsoftware/comments/1tjvlrs/which_timesheet_software_would_you_recommend_in/",
+    updated: "2026-10-05T12:00:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1q1w0nc",
+    subreddit: "consulting",
+    competitor: "Consulting / Client Hours",
+    title: "Anyone else losing track of how much work actually goes into a client?",
+    url: "https://www.reddit.com/r/consulting/comments/1q1w0nc/anyone_else_losing_track_of_how_much_work/",
+    updated: "2026-09-25T12:00:00+00:00",
+    priority: 1
+  },
+  {
+    postId: "1uwwbmw",
+    subreddit: "TimeTrackingSoftware",
+    competitor: "Clockify",
+    title: "What's the best Clockify alternative? Any time tracking software with a genuinely free plan?",
+    url: "https://www.reddit.com/r/TimeTrackingSoftware/comments/1uwwbmw/whats_the_best_clockify_alternative_any_time/",
+    updated: "2026-09-20T12:00:00+00:00",
+    priority: 2
+  },
+  {
+    postId: "1v4kywv",
+    subreddit: "EntrepreneurRideAlong",
+    competitor: "Toggl / Invoicing",
+    title: "I kept losing hours between Toggl and my invoice template",
+    url: "https://www.reddit.com/r/EntrepreneurRideAlong/comments/1v4kywv/i_kept_losing_hours_between_toggl_and_my_invoice/",
+    updated: "2026-09-18T12:00:00+00:00",
+    priority: 2
+  },
+  {
     postId: "1xxw8ex",
     subreddit: "Accounting",
     competitor: "Agency, Arch, Eng, MSP & Accounting New",
@@ -466,7 +556,8 @@ export default function RedditRadarConsole() {
       if (!ghToken) return;
       if (!silent) setIsSyncing(true);
       try {
-        const res = await fetch(`${GITHUB_STATE_API}?t=${Date.now()}`, {
+        const res = await fetch(`${GITHUB_STATE_API}?ref=main&_=${Date.now()}`, {
+          cache: "no-store",
           headers: {
             Authorization: `token ${ghToken.trim()}`,
             Accept: "application/vnd.github.v3+json"
@@ -551,7 +642,8 @@ export default function RedditRadarConsole() {
         let shaToUse = remoteSha;
         let latestParsed = null;
         if (!shaToUse) {
-          const check = await fetch(`${GITHUB_STATE_API}?t=${Date.now()}`, {
+          const check = await fetch(`${GITHUB_STATE_API}?ref=main&_=${Date.now()}`, {
+            cache: "no-store",
             headers: { Authorization: `token ${ghToken.trim()}` }
           });
           if (check.ok) {
@@ -563,7 +655,8 @@ export default function RedditRadarConsole() {
         if (!shaToUse) return;
         let res = await pushOnce(shaToUse, latestParsed);
         if (res.status === 409) {
-          const refresh = await fetch(`${GITHUB_STATE_API}?t=${Date.now()}`, {
+          const refresh = await fetch(`${GITHUB_STATE_API}?ref=main&_=${Date.now()}`, {
+            cache: "no-store",
             headers: { Authorization: `token ${ghToken.trim()}` }
           });
           if (refresh.ok) {
