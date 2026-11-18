@@ -37,6 +37,7 @@ export const SELF_PROMO_RE =
   /\b(i\s+(built|made|created|developed|launched|released|wrote)|we\s+(built|made|created|developed|launched|released|have\s+timesheet)|i['’]?m\s+(building|developing|working\s+on)|i\s+am\s+(building|developing)|developing\s+a\s+time\s+tracking|just\s+open[\s-]source|my\s+(new\s+time\s+app|own\s+harvest\s+alternative|harvest\s+alternative|time\s+tracker)|forced\s+to\s+build\s+my\s+own|beta\s+testers\s+wanted|waitlist\s+signup|full\s+disclosure.*product|\[release\b|updates:\s*time\s+tracking\s+software\s+based\s+in\s+canada)\b/i;
 
 const INITIAL_REPLIED_IDS = [
+  "1xy4le0", "1xw6i9p", "1xx72v4",
   "1xomyp1", "1uja4cl", "1x74rn0", "1wd11hh", "1n6ubmz", "1n5vo7s",
   "g98cod", "fxc4sj", "fv05v9", "fancvt", "fa2d1i", "eiyiel", "d3b1pe",
   "cvgdlt", "bv9prf", "a89ha2", "9w4wvc", "9soum5", "9nap7h", "97wpw1",
@@ -50,6 +51,96 @@ const INITIAL_DISMISSED_IDS = [
 ];
 
 const INITIAL_QUEUED_THREADS = [
+  {
+    postId: "1xzds74",
+    subreddit: "clockify",
+    competitor: "Clockify",
+    title: "Recurring project expenses in Clockify — how are you handling them?",
+    url: "https://www.reddit.com/r/clockify/comments/1xzds74/recurring_project_expenses_in_clockify_how_are/",
+    updated: "2026-11-18T12:16:11+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xz5hph",
+    subreddit: "breezepm",
+    competitor: "Toggl / Clockify / Timers",
+    title: "Fixing a timer that ran all night before it gets billed",
+    url: "https://www.reddit.com/r/breezepm/comments/1xz5hph/fixing_a_timer_that_ran_all_night_before_it_gets/",
+    updated: "2026-11-18T04:00:43+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xyb5ic",
+    subreddit: "clickup",
+    competitor: "ClickUp / Agency Invoicing",
+    title: "ClickUp agencies: how do tracked hours actually become an invoice at month-end?",
+    url: "https://www.reddit.com/r/clickup/comments/1xyb5ic/clickup_agencies_how_do_tracked_hours_actually/",
+    updated: "2026-11-17T04:32:27+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xyrtc4",
+    subreddit: "HarvestApp",
+    competitor: "Harvest",
+    title: "Some Good News on Harvest Legacy plans",
+    url: "https://www.reddit.com/r/HarvestApp/comments/1xyrtc4/some_good_news_on_harvest_legacy_plans/",
+    updated: "2026-11-17T18:15:51+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xz539l",
+    subreddit: "OnlineHiringTips",
+    competitor: "Hubstaff / Screenshot Trackers",
+    title: "Fellow founders/hirers: Are we still using screenshot time trackers, or is everyone moving to output-based?",
+    url: "https://www.reddit.com/r/OnlineHiringTips/comments/1xz539l/fellow_foundershirers_are_we_still_using/",
+    updated: "2026-11-18T03:40:01+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xz78w6",
+    subreddit: "indianstartups",
+    competitor: "Agency / Scope Creep",
+    title: "Service founders: how do you handle scope creep with your first few clients?",
+    url: "https://www.reddit.com/r/indianstartups/comments/1xz78w6/service_founders_how_do_you_handle_scope_creep/",
+    updated: "2026-11-18T05:34:24+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xyeqlx",
+    subreddit: "SaaS",
+    competitor: "Freelance / Scope Creep",
+    title: "How do you word the “that’s outside what we agreed” reply without souring the relationship?",
+    url: "https://www.reddit.com/r/SaaS/comments/1xyeqlx/how_do_you_word_the_thats_outside_what_we_agreed/",
+    updated: "2026-11-17T08:02:21+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xzplfh",
+    subreddit: "Lawyertalk",
+    competitor: "Billable Hours",
+    title: "Struggling with billable hours",
+    url: "https://www.reddit.com/r/Lawyertalk/comments/1xzplfh/struggling_with_billable_hours/",
+    updated: "2026-11-18T20:16:13+00:00",
+    priority: 2
+  },
+  {
+    postId: "1xzkv1y",
+    subreddit: "Lawyertalk",
+    competitor: "Small Firm / Billable Hours",
+    title: "For solo/2 lawyer partnerships, how many hours are you working every week, and how much of that is client-related work?",
+    url: "https://www.reddit.com/r/Lawyertalk/comments/1xzkv1y/for_solo2_lawyer_partnerships_how_many_hours_are/",
+    updated: "2026-11-18T17:17:28+00:00",
+    priority: 2
+  },
+  {
+    postId: "1xymqzp",
+    subreddit: "AEC_Industry",
+    competitor: "AEC / Scope Creep",
+    title: "Diabolical Tuesdays (AEC Scope Creep & Timesheets)",
+    url: "https://www.reddit.com/r/AEC_Industry/comments/1xymqzp/diabolical_tuesdays/",
+    updated: "2026-11-17T15:05:11+00:00",
+    priority: 2
+  },
   {
     postId: "1xynw7x",
     subreddit: "Bookkeeping",
