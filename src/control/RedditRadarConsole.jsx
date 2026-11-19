@@ -47,10 +47,47 @@ const INITIAL_REPLIED_IDS = [
 ];
 
 const INITIAL_DISMISSED_IDS = [
-  "1xxxxuz", "1xunxiu", "1xunvu0", "1xrr6an", "1xrr8s9", "1xxxola"
+  "1xxxxuz", "1xunxiu", "1xunvu0", "1xrr6an", "1xrr8s9", "1xxxola",
+  "1xzplfh", "1xzkv1y", "1xz78w6", "1xyeqlx", "1xymqzp", "1xz539l", "1xz5hph"
 ];
 
 const INITIAL_QUEUED_THREADS = [
+  {
+    postId: "1y050ni",
+    subreddit: "smallbusiness",
+    competitor: "Spreadsheets / Retainer Tracking",
+    title: "How do you track multiple clients, retainers and working hours as a freelancer or VA?",
+    url: "https://www.reddit.com/r/smallbusiness/comments/1y050ni/how_do_you_track_multiple_clients_retainers_and/",
+    updated: "2026-11-19T09:14:24+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xz1zp1",
+    subreddit: "buhaydigital",
+    competitor: "General Time Tracking",
+    title: "Time tracker for own use (seeking recommendations for client time logs)",
+    url: "https://www.reddit.com/r/buhaydigital/comments/1xz1zp1/time_tracker_for_own_use/",
+    updated: "2026-11-18T01:10:19+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xs5z8g",
+    subreddit: "Architects",
+    competitor: "Architecture / Subscription Audit",
+    title: "My small studio's software subscription costs are blowing my mind! (4-person studio auditing $10k/yr tools)",
+    url: "https://www.reddit.com/r/Architects/comments/1xs5z8g/my_small_studios_software_subscription_costs_are/",
+    updated: "2026-11-09T22:33:27+00:00",
+    priority: 1
+  },
+  {
+    postId: "1xo01ni",
+    subreddit: "TimeTrackingSoftware",
+    competitor: "Clockify / Hubstaff / Jibble",
+    title: "I compared Jibble, Hubstaff, and Clockify. What if employers want more monitoring but employees want less?",
+    url: "https://www.reddit.com/r/TimeTrackingSoftware/comments/1xo01ni/i_compared_jibble_hubstaff_and_clockify_what_if/",
+    updated: "2026-11-04T21:11:05+00:00",
+    priority: 2
+  },
   {
     postId: "1xzds74",
     subreddit: "clockify",
@@ -58,15 +95,6 @@ const INITIAL_QUEUED_THREADS = [
     title: "Recurring project expenses in Clockify — how are you handling them?",
     url: "https://www.reddit.com/r/clockify/comments/1xzds74/recurring_project_expenses_in_clockify_how_are/",
     updated: "2026-11-18T12:16:11+00:00",
-    priority: 1
-  },
-  {
-    postId: "1xz5hph",
-    subreddit: "breezepm",
-    competitor: "Toggl / Clockify / Timers",
-    title: "Fixing a timer that ran all night before it gets billed",
-    url: "https://www.reddit.com/r/breezepm/comments/1xz5hph/fixing_a_timer_that_ran_all_night_before_it_gets/",
-    updated: "2026-11-18T04:00:43+00:00",
     priority: 1
   },
   {
@@ -86,60 +114,6 @@ const INITIAL_QUEUED_THREADS = [
     url: "https://www.reddit.com/r/HarvestApp/comments/1xyrtc4/some_good_news_on_harvest_legacy_plans/",
     updated: "2026-11-17T18:15:51+00:00",
     priority: 1
-  },
-  {
-    postId: "1xz539l",
-    subreddit: "OnlineHiringTips",
-    competitor: "Hubstaff / Screenshot Trackers",
-    title: "Fellow founders/hirers: Are we still using screenshot time trackers, or is everyone moving to output-based?",
-    url: "https://www.reddit.com/r/OnlineHiringTips/comments/1xz539l/fellow_foundershirers_are_we_still_using/",
-    updated: "2026-11-18T03:40:01+00:00",
-    priority: 1
-  },
-  {
-    postId: "1xz78w6",
-    subreddit: "indianstartups",
-    competitor: "Agency / Scope Creep",
-    title: "Service founders: how do you handle scope creep with your first few clients?",
-    url: "https://www.reddit.com/r/indianstartups/comments/1xz78w6/service_founders_how_do_you_handle_scope_creep/",
-    updated: "2026-11-18T05:34:24+00:00",
-    priority: 1
-  },
-  {
-    postId: "1xyeqlx",
-    subreddit: "SaaS",
-    competitor: "Freelance / Scope Creep",
-    title: "How do you word the “that’s outside what we agreed” reply without souring the relationship?",
-    url: "https://www.reddit.com/r/SaaS/comments/1xyeqlx/how_do_you_word_the_thats_outside_what_we_agreed/",
-    updated: "2026-11-17T08:02:21+00:00",
-    priority: 1
-  },
-  {
-    postId: "1xzplfh",
-    subreddit: "Lawyertalk",
-    competitor: "Billable Hours",
-    title: "Struggling with billable hours",
-    url: "https://www.reddit.com/r/Lawyertalk/comments/1xzplfh/struggling_with_billable_hours/",
-    updated: "2026-11-18T20:16:13+00:00",
-    priority: 2
-  },
-  {
-    postId: "1xzkv1y",
-    subreddit: "Lawyertalk",
-    competitor: "Small Firm / Billable Hours",
-    title: "For solo/2 lawyer partnerships, how many hours are you working every week, and how much of that is client-related work?",
-    url: "https://www.reddit.com/r/Lawyertalk/comments/1xzkv1y/for_solo2_lawyer_partnerships_how_many_hours_are/",
-    updated: "2026-11-18T17:17:28+00:00",
-    priority: 2
-  },
-  {
-    postId: "1xymqzp",
-    subreddit: "AEC_Industry",
-    competitor: "AEC / Scope Creep",
-    title: "Diabolical Tuesdays (AEC Scope Creep & Timesheets)",
-    url: "https://www.reddit.com/r/AEC_Industry/comments/1xymqzp/diabolical_tuesdays/",
-    updated: "2026-11-17T15:05:11+00:00",
-    priority: 2
   },
   {
     postId: "1xynw7x",
