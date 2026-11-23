@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Radio,
   ExternalLink,
@@ -29,9 +29,14 @@ const GITHUB_WORKFLOW_DISPATCH_API =
 const LS_DISMISSED = "velotime_reddit_dismissed_ids";
 const LS_COMPLETED = "velotime_reddit_completed_ids";
 const LS_REPLY_LOG = "velotime_reddit_reply_log";
+const LS_AUTO_REFRESH = "velotime_reddit_auto_refresh";
+const LS_LAST_AUTOSCAN_MS = "velotime_reddit_last_autoscan_ms";
 
 const MIN_COOLDOWN_MS = 20 * 60 * 1000;
 const MAX_POSTS_PER_DAY = 6;
+const AUTO_SYNC_INTERVAL_MS = 2 * 60 * 1000;
+const STALE_SCAN_THRESHOLD_MS = 20 * 60 * 1000;
+const AUTOSCAN_COOLDOWN_MS = 15 * 60 * 1000;
 
 export const SELF_PROMO_RE =
   /\b(i\s+(built|made|created|developed|launched|released|wrote)|we\s+(built|made|created|developed|launched|released|have\s+timesheet)|i['’]?m\s+(building|developing|working\s+on)|i\s+am\s+(building|developing)|developing\s+a\s+time\s+tracking|just\s+open[\s-]source|my\s+(new\s+time\s+app|own\s+harvest\s+alternative|harvest\s+alternative|time\s+tracker)|forced\s+to\s+build\s+my\s+own|beta\s+testers\s+wanted|waitlist\s+signup|full\s+disclosure.*product|\[release\b|updates:\s*time\s+tracking\s+software\s+based\s+in\s+canada)\b/i;
@@ -596,10 +601,20 @@ export default function RedditRadarConsole() {
   const [completedIds, setCompletedIds] = useState(() => readLocalArray(LS_COMPLETED, []));
   const [replyLog, setReplyLog] = useState(() => readLocalArray(LS_REPLY_LOG, []));
   const [remoteSha, setRemoteSha] = useState(null);
+  const [remoteUpdatedAt, setRemoteUpdatedAt] = useState(null);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(() => {
+    try {
+      return localStorage.getItem(LS_AUTO_REFRESH) !== "false";
+    } catch {
+      return true;
+    }
+  });
   const [isSyncing, setIsSyncing] = useState(false);
   const [isTriggeringScan, setIsTriggeringScan] = useState(false);
   const [syncBanner, setSyncBanner] = useState(null);
+  const followUpTimersRef = useRef([]);
+  const lastFocusSyncRef = useRef(0);
 
   const [selfPromoFilter, setSelfPromoFilter] = useState(true);
   const [activeCategory, setActiveCategory] = useState("all");
@@ -618,7 +633,7 @@ export default function RedditRadarConsole() {
 
   const syncFromGitHub = useCallback(
     async (silent = false) => {
-      if (!ghToken) return;
+      if (!ghToken) return null;
       if (!silent) setIsSyncing(true);
       try {
         const res = await fetch(`${GITHUB_STATE_API}?ref=main&_=${Date.now()}`, {
@@ -646,20 +661,44 @@ export default function RedditRadarConsole() {
         setDismissedIds(mergedDismissed);
         writeLocalArray(LS_DISMISSED, mergedDismissed);
         setRawThreads(threads);
+        if (parsed.updatedAt) {
+          setRemoteUpdatedAt(parsed.updatedAt);
+        }
         setLastSyncedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
         if (!silent) {
           setSyncBanner({ type: "success", msg: `Synced ${threads.length} remote queue entries from GitHub.` });
         }
+        return { updatedAt: parsed.updatedAt || null, count: threads.length };
       } catch (err) {
         if (!silent) {
           setSyncBanner({ type: "error", msg: `GitHub sync warning: ${err.message}` });
         }
+        return null;
       } finally {
         if (!silent) setIsSyncing(false);
       }
     },
     [ghToken]
   );
+
+  const scheduleFollowUpSyncs = useCallback(() => {
+    followUpTimersRef.current.forEach((tid) => clearTimeout(tid));
+    followUpTimersRef.current = [
+      setTimeout(() => {
+        syncFromGitHub(true);
+      }, 45 * 1000),
+      setTimeout(() => {
+        syncFromGitHub(true);
+      }, 95 * 1000)
+    ];
+  }, [syncFromGitHub]);
+
+  useEffect(() => {
+    return () => {
+      followUpTimersRef.current.forEach((tid) => clearTimeout(tid));
+      followUpTimersRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     syncFromGitHub(true);
@@ -899,35 +938,105 @@ export default function RedditRadarConsole() {
     setActiveCategory("all");
   };
 
-  const handleTriggerLiveScan = async () => {
-    if (!ghToken) return;
-    setIsTriggeringScan(true);
-    setSyncBanner({ type: "loading", msg: "Dispatching live Reddit scan via GitHub Actions (reddit-radar.yml)..." });
-    try {
-      const res = await fetch(GITHUB_WORKFLOW_DISPATCH_API, {
-        method: "POST",
-        headers: {
-          Authorization: `token ${ghToken.trim()}`,
-          Accept: "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ ref: "main" })
-      });
-      if (res.status === 204) {
-        setSyncBanner({
-          type: "success",
-          msg: "Live Reddit Radar scan triggered on GitHub Actions! Click 'Sync Queue' in ~45s (or watch Discord) for any brand-new competitor threads."
-        });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setSyncBanner({ type: "error", msg: `Scan dispatch error (${res.status}): ${err.message || "Failed"}` });
+  const handleTriggerLiveScan = useCallback(
+    async (silent = false) => {
+      if (!ghToken) return;
+      if (!silent) {
+        setIsTriggeringScan(true);
+        setSyncBanner({ type: "loading", msg: "Dispatching live Reddit scan via GitHub Actions (reddit-radar.yml)..." });
       }
-    } catch (err) {
-      setSyncBanner({ type: "error", msg: `Network error: ${err.message}` });
-    } finally {
-      setIsTriggeringScan(false);
+      try {
+        const res = await fetch(GITHUB_WORKFLOW_DISPATCH_API, {
+          method: "POST",
+          headers: {
+            Authorization: `token ${ghToken.trim()}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ref: "main" })
+        });
+        if (res.status === 204) {
+          try {
+            localStorage.setItem(LS_LAST_AUTOSCAN_MS, String(Date.now()));
+          } catch {}
+          scheduleFollowUpSyncs();
+          setSyncBanner({
+            type: "success",
+            msg: silent
+              ? "Auto-scan triggered on GitHub Actions — queue will auto-refresh in ~45s."
+              : "Live Reddit Radar scan triggered — queue will auto-sync in ~45s."
+          });
+        } else if (!silent) {
+          const err = await res.json().catch(() => ({}));
+          setSyncBanner({ type: "error", msg: `Scan dispatch error (${res.status}): ${err.message || "Failed"}` });
+        }
+      } catch (err) {
+        if (!silent) {
+          setSyncBanner({ type: "error", msg: `Network error: ${err.message}` });
+        }
+      } finally {
+        if (!silent) setIsTriggeringScan(false);
+      }
+    },
+    [ghToken, scheduleFollowUpSyncs]
+  );
+
+  // Automatic 2-min polling while visible + sync on tab focus/visibility return
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const intervalId = setInterval(() => {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        syncFromGitHub(true);
+      }
+    }, AUTO_SYNC_INTERVAL_MS);
+
+    const handleReturnSync = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - lastFocusSyncRef.current < 30 * 1000) return;
+      lastFocusSyncRef.current = now;
+      syncFromGitHub(true);
+    };
+
+    window.addEventListener("focus", handleReturnSync);
+    document.addEventListener("visibilitychange", handleReturnSync);
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleReturnSync);
+      document.removeEventListener("visibilitychange", handleReturnSync);
+    };
+  }, [autoRefresh, syncFromGitHub]);
+
+  // Automatically trigger live GitHub Actions scan when remote queue state is stale (>20 min old)
+  useEffect(() => {
+    if (!autoRefresh || !remoteUpdatedAt) return;
+    const updatedMs = new Date(remoteUpdatedAt).getTime();
+    if (!Number.isFinite(updatedMs)) return;
+    if (Date.now() - updatedMs <= STALE_SCAN_THRESHOLD_MS) return;
+
+    let lastDispatchedMs = 0;
+    try {
+      lastDispatchedMs = Number(localStorage.getItem(LS_LAST_AUTOSCAN_MS) || 0) || 0;
+    } catch {}
+    if (Date.now() - lastDispatchedMs < AUTOSCAN_COOLDOWN_MS) return;
+
+    handleTriggerLiveScan(true);
+  }, [autoRefresh, remoteUpdatedAt, handleTriggerLiveScan]);
+
+  const toggleAutoRefresh = () => {
+    const next = !autoRefresh;
+    setAutoRefresh(next);
+    try {
+      localStorage.setItem(LS_AUTO_REFRESH, next ? "true" : "false");
+    } catch {}
+    if (next) {
+      syncFromGitHub(true);
     }
   };
+
+  const radarAgeMins = remoteUpdatedAt
+    ? Math.max(0, Math.floor((nowTick - new Date(remoteUpdatedAt).getTime()) / 60000))
+    : null;
 
   return (
     <div className="space-y-5">
@@ -985,13 +1094,22 @@ export default function RedditRadarConsole() {
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-3.5 flex flex-col justify-between gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-              Cloud Radar Actions
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={toggleAutoRefresh}
+              className={`px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider border transition cursor-pointer ${
+                autoRefresh
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                  : "bg-slate-100 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-zinc-400"
+              }`}
+              title="Toggle 2-min auto-sync and stale (>20m) live Reddit scan"
+            >
+              Auto: {autoRefresh ? "ON" : "OFF"}
+            </button>
+            <span className="text-[10px] font-mono text-slate-400 truncate">
+              {radarAgeMins !== null ? `Radar ${radarAgeMins}m ago` : lastSyncedAt ? `Synced ${lastSyncedAt}` : "Syncing..."}
             </span>
-            {lastSyncedAt && (
-              <span className="text-[10px] font-mono text-slate-400">Synced {lastSyncedAt}</span>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -1005,7 +1123,7 @@ export default function RedditRadarConsole() {
             </button>
             <button
               type="button"
-              onClick={handleTriggerLiveScan}
+              onClick={() => handleTriggerLiveScan(false)}
               disabled={isTriggeringScan}
               className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition cursor-pointer"
             >

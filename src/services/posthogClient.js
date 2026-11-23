@@ -52,9 +52,16 @@ export function initDeferredPostHog() {
   const loadAndInit = async () => {
     try {
       const ua = navigator.userAgent || "";
+      const isFramelessHeadlessVm =
+        window.screen &&
+        window.innerWidth >= 1280 &&
+        window.innerWidth === window.screen.width &&
+        window.innerHeight === window.screen.height &&
+        !document.fullscreenElement;
       if (
         navigator.webdriver ||
-        /Google-AdWords-Express|AdsBot-Google|Googlebot|HeadlessChrome|bingbot|AhrefsBot|SemrushBot|DotBot|MJ12bot|Bytespider|GPTBot|ClaudeBot|PerplexityBot|PetalBot|YandexBot|Baiduspider|facebookexternalhit|LinkedInBot|Slackbot|Twitterbot/i.test(
+        isFramelessHeadlessVm ||
+        /Google-AdWords-Express|AdsBot-Google|Googlebot|HeadlessChrome|PhantomJS|Puppeteer|Playwright|Selenium|Lighthouse|bingbot|AhrefsBot|SemrushBot|DotBot|MJ12bot|Bytespider|GPTBot|ClaudeBot|PerplexityBot|PetalBot|YandexBot|Baiduspider|facebookexternalhit|LinkedInBot|Slackbot|Twitterbot/i.test(
           ua
         )
       ) {
