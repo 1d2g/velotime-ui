@@ -275,6 +275,8 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
           if (isViableViewport && typeof window.gtag === "function") {
             window.gtag("event", "conversion", {
               send_to: "AW-18479452942/dGBxCO2knI0dEI6m2OtE",
+              value: 20.0,
+              currency: "USD",
             });
             sessionStorage.setItem(trackedKey, "true");
           }

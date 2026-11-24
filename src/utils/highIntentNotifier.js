@@ -6,6 +6,15 @@
  * Triggers real-time PostHog destination alerts to Discord and notifies the API server.
  */
 
+import { onHumanVerified } from "../services/posthogClient";
+
+const ENGAGED_EVAL_MILESTONES = new Set([
+  "guest_active_grid_evaluation",
+  "guest_csv_migrated",
+  "guest_csv_exported",
+  "guest_claim_modal_opened",
+]);
+
 export function detectTrafficSource() {
   if (typeof window === "undefined") return "Direct Web";
   try {
@@ -104,6 +113,25 @@ export function notifyHighIntentMilestone(posthog, milestone, options = {}) {
       ph.capture("high_intent_milestone", payload);
     }
   } catch {}
+
+  if (ENGAGED_EVAL_MILESTONES.has(milestone)) {
+    onHumanVerified(() => {
+      try {
+        const evalKey = "vt_gads_engaged_eval";
+        if (window.sessionStorage?.getItem(evalKey) === "true") return;
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "conversion", {
+            send_to: "AW-18479452942/G4voCKzK3b4dEI6m2OtE",
+            value: 5.0,
+            currency: "USD",
+          });
+          window.sessionStorage?.setItem(evalKey, "true");
+          const ph = posthog || window.posthog;
+          ph?.capture?.("gads_engaged_eval_fired", { trigger: milestone, value: 5.0 });
+        }
+      } catch {}
+    });
+  }
 
   try {
     const apiUrl = import.meta.env.VITE_API_URL;

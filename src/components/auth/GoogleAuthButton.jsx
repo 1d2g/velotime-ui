@@ -53,6 +53,17 @@ export default function GoogleAuthButton({
           source,
         });
       }
+      if (mode === "signup" && typeof window !== "undefined") {
+        const trackedKey = "velotime_gtag_signup_visit_tracked";
+        if (!sessionStorage.getItem(trackedKey) && typeof window.gtag === "function") {
+          window.gtag("event", "conversion", {
+            send_to: "AW-18479452942/dGBxCO2knI0dEI6m2OtE",
+            value: 20.0,
+            currency: "USD",
+          });
+          sessionStorage.setItem(trackedKey, "true");
+        }
+      }
     } catch {}
 
     if (onBeforeRedirect) {

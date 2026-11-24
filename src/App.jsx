@@ -138,8 +138,9 @@ export default function App() {
             if (typeof window !== "undefined" && typeof window.gtag === "function") {
               window.gtag("event", "conversion", {
                 send_to: "AW-18479452942/peS3CJnLw4gdEI6m2OtE",
-                value: 1.0,
+                value: 100.0,
                 currency: "USD",
+                transaction_id: user.id,
               });
             }
           } catch (e) {}
