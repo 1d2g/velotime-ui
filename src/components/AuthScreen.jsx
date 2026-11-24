@@ -5,6 +5,7 @@ import { usePostHog } from "posthog-js/react";
 import FounderChatBubble from "./FounderChatBubble";
 import FounderAdBanner from "./FounderAdBanner";
 import GoogleAuthButton from "./auth/GoogleAuthButton";
+import { onHumanVerified } from "../services/posthogClient";
 
 function LogoPatternBackground() {
   return (
@@ -258,10 +259,11 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
     };
   }, []);
 
-  // Track Sign Up Page Visit conversion in Google Ads (guarded to once per session)
+  // Track Sign Up Page Visit conversion in Google Ads (guarded to once per session & human-verified)
   // CRITICAL SAFEGUARD: Do not reward Google Ads for tiny/letterboxed resolutions (e.g. 650x269 companion slots)
   useEffect(() => {
-    if (authMode === "signup") {
+    if (authMode !== "signup") return;
+    return onHumanVerified(() => {
       try {
         const trackedKey = "velotime_gtag_signup_visit_tracked";
         if (typeof window !== "undefined" && !sessionStorage.getItem(trackedKey)) {
@@ -278,36 +280,39 @@ export default function AuthScreen({ onBackToGuest, initialMode }) {
           }
         }
       } catch (e) {}
-    }
+    });
   }, [authMode]);
 
-  // Track Sign Up Page and Sign In Page landings in PostHog
+  // Track Sign Up Page and Sign In Page landings in PostHog (human-verified only)
   useEffect(() => {
     if (typeof window === "undefined" || !posthog) return;
     if (lastCapturedModeRef.current === authMode) return;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const props = {
-        source: params.get("source") || "direct",
-        utm_source: params.get("utm_source") || null,
-        utm_campaign: params.get("utm_campaign") || null,
-        utm_medium: params.get("utm_medium") || null,
-        utm_content: params.get("utm_content") || null,
-        trial: params.get("trial") === "true",
-        company: targetCompany || null,
-        referrer: typeof document !== "undefined" ? document.referrer : null,
-        viewport_width: window.innerWidth,
-        viewport_height: window.innerHeight,
-      };
+    return onHumanVerified(() => {
+      if (lastCapturedModeRef.current === authMode) return;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const props = {
+          source: params.get("source") || "direct",
+          utm_source: params.get("utm_source") || null,
+          utm_campaign: params.get("utm_campaign") || null,
+          utm_medium: params.get("utm_medium") || null,
+          utm_content: params.get("utm_content") || null,
+          trial: params.get("trial") === "true",
+          company: targetCompany || null,
+          referrer: typeof document !== "undefined" ? document.referrer : null,
+          viewport_width: window.innerWidth,
+          viewport_height: window.innerHeight,
+        };
 
-      if (authMode === "signup") {
-        posthog.capture("signup_page_viewed", props);
-        lastCapturedModeRef.current = "signup";
-      } else if (authMode === "signin") {
-        posthog.capture("signin_page_viewed", props);
-        lastCapturedModeRef.current = "signin";
-      }
-    } catch (e) {}
+        if (authMode === "signup") {
+          posthog.capture("signup_page_viewed", props);
+          lastCapturedModeRef.current = "signup";
+        } else if (authMode === "signin") {
+          posthog.capture("signin_page_viewed", props);
+          lastCapturedModeRef.current = "signin";
+        }
+      } catch (e) {}
+    });
   }, [authMode, posthog]);
 
   const clerkAppearance = {
