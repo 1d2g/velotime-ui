@@ -1,4 +1,28 @@
-export const MARKETING_AGENT_LS_KEY = "velotime_marketing_agent_blueprint_v1";
+export const MARKETING_AGENT_LS_KEY = "velotime_marketing_agent_blueprint_v2";
+
+export const ORG_ROLES = [
+  {
+    id: "scout",
+    title: "The Scout",
+    subtitle: "Divergent Explorer",
+    focus: "Hunts 1-star competitor reviews, pricing hikes, niche ICP communities, and uncharted distribution surfaces.",
+    allocationLabel: "Drives Explore Cycles",
+  },
+  {
+    id: "cmo",
+    title: "CMO Strategist",
+    subtitle: "Filter & Bet Designer",
+    focus: "Synthesizes Scout research with PostHog/Ads telemetry, kills fluff, and drafts falsifiable Bet Memos with Kill Criteria.",
+    allocationLabel: "Owns Weekly Win Score",
+  },
+  {
+    id: "operator",
+    title: "The Operator",
+    subtitle: "Guardrailed Executor",
+    focus: "Runs daily Ads hygiene, cold email vetting, PostHog diagnostics, and approved experiments under hard budget caps.",
+    allocationLabel: "Drives Exploit Cycles",
+  },
+];
 
 export const AUTONOMY_MODES = [
   {
@@ -12,14 +36,14 @@ export const AUTONOMY_MODES = [
     id: "human_in_loop",
     label: "Human-in-the-Loop",
     summary:
-      "Continuously mines signals and prepares scored proposals; waits for explicit approval in Control Panel or Discord before acting.",
+      "Continuously mines signals and prepares scored proposals & CMO Bet Memos; waits for explicit approval in Control Panel or Discord before acting.",
     risk: "Gated execution",
   },
   {
     id: "bounded_autonomous",
     label: "Bounded Autonomous",
     summary:
-      "Auto-executes pre-approved low-risk hygiene (e.g., negative keyword pruning inside cap) and escalates budget, copy, or novel angles.",
+      "Auto-executes pre-approved low-risk hygiene (e.g., negative keyword pruning inside cap) and escalates budget, copy, or novel channels.",
     risk: "Guardrail-capped",
   },
 ];
@@ -30,45 +54,99 @@ export const COGNITIVE_LOOP_STAGES = [
     name: "Sense",
     role: "Market Signal Ingestion",
     description:
-      "Pulls Google Ads search terms & CPC shifts, PostHog human recordings & drop-offs, Arctic Shift Reddit threads, GSC impressions, and cold email reply states.",
+      "Pulls Clerk verified signups, PostHog human recordings & drop-offs, Arctic Shift Reddit pain threads, Google Ads search terms, and Scout web research.",
     cadenceNote: "Wakes on active poll interval; drops to deep sleep during quiet hours or zero-change streaks.",
-    readiness: "Partial APIs exist (no unified daemon)",
+    readiness: "Backend Pollers Ready",
   },
   {
     step: "02",
     name: "Hypothesize",
-    role: "Concept & Angle Synthesis",
+    role: "Scout & CMO Synthesis",
     description:
-      "Clusters recurring pain points (e.g., Harvest usage fees, Toggl 3-user cap, Excel drift) to propose new landing variants, outreach angles, or ad negative rules.",
-    cadenceNote: "Triggered when anomalous CPA, bounce leaks, or new competitor pricing patterns appear.",
-    readiness: "Blueprint schema only",
+      "Splits 70% Exploit (optimize Ads/Email/CRO) and 30% Explore (hunt new verticals, competitor dislocations, and uncharted channels).",
+    cadenceNote: "Generates structured Bet Memos with mandatory 7-day Kill Criteria.",
+    readiness: "Ready once LLM key is added",
   },
   {
     step: "03",
     name: "Score",
     role: "Anti-Gaming Utility Evaluation",
     description:
-      "Ranks every candidate action against expected weekly win-condition points minus guardrail risk and spam/irrelevant-click penalties.",
-    cadenceNote: "Enforces positive expected value before surfacing to queue.",
-    readiness: "Editable weights in Console",
+      "Ranks every candidate bet against expected weekly win-condition points minus guardrail risk and spam/irrelevant-click penalties.",
+    cadenceNote: "Zero points for brainstorming; points awarded only for verified outcomes & clean falsification.",
+    readiness: "PostgreSQL Ledger Live",
   },
   {
     step: "04",
     name: "Act or Escalate",
     role: "Channel Execution & Discord Gate",
     description:
-      "Routes high-impact changes (spend caps, public Reddit replies, cold email sends, new experiments) to Discord/Control approval cards; logs or executes bounded tasks.",
-    cadenceNote: "Respects hard daily caps and immediate kill-switch state.",
-    readiness: "Schema preview + 1-way Discord webhook",
+      "Routes high-impact bets, spend changes, and new channel requests to Discord/Control approval cards with hard code-enforced brand lint.",
+    cadenceNote: "Respects global kill switch, hard daily caps, and brand-ethics validator.",
+    readiness: "API + Discord Interactions Route Ready",
   },
   {
     step: "05",
     name: "Reflect & Remember",
     role: "Closed-Loop Attribution",
     description:
-      "Audits 7-day post-action PostHog & Ads telemetry to promote winning hypotheses into memory and retire losing angles automatically.",
-    cadenceNote: "Summarized in daily 20:00 ET digest; auto-pauses after consecutive zero-progress cycles.",
-    readiness: "Seeded baseline signals",
+      "Audits 7-day post-action PostHog & DB telemetry to promote winning angles into memory and retire losing bets automatically.",
+    cadenceNote: "Summarized in daily 20:00 ET digest; auto-sleeps after consecutive zero-progress cycles.",
+    readiness: "PostgreSQL Signals & Runs Live",
+  },
+];
+
+export const SAMPLE_BET_MEMOS = [
+  {
+    id: "sample-bet-cas-partners",
+    schemaTag: "EXAMPLE BET MEMO",
+    channel: "Partner Channel / CAS Bookkeepers",
+    title: "Fractional CFO & CAS Bookkeeping Partner Referral Wedge",
+    marketEvidence:
+      "Accounting forums show widespread frustration with QuickBooks Time ($20-$40/mo base + $8-$10/user) and Harvest usage fees across client agencies.",
+    targetIcp: "CAS bookkeeping firms & fractional CFOs advising 5-30 retainer agencies",
+    mvpTest:
+      "Publish a clean /partners brief + send 25 curated plain-text founder notes offering free 15-min migration for their agency clients at flat $5/seat.",
+    estimatedCostUsd: 0,
+    expectedPoints: 75,
+    killCriteria: "Kill angle after 7 days if < 2 positive partner replies out of 25 vetted emails.",
+  },
+  {
+    id: "sample-bet-agency-newsletters",
+    schemaTag: "EXAMPLE BET MEMO",
+    channel: "B2B Newsletter Sponsorships",
+    title: "Micro-Newsletter Test Targeting Boutique Dev & Design Agency Owners",
+    marketEvidence:
+      "Search CPC on 'timesheet software for agency' averages ~$9.80/click; niche agency-owner newsletters (5k-15k subs) reach verified founders at lower effective CPC.",
+    targetIcp: "Founders/COOs of 5-25 person web dev, branding, and CRO agencies",
+    mvpTest:
+      "Identify 10 US agency-ops newsletters, request media kits under $100 test budget or founder interview swaps, and track dedicated UTM signup lift.",
+    estimatedCostUsd: 100,
+    expectedPoints: 60,
+    killCriteria: "Kill channel if effective cost per engaged evaluation exceeds $20 over 7 days.",
+  },
+];
+
+export const SAMPLE_CAPABILITY_REQUESTS = [
+  {
+    id: "sample-cap-xero-dir",
+    schemaTag: "EXAMPLE CHANNEL REQUEST",
+    channel: "Accounting App Marketplaces",
+    title: "Unlock Xero & QuickBooks App Store Listings",
+    rationale:
+      "High-intent agencies searching inside accounting ecosystems convert at significantly higher rates than cold search clicks. VeloTime already supports Xero & QBO exports.",
+    setupSteps:
+      "Submit developer partner listing with verified screenshots, flat $5/seat pricing sheet, and 1-click export walkthrough.",
+  },
+  {
+    id: "sample-cap-g2-capterra",
+    schemaTag: "EXAMPLE CHANNEL REQUEST",
+    channel: "Software Review Directories",
+    title: "Establish Verified G2 & Capterra Comparison Presence",
+    rationale:
+      "Prospects evaluating Harvest/Toggl/Clockify alternatives consistently check third-party review directories before starting a trial.",
+    setupSteps:
+      "Claim official VeloTime LLC vendor profile on G2 and Capterra; link directly from post-onboarding feedback prompts.",
   },
 ];
 
@@ -101,25 +179,17 @@ export const SAMPLE_APPROVAL_CARDS = [
     expectedPoints: "+40 pts (Projected positive replies)",
     riskLevel: "Medium",
   },
-  {
-    id: "sample-cro-hypothesis",
-    schemaTag: "EXAMPLE SCHEMA (NOT LIVE)",
-    channel: "PostHog CRO & /compare",
-    title: "Launch Agency Segment Proof Strip Above Fold for Paid Search Arrivals",
-    signal:
-      "Human session replays confirm sub-600ms FCP/LCP and heavy homepage scroll depth (84%), while paid visitors want instant side-by-side pricing proof.",
-    reasoning:
-      "Surfacing 10-second matrix + optional live timers + flat $5/seat economics immediately reduces pogo-sticking on paid terms.",
-    proposedAction:
-      "Draft an experiment PR adding a compact agency segment proof block and measure Engaged Product Evaluation conversion lift over 7 days.",
-    expectedPoints: "+35 pts (Eval-to-Signup lift)",
-    riskLevel: "Low",
-  },
 ];
 
 export const DEFAULT_AGENT_CONFIG = {
-  runtimeStatus: "dormant_skeleton",
+  runtimeStatus: "phase1_backbone",
   autonomyMode: "human_in_loop",
+  exploreExploitSplit: {
+    exploitPct: 70,
+    explorePct: 30,
+    maxConcurrentBets: 3,
+    monthlyExplorationBudgetUsd: 100,
+  },
   cadence: {
     activePollMinutes: 60,
     idleSleepHours: 6,
@@ -172,10 +242,10 @@ export const DEFAULT_AGENT_CONFIG = {
     },
     {
       id: "validated_experiment",
-      label: "Validated New Experiment / Angle Shipped",
+      label: "Clean 7-Day Bet Falsification / Validated Angle",
       category: "learning",
       points: 15,
-      antiGamingRule: "Awarded only after instrumentation check passes in PostHog/Ads.",
+      antiGamingRule: "Zero points for brainstorming; awarded only after an instrumented test finishes cleanly.",
     },
     {
       id: "irrelevant_click",
@@ -197,6 +267,36 @@ export const DEFAULT_AGENT_CONFIG = {
       category: "penalty",
       points: -100,
       antiGamingRule: "Hard penalty for emojis in UI copy, unverified product claims, or anti-stopwatch dogma.",
+    },
+  ],
+  scoutMissions: [
+    {
+      id: "competitor_1star_reviews",
+      name: "Competitor 1-Star Review Mining",
+      queryHint: "Harvest Toggl Clockify Everhour Tempo G2 Capterra pricing complaints 2026",
+      targetSurface: "G2, Capterra, Trustpilot, Reddit",
+      enabled: true,
+    },
+    {
+      id: "pricing_dislocations",
+      name: "Pricing & Paywall Dislocations",
+      queryHint: "Harvest Flex usage fees Toggl 3-user limit Clockify 2026 price hike",
+      targetSurface: "Pricing changelogs, forums, community threads",
+      enabled: true,
+    },
+    {
+      id: "alt_distribution",
+      name: "Alternative Distribution Channels",
+      queryHint: "Xero QuickBooks Linear app directory agency newsletters Chrome Web Store timesheet",
+      targetSurface: "Partner directories, B2B newsletters, integrations",
+      enabled: true,
+    },
+    {
+      id: "niche_partner_wedges",
+      name: "Niche Vertical & Partner Wedges",
+      queryHint: "CAS bookkeeping firms fractional CFO architecture studio timesheet workflow",
+      targetSurface: "CPA, CAS, Fractional CFO, MSP communities",
+      enabled: true,
     },
   ],
   channels: [
@@ -224,8 +324,8 @@ export const DEFAULT_AGENT_CONFIG = {
       id: "posthog",
       name: "PostHog Behavior & CRO (Project 527395)",
       surface: "Human recording digests, drop-off detection, landing-page hypotheses",
-      currentInfra: "API + Dashboard 2408846",
-      missingForAutonomy: "Nightly LLM session analyzer",
+      currentInfra: "Backend poller + Dashboard 2408846",
+      missingForAutonomy: "POSTHOG_PERSONAL_API_KEY in Railway",
       mode: "enabled",
       requireApproval: false,
       triggerCadence: "Every 4h + 20:00 ET digest",
@@ -234,18 +334,18 @@ export const DEFAULT_AGENT_CONFIG = {
       id: "reddit",
       name: "Reddit & Community Radar (Arctic Shift)",
       surface: "High-intent pain monitoring, draft response generation",
-      currentInfra: "Arctic Shift scanner + Control Queue",
+      currentInfra: "Live Arctic Shift poller + Control Queue",
       missingForAutonomy: "Discord approve-to-copy bridge",
-      mode: "shadow",
+      mode: "enabled",
       requireApproval: true,
-      triggerCadence: "Every 60m active / 6h idle",
+      triggerCadence: "Hourly active / 6h idle",
     },
     {
       id: "seo_research",
-      name: "SEO & New Angle Discovery (GSC + Competitor Watch)",
+      name: "SEO & New Angle Discovery (Scout + GSC)",
       surface: "Competitor pricing shifts, keyword gaps, new positioning experiments",
-      currentInfra: "GSC Telemetry tab",
-      missingForAutonomy: "Web research worker + content drafter",
+      currentInfra: "Tavily/Brave scout hook + GSC Telemetry",
+      missingForAutonomy: "TAVILY_API_KEY or BRAVE_SEARCH_API_KEY + LLM key",
       mode: "shadow",
       requireApproval: true,
       triggerCadence: "Weekly + ad-hoc signal spikes",
@@ -254,9 +354,9 @@ export const DEFAULT_AGENT_CONFIG = {
       id: "discord_bridge",
       name: "Discord Human-in-the-Loop Escalation",
       surface: "2-way Q&A, Approve/Reject actions, daily digest, kill-switch",
-      currentInfra: "1-way reminder webhook",
-      missingForAutonomy: "Discord Bot Gateway / Interactions endpoint",
-      mode: "disabled",
+      currentInfra: "1-way webhook + /api/webhooks/discord-interactions",
+      missingForAutonomy: "DISCORD_PUBLIC_KEY + DISCORD_BOT_TOKEN in Railway",
+      mode: "shadow",
       requireApproval: false,
       triggerCadence: "Event-driven + 20:00 ET summary",
     },
@@ -269,7 +369,7 @@ export const DEFAULT_AGENT_CONFIG = {
     },
     {
       id: "new_experiment",
-      trigger: "New Marketing Concept or Landing Variant Proposal",
+      trigger: "New Marketing Concept or CMO Bet Memo Proposal",
       route: "immediate_ping",
     },
     {
@@ -301,7 +401,6 @@ export const DEFAULT_AGENT_CONFIG = {
     },
     {
       id: "exp-brand-login-pruning",
-      triggerNote: "",
       title: "Exact-Match Login Leak Pruning on Agency Timesheets",
       channel: "Google Ads",
       hypothesis:
@@ -315,7 +414,7 @@ export const DEFAULT_AGENT_CONFIG = {
       title: "Toggl 3-User Cap Outbound Micro-Cohort",
       channel: "Cold Email Outreach",
       hypothesis:
-        "Boutique agencies (4-15 seats) hit Toggl's 3-user free wall and $16-$24/seat profitability gate; leading with flat $5/seat + inline approvals lifts positive reply rate.",
+        "Boutique agencies (4-15 seats) hit Toggl 3-user free wall and $16-$24/seat profitability gate; leading with flat $5/seat + inline approvals lifts positive reply rate.",
       successMetric: "Positive reply rate >= 2.5% with bounce rate < 2%",
       status: "proposed",
       expectedPoints: 60,
