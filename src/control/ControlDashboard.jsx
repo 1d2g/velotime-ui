@@ -10,7 +10,8 @@ import {
   Moon,
   Clock, 
   Radio,
-  Users
+  Users,
+  Bot
 } from "lucide-react";
 import ScriptsConsole from "./ScriptsConsole";
 import PostHogAudits from "./PostHogAudits";
@@ -18,10 +19,11 @@ import UserEvolution from "./UserEvolution";
 import GscTelemetry from "./GscTelemetry";
 import MiniPostHogDashboard from "./MiniPostHogDashboard";
 import RedditRadarConsole from "./RedditRadarConsole";
+import MarketingAgentConsole from "./MarketingAgentConsole";
 
 export default function ControlDashboard() {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState("reddit_radar"); // 'reddit_radar' | 'scripts' | 'posthog_audits' | 'gsc' | 'posthog_mini'
+  const [activeTab, setActiveTab] = useState("reddit_radar"); // 'reddit_radar' | 'marketing_agent' | 'scripts' | 'posthog_audits' | 'user_evolution' | 'gsc' | 'posthog_mini'
   const [timeStr, setTimeStr] = useState("");
   const [isBusinessHours, setIsBusinessHours] = useState(false);
   const [theme, setTheme] = useState(() => {
@@ -77,6 +79,7 @@ export default function ControlDashboard() {
 
   const tabs = [
     { id: "reddit_radar", label: "Reddit Interceptor", icon: Radio, count: "Live Queue" },
+    { id: "marketing_agent", label: "Marketing Agent", icon: Bot, count: "Skeleton" },
     { id: "scripts", label: "Scripts & Outreach", icon: Terminal, count: "12 Scripts" },
     { id: "posthog_audits", label: "PostHog Audits & AI", icon: Eye, count: "UX Audits" },
     { id: "user_evolution", label: "User Evolution & Retention", icon: Users, count: "Repeat Cohorts" },
@@ -121,13 +124,13 @@ export default function ControlDashboard() {
         </div>
 
         {/* Center Tabs Navigation - Matches VeloTime App Segmented Nav */}
-        <div className="hidden md:flex flex-1 justify-center max-w-4xl px-4">
-          <nav className="flex w-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
+        <div className="hidden md:flex flex-1 justify-center max-w-6xl px-4">
+          <nav className="flex w-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 px-4 py-2 font-semibold text-xs border-r border-slate-300 dark:border-zinc-700 last:border-r-0 transition-colors flex items-center justify-center gap-1.5 ${
+                className={`flex-1 px-3 py-2 font-semibold text-xs border-r border-slate-300 dark:border-zinc-700 last:border-r-0 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100"
                     : "text-slate-600 dark:text-slate-400 hover:bg-white dark:bg-zinc-900 hover:text-slate-900 dark:text-slate-100"
@@ -198,6 +201,7 @@ export default function ControlDashboard() {
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
         {activeTab === "reddit_radar" && <RedditRadarConsole />}
+        {activeTab === "marketing_agent" && <MarketingAgentConsole />}
         {activeTab === "scripts" && <ScriptsConsole />}
         {activeTab === "posthog_audits" && <PostHogAudits />}
         {activeTab === "user_evolution" && <UserEvolution />}
