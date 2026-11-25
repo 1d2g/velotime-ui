@@ -131,6 +131,13 @@ export default function MarketingAgentConsole() {
 
   const hasLoadedRemoteRef = useRef(false);
   const saveTimerRef = useRef(null);
+  const pulsePollTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (pulsePollTimerRef.current) clearInterval(pulsePollTimerRef.current);
+    };
+  }, []);
 
   const authFetch = useCallback(
     async (path, options = {}) => {
@@ -226,22 +233,53 @@ export default function MarketingAgentConsole() {
 
   const handleRunPulse = async (pulseMode = "full") => {
     if (backendStatus !== "connected" || isPulsing) return;
+    if (pulsePollTimerRef.current) {
+      clearInterval(pulsePollTimerRef.current);
+      pulsePollTimerRef.current = null;
+    }
     setIsPulsing(true);
     setSyncNotice(
       pulseMode === "deep_strategy"
-        ? "Running Frontier Strategy pulse (Carbon) + web grounding..."
-        : "Running pollers + Hydrogen triage -> Neon CMO check..."
+        ? "Deep Strategy pulse (Carbon) started in background - polling every 5s..."
+        : "Pulse (Hydrogen triage -> Neon CMO) started in background - polling every 5s..."
     );
     try {
       const res = await authFetch("/api/control/marketing-agent/pulse", {
         method: "POST",
         body: JSON.stringify({ mode: pulseMode }),
       });
+
+      if (res.accepted) {
+        await refreshBackendState();
+        let polls = 0;
+        pulsePollTimerRef.current = setInterval(async () => {
+          polls += 1;
+          try {
+            const latest = await authFetch("/api/control/marketing-agent/state");
+            applyRemoteState(latest);
+            const topRun = Array.isArray(latest.runs) ? latest.runs[0] : null;
+            if ((topRun && topRun.status !== "running") || polls >= 36) {
+              clearInterval(pulsePollTimerRef.current);
+              pulsePollTimerRef.current = null;
+              setIsPulsing(false);
+              setSyncNotice(topRun?.summary || "Pulse completed");
+            }
+          } catch {
+            if (polls >= 36) {
+              clearInterval(pulsePollTimerRef.current);
+              pulsePollTimerRef.current = null;
+              setIsPulsing(false);
+            }
+          }
+        }, 5000);
+        return;
+      }
+
       if (res.state) applyRemoteState(res.state);
       setSyncNotice(res.result?.run?.summary || "Pulse completed");
+      setIsPulsing(false);
     } catch (err) {
       setSyncNotice(`Pulse error: ${err.message}`);
-    } finally {
       setIsPulsing(false);
     }
   };
