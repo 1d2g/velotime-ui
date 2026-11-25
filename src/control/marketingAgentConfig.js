@@ -190,7 +190,7 @@ export const DEFAULT_AGENT_CONFIG = {
     deepModel: "gemini-4-neon",
     deepThinkingLevel: "high",
     frontierModel: "gemini-4-carbon",
-    frontierThinkingLevel: "high",
+    frontierThinkingLevel: "medium",
     enableGoogleSearchGrounding: true,
     autoEscalateToFrontierOnZeroProgress: true,
   },

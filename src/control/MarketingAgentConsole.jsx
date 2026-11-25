@@ -1485,11 +1485,12 @@ export default function MarketingAgentConsole() {
                   aria-label="Frontier model"
                 />
                 <select
-                  value={config.modelRouting?.frontierThinkingLevel || "high"}
+                  value={config.modelRouting?.frontierThinkingLevel || "medium"}
                   onChange={(e) => updateModelRouting("frontierThinkingLevel", e.target.value)}
                   className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
                   aria-label="Frontier thinking level"
                 >
+                  <option value="medium">Thinking: medium</option>
                   <option value="high">Thinking: high</option>
                   <option value="xhigh">Thinking: xhigh</option>
                 </select>
