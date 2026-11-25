@@ -184,6 +184,16 @@ export const SAMPLE_APPROVAL_CARDS = [
 export const DEFAULT_AGENT_CONFIG = {
   runtimeStatus: "phase1_backbone",
   autonomyMode: "human_in_loop",
+  modelRouting: {
+    fastModel: "gemini-4-hydrogen",
+    fastThinkingLevel: "low",
+    deepModel: "gemini-4-neon",
+    deepThinkingLevel: "high",
+    frontierModel: "gemini-4-carbon",
+    frontierThinkingLevel: "high",
+    enableGoogleSearchGrounding: true,
+    autoEscalateToFrontierOnZeroProgress: true,
+  },
   exploreExploitSplit: {
     exploitPct: 70,
     explorePct: 30,

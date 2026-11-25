@@ -65,6 +65,10 @@ function mergeConfig(parsed) {
   return {
     ...DEFAULT_AGENT_CONFIG,
     ...p,
+    modelRouting: {
+      ...DEFAULT_AGENT_CONFIG.modelRouting,
+      ...(p.modelRouting || {}),
+    },
     exploreExploitSplit: {
       ...DEFAULT_AGENT_CONFIG.exploreExploitSplit,
       ...(p.exploreExploitSplit || {}),
@@ -220,14 +224,18 @@ export default function MarketingAgentConsole() {
     }
   };
 
-  const handleRunPulse = async () => {
+  const handleRunPulse = async (pulseMode = "full") => {
     if (backendStatus !== "connected" || isPulsing) return;
     setIsPulsing(true);
-    setSyncNotice("Running deterministic pollers + Scout/CMO check...");
+    setSyncNotice(
+      pulseMode === "deep_strategy"
+        ? "Running Frontier Strategy pulse (Carbon) + web grounding..."
+        : "Running pollers + Hydrogen triage -> Neon CMO check..."
+    );
     try {
       const res = await authFetch("/api/control/marketing-agent/pulse", {
         method: "POST",
-        body: JSON.stringify({ mode: "full" }),
+        body: JSON.stringify({ mode: pulseMode }),
       });
       if (res.state) applyRemoteState(res.state);
       setSyncNotice(res.result?.run?.summary || "Pulse completed");
@@ -236,6 +244,28 @@ export default function MarketingAgentConsole() {
     } finally {
       setIsPulsing(false);
     }
+  };
+
+  const handleRegisterDiscordCommands = async () => {
+    if (backendStatus !== "connected") return;
+    try {
+      const res = await authFetch("/api/control/marketing-agent/discord/register-commands", {
+        method: "POST",
+      });
+      setSyncNotice(`Registered ${res.count || 5} Discord slash commands (/status, /pause, /resume, /pulse, /strategize).`);
+    } catch (err) {
+      setSyncNotice(`Discord command registration failed: ${err.message}`);
+    }
+  };
+
+  const updateModelRouting = (field, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      modelRouting: {
+        ...prev.modelRouting,
+        [field]: value,
+      },
+    }));
   };
 
   const handleDecideLiveApproval = async (id, status) => {
@@ -589,17 +619,28 @@ export default function MarketingAgentConsole() {
 
             <button
               type="button"
-              onClick={handleRunPulse}
+              onClick={() => handleRunPulse("full")}
               disabled={backendStatus !== "connected" || isPulsing}
               className="px-3 py-2 text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-              title="Run deterministic pollers + optional LLM CMO synthesis now"
+              title="Run deterministic pollers + Hydrogen triage -> Neon CMO check"
             >
               {isPulsing ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <Play className="w-3.5 h-3.5" />
               )}
-              <span>{isPulsing ? "Pulsing..." : "Run Pulse Now"}</span>
+              <span>{isPulsing ? "Pulsing..." : "Run Pulse (Neon)"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleRunPulse("deep_strategy")}
+              disabled={backendStatus !== "connected" || isPulsing}
+              className="px-3 py-2 text-xs font-bold bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 border border-slate-900 dark:border-slate-300 flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+              title="Invoke frontier Carbon reasoning for deep GTM & new-channel exploration"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Deep Strategy (Carbon)</span>
             </button>
 
             <button
@@ -1332,6 +1373,118 @@ export default function MarketingAgentConsole() {
             </section>
           </div>
 
+          <section className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  3-Tier Gemini 4 Reasoning Router
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Uses fast Hydrogen for cheap signal triage, escalates to Neon for CMO planning, and invokes Carbon for deep GTM breakthroughs.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono text-slate-500">
+                Search Grounding: {config.modelRouting?.enableGoogleSearchGrounding ? "ON" : "OFF"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-2">
+                <div className="text-[10px] font-mono uppercase text-slate-500">
+                  Tier 1 &middot; Routine Triage
+                </div>
+                <input
+                  type="text"
+                  value={config.modelRouting?.fastModel || "gemini-4-hydrogen"}
+                  onChange={(e) => updateModelRouting("fastModel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Fast triage model"
+                />
+                <select
+                  value={config.modelRouting?.fastThinkingLevel || "low"}
+                  onChange={(e) => updateModelRouting("fastThinkingLevel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Fast thinking level"
+                >
+                  <option value="minimal">Thinking: minimal</option>
+                  <option value="low">Thinking: low</option>
+                  <option value="medium">Thinking: medium</option>
+                </select>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-2">
+                <div className="text-[10px] font-mono uppercase text-slate-500">
+                  Tier 2 &middot; Deep CMO Strategy
+                </div>
+                <input
+                  type="text"
+                  value={config.modelRouting?.deepModel || "gemini-4-neon"}
+                  onChange={(e) => updateModelRouting("deepModel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Deep strategy model"
+                />
+                <select
+                  value={config.modelRouting?.deepThinkingLevel || "high"}
+                  onChange={(e) => updateModelRouting("deepThinkingLevel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Deep thinking level"
+                >
+                  <option value="medium">Thinking: medium</option>
+                  <option value="high">Thinking: high</option>
+                  <option value="xhigh">Thinking: xhigh</option>
+                </select>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-2">
+                <div className="text-[10px] font-mono uppercase text-slate-500">
+                  Tier 3 &middot; Frontier GTM Overhaul
+                </div>
+                <input
+                  type="text"
+                  value={config.modelRouting?.frontierModel || "gemini-4-carbon"}
+                  onChange={(e) => updateModelRouting("frontierModel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Frontier model"
+                />
+                <select
+                  value={config.modelRouting?.frontierThinkingLevel || "high"}
+                  onChange={(e) => updateModelRouting("frontierThinkingLevel", e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 font-mono text-xs"
+                  aria-label="Frontier thinking level"
+                >
+                  <option value="high">Thinking: high</option>
+                  <option value="xhigh">Thinking: xhigh</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(config.modelRouting?.enableGoogleSearchGrounding)}
+                  onChange={(e) =>
+                    updateModelRouting("enableGoogleSearchGrounding", e.target.checked)
+                  }
+                  className="accent-rose-600 w-4 h-4"
+                />
+                <span>Enable native Google Search grounding on Neon/Carbon strategy runs</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(config.modelRouting?.autoEscalateToFrontierOnZeroProgress)}
+                  onChange={(e) =>
+                    updateModelRouting("autoEscalateToFrontierOnZeroProgress", e.target.checked)
+                  }
+                  className="accent-rose-600 w-4 h-4"
+                />
+                <span>Auto-escalate to Carbon when weekly progress stays flat</span>
+              </label>
+            </div>
+          </section>
+
           {liveRuns.length > 0 && (
             <section className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-5 space-y-2.5">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
@@ -1343,10 +1496,15 @@ export default function MarketingAgentConsole() {
                     key={run.id}
                     className="p-3 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                   >
-                    <div>
-                      <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 mr-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
                         {run.status}
                       </span>
+                      {run.metrics?.modelUsed && (
+                        <span className="font-mono text-[10px] px-1.5 py-0.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900">
+                          {run.metrics.modelUsed}
+                        </span>
+                      )}
                       <span className="text-slate-800 dark:text-slate-200">{run.summary}</span>
                     </div>
                     <span className="text-[10px] font-mono text-slate-500 shrink-0">
@@ -1622,12 +1780,29 @@ export default function MarketingAgentConsole() {
           </div>
 
           <section className="bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 p-5 space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-              Discord Escalation Routing Matrix
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Interactions endpoint ready at <code className="font-mono">/api/webhooks/discord-interactions</code> (supports <code className="font-mono">/pause</code>, <code className="font-mono">/resume</code>, <code className="font-mono">/status</code>, <code className="font-mono">/pulse</code>, and Approve/Reject buttons).
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  Discord Escalation Routing Matrix
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Interactions endpoint ready at <code className="font-mono">/api/webhooks/discord-interactions</code> (supports <code className="font-mono">/pause</code>, <code className="font-mono">/resume</code>, <code className="font-mono">/status</code>, <code className="font-mono">/pulse</code>, <code className="font-mono">/strategize</code>, and Approve/Reject buttons).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRegisterDiscordCommands}
+                disabled={
+                  backendStatus !== "connected" ||
+                  !capabilities?.discordBot ||
+                  !capabilities?.discordApplicationId
+                }
+                className="px-3 py-1.5 text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 cursor-pointer disabled:opacity-40 shrink-0"
+                title="Register global slash commands in Discord once DISCORD_APPLICATION_ID & DISCORD_BOT_TOKEN are set"
+              >
+                Register Discord Slash Commands
+              </button>
+            </div>
             <div className="divide-y divide-slate-200 dark:divide-zinc-800 border border-slate-200 dark:border-zinc-800">
               {config.discordEscalationRules.map((rule) => (
                 <div
