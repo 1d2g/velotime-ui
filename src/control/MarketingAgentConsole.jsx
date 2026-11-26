@@ -58,6 +58,69 @@ const CHANNEL_MODE_STYLES = {
     "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-zinc-700",
 };
 
+function ReasoningTraceDetails({
+  thoughtSummary,
+  searchQueries = [],
+  groundingSources = [],
+  triageReason,
+}) {
+  const queries = Array.isArray(searchQueries) ? searchQueries.filter(Boolean) : [];
+  const sources = Array.isArray(groundingSources) ? groundingSources.filter((s) => s?.uri) : [];
+  if (!thoughtSummary && queries.length === 0 && sources.length === 0 && !triageReason) {
+    return null;
+  }
+  return (
+    <details className="mt-2 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+      <summary className="px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+        Thought Process &amp; Search Sources
+        {sources.length > 0 ? ` (${sources.length} sources)` : ""}
+      </summary>
+      <div className="px-2.5 pb-2.5 pt-1.5 border-t border-slate-200 dark:border-zinc-800 space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
+        {triageReason && (
+          <div>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Routing Note:</span>{" "}
+            {triageReason}
+          </div>
+        )}
+        {thoughtSummary && (
+          <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed max-h-60 overflow-y-auto text-slate-700 dark:text-slate-300">
+            {thoughtSummary}
+          </pre>
+        )}
+        {queries.length > 0 && (
+          <div className="space-y-0.5">
+            <div className="text-[10px] font-mono uppercase text-slate-500">Search Queries</div>
+            <ul className="list-disc list-inside font-mono text-[10px] text-slate-600 dark:text-slate-400 space-y-0.5">
+              {queries.map((q, idx) => (
+                <li key={`${q}-${idx}`}>{q}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {sources.length > 0 && (
+          <div className="space-y-0.5">
+            <div className="text-[10px] font-mono uppercase text-slate-500">Grounding Sources</div>
+            <ul className="list-disc list-inside text-[11px] space-y-0.5">
+              {sources.map((src, idx) => (
+                <li key={`${src.uri}-${idx}`}>
+                  <a
+                    href={src.uri}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-slate-900 dark:hover:text-slate-200 break-all"
+                  >
+                    {src.title || src.uri}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
 const EXPERIMENT_STATUS_OPTIONS = ["proposed", "queued", "testing", "paused"];
 
 function mergeConfig(parsed) {
@@ -1057,6 +1120,12 @@ export default function MarketingAgentConsole() {
                       <p><strong>7-Day Test:</strong> {memo.payload?.mvpTest}</p>
                       <p><strong>Kill Criteria:</strong> {memo.payload?.killCriteria}</p>
                     </div>
+                    <ReasoningTraceDetails
+                      thoughtSummary={memo.payload?.thoughtSummary}
+                      searchQueries={memo.payload?.searchQueries}
+                      groundingSources={memo.payload?.groundingSources}
+                      triageReason={memo.payload?.triageReason}
+                    />
                   </div>
                   {memo.status === "pending" && backendStatus === "connected" && (
                     <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200 dark:border-zinc-800">
@@ -1147,6 +1216,12 @@ export default function MarketingAgentConsole() {
                     <p className="text-[11px] font-mono text-slate-500 pt-1">
                       Setup: {req.setupSteps || req.payload?.setupSteps}
                     </p>
+                    <ReasoningTraceDetails
+                      thoughtSummary={req.payload?.thoughtSummary}
+                      searchQueries={req.payload?.searchQueries}
+                      groundingSources={req.payload?.groundingSources}
+                      triageReason={req.payload?.triageReason}
+                    />
                   </div>
                 )
               )}
@@ -1533,22 +1608,30 @@ export default function MarketingAgentConsole() {
                 {liveRuns.slice(0, 8).map((run) => (
                   <div
                     key={run.id}
-                    className="p-3 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                    className="p-3 bg-slate-50 dark:bg-zinc-950 flex flex-col gap-1.5 text-xs"
                   >
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
-                        {run.status}
-                      </span>
-                      {run.metrics?.modelUsed && (
-                        <span className="font-mono text-[10px] px-1.5 py-0.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900">
-                          {run.metrics.modelUsed}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700">
+                          {run.status}
                         </span>
-                      )}
-                      <span className="text-slate-800 dark:text-slate-200">{run.summary}</span>
+                        {run.metrics?.modelUsed && (
+                          <span className="font-mono text-[10px] px-1.5 py-0.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900">
+                            {run.metrics.modelUsed}
+                          </span>
+                        )}
+                        <span className="text-slate-800 dark:text-slate-200">{run.summary}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-500 shrink-0">
+                        {run.trigger_type} &middot; {new Date(run.created_at).toLocaleString()}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-500 shrink-0">
-                      {run.trigger_type} &middot; {new Date(run.created_at).toLocaleString()}
-                    </span>
+                    <ReasoningTraceDetails
+                      thoughtSummary={run.metrics?.thoughtSummary}
+                      searchQueries={run.metrics?.searchQueries}
+                      groundingSources={run.metrics?.groundingSources}
+                      triageReason={run.metrics?.triageReason}
+                    />
                   </div>
                 ))}
               </div>
