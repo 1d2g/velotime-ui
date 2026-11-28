@@ -52,17 +52,11 @@ export function isTrustedEntryOrReturning() {
   try {
     const params = new URLSearchParams(window.location.search || "");
     const trustedKeys = [
-      "mode",
-      "source",
-      "utm_source",
       "gclid",
       "gad_source",
       "gbraid",
       "wbraid",
-      "trial",
-      "company",
       "mobile_auth",
-      "ref",
     ];
     if (trustedKeys.some((k) => params.has(k))) {
       return true;
